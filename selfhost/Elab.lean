@@ -1,7 +1,7 @@
 import Lean
 import Lean2js.Kernel
 import Lean2js.CodegenIR
-import Lean2js.Session   -- its `lean2js_session_*` exports are used by the interactive web demo (web/selfhost/demo.html)
+import Lean2js.Info      -- (imports Lean2js.Session) its `lean2js_session_*` exports are used by the web demos and tests
 open Lean Elab
 
 /-!

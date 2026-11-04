@@ -1,0 +1,14 @@
+cursor 2:13
+2 goals
+case left
+p q : Prop
+hp : p
+hq : q
+⊢ q
+case right
+p q : Prop
+hp : p
+hq : q
+⊢ p
+Other messages
+11:0: 42

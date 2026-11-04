@@ -1,9 +1,10 @@
 #!/bin/sh
 # Runs the pages of web/selfhost in headless Chrome (needs `web/selfhost/build.sh` first) and compares what they print with the expected output:
 #   1. index.html (the editor page): its default program,
-#   2. demo.html (script + data.json + console): runs the stats script, evaluates some console lines.
+#   2. demo.html (script + data.json + console): runs the stats script, evaluates some console lines,
+#   3. infoview.html (editor + infoview of the goals at the cursor): cursor after `constructor` → two goals.
 # Starts a local server and a private Chrome instance per page and closes them (through the DevTools protocol / pid).
-# Usage: web/selfhost/test-browser.sh [chrome-binary]        (takes about 1.5 minutes)
+# Usage: web/selfhost/test-browser.sh [chrome-binary]        (takes about 2 minutes)
 cd "$(dirname "$0")" || exit 1
 chrome=${1:-google-chrome}
 port=8731; dbg=9731
@@ -31,4 +32,5 @@ page_test() {
 
 page_test index 'index.html?autorun&report' expected/index.txt
 page_test demo 'demo.html?autorun&report&console=main&console=mean%20%23%5B1.0%2C%202.0%2C%206.0%5D&console=def%20twice%20(x%20%3A%20Nat)%20%3A%3D%202%20*%20x&console=twice%2021&console=nosuchname' expected/demo.txt
+page_test infoview 'infoview.html?autorun&report&cursor=1:13' expected/infoview.txt
 exit $status

@@ -14,6 +14,10 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
+* **2026-11-05 (night 2) — a browser infoview.** `web/selfhost/infoview.html`: an editor and a panel with the goals, the expected type and the messages at the cursor (or, in prefix mode, for the text
+  before the cursor), computed by the Lean frontend running in the page (`Lean2js/Info.lean`, ~65 ms per request after the one-time `Init` import). The answers are identical to the real language server's
+  `$/lean/plainGoal` / `$/lean/plainTermGoal` on the test cases (`tests/info/run.sh`) and the page is checked in headless Chrome ([info-007](docs/tickets/info-007-web-ui.md)).
+
 * Promise-drop investigation closed: 38-file corpus identical to native with 0 guesses ([self-010](docs/tickets/self-010-promise-drop-heuristic.md)).
 * **2026-11-05 (last) — infoview started; filed demo-002 (real LSP server + live infoview in the demo, after the self-* tickets).** `Lean2js/Info.lean` (goals / term goal / messages at a position, prefix and cursor mode) works, identical natively and in JS, and identical to the real language server's `$/lean/plainGoal` / `$/lean/plainTermGoal` on 9 test cases (`tests/info/run.sh`, part of `test.sh`). The olean loader now uses ~40% less external memory (RSS ≈ 2.6 GB, [self-008](docs/tickets/self-008-bundle-startup-size.md)) ([info-004](docs/tickets/info-004-infotree-goals.md)).
 

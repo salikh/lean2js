@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lean infoview in the browser</title>
+<style>
+  :root { --bg: #fff; --fg: #1b1b1b; --pane: #f4f4f4; --accent: #2a6; --err: #c33; --warn: #b80; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1b1b1b; --fg: #ddd; --pane: #262626; --err: #f77; --warn: #db4; } }
+  body { font: 14px/1.4 system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--fg); }
+  header { padding: .5rem 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  h1 { font-size: 1.1rem; margin: 0; }
+  main { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; padding: 0 1rem 1rem; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  textarea, .box { font: 13px/1.4 ui-monospace, monospace; background: var(--pane); color: var(--fg); border: 1px solid #8884; padding: .5rem; box-sizing: border-box; }
+  textarea { width: 100%; height: 70vh; resize: vertical; }
+  .box { min-height: 70vh; overflow: auto; }
+  pre { margin: 0 0 .6rem; white-space: pre-wrap; }
+  h3 { margin: .6rem 0 .2rem; font-size: .85rem; opacity: .8; }
+  .goal { border-left: 3px solid var(--accent); padding-left: .5rem; }
+  .term { border-left: 3px solid #58f; padding-left: .5rem; }
+  .error { color: var(--err); } .warning { color: var(--warn); }
+  .atcursor { border-left: 3px solid currentColor; padding-left: .5rem; }
+  #status { font-size: .85rem; opacity: .8; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Lean infoview</h1>
+  <label><input type="checkbox" id="prefix"> prefix mode (only the text before the cursor, as when writing a proof)</label>
+  <span id="status">loading …</span>
+</header>
+<main>
+  <textarea id="src" spellcheck="false" disabled></textarea>
+  <div class="box" id="info" aria-live="polite">Move the cursor in the editor.</div>
+</main>
+<script type="module">
+  import { loadProgram, newSession, sessionInfo, sessionInfoEnd } from "./driver.js";
+  const $ = (id) => document.getElementById(id);
+  const src = $("src"), info = $("info"), statusEl = $("status");
+  const params = new URLSearchParams(location.search);
+
+  const DEFAULT = `theorem and_swap (p q : Prop) (hp : p) (hq : q) : q ∧ p := by
+  constructor
+  · exact hq
+  · exact hp
+
+example (a b : Nat) (h : a = b) : b = a := by
+  have h2 : b = a := h.symm
+  exact h2
+
+def double (n : Nat) : Nat := n + n
+#eval double 21
+`;
+  // textarea offset (UTF-16) -> LSP position
+  function position(text, offset) {
+    const before = text.slice(0, offset);
+    const line = before.split("\n").length - 1;
+    return { line, character: offset - (before.lastIndexOf("\n") + 1) };
+  }
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+  function render(r) {
+    info.textContent = "";
+    info.append(el("h3", null, `cursor ${r.position.line + 1}:${r.position.character}`));
+    if (r.goals.length) { info.append(el("h3", null, r.goals.length === 1 ? "Goal" : `${r.goals.length} goals`)); for (const g of r.goals) info.append(el("pre", "goal", g)); }
+    else if (r.rendered === "no goals") info.append(el("h3", null, "No goals"));
+    if (r.termGoal) { info.append(el("h3", null, "Expected type")); info.append(el("pre", "term", r.termGoal.goal)); }
+    const msgs = r.messages.filter((m) => m.atCursor);
+    const other = r.messages.filter((m) => !m.atCursor);
+    if (msgs.length) { info.append(el("h3", null, "Messages here")); for (const m of msgs) info.append(el("pre", `${m.severity} atcursor`, m.text)); }
+    if (other.length) { info.append(el("h3", null, "Other messages")); for (const m of other) info.append(el("pre", m.severity, `${m.range.start.line + 1}:${m.range.start.character}: ${m.text}`)); }
+  }
+
+  statusEl.textContent = "loading the Lean frontend …";
+  const manifest = await (await fetch("./files.json")).json();
+  await loadProgram({ files: manifest.files, root: manifest.root, onStatus: (s) => { statusEl.textContent = s; } });
+  statusEl.textContent = "importing Init …";
+  await new Promise((r) => setTimeout(r, 30));
+  const session = newSession();
+  src.value = DEFAULT; src.disabled = false;
+  statusEl.textContent = "ready";
+
+  let timer = null, busy = false;
+  function update() {
+    if (busy) return;
+    busy = true;
+    const text = src.value, offset = src.selectionStart;
+    const t0 = performance.now();
+    try {
+      const r = $("prefix").checked ? sessionInfoEnd(session, text.slice(0, offset)) : (({ line, character }) => sessionInfo(session, text, line, character))(position(text, offset));
+      render(r);
+      statusEl.textContent = `info in ${(performance.now() - t0).toFixed(0)} ms`;
+      window.__last = r;
+    } catch (e) { info.textContent = String(e.message || e); }
+    busy = false;
+  }
+  const schedule = () => { clearTimeout(timer); timer = setTimeout(update, 150); };
+  for (const ev of ["keyup", "click", "input", "select"]) src.addEventListener(ev, schedule);
+  $("prefix").addEventListener("change", schedule);
+  document.addEventListener("selectionchange", () => { if (document.activeElement === src) schedule(); });
+
+  window.infoview = { update, set(text, offset, prefix) { src.value = text; src.setSelectionRange(offset, offset); $("prefix").checked = !!prefix; update(); return window.__last; } };
+  if (params.has("autorun")) {                                  // headless test: put the cursor at `cursor=<line>:<col>` (0-based), report the rendered infoview
+    const [l, c] = (params.get("cursor") ?? "1:13").split(":").map(Number);
+    const lines = src.value.split("\n");
+    let offset = c; for (let i = 0; i < l; i++) offset += lines[i].length + 1;
+    src.setSelectionRange(offset, offset);
+    update();
+    if (params.has("report")) await fetch("/report", { method: "POST", body: JSON.stringify({ code: 0, out: info.innerText.replace(/\n+/g, "\n").trim() + "\n", seconds: performance.now() / 1000 }) });
+  }
+</script>
+</body>
+</html>
