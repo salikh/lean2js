@@ -2,6 +2,8 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-05 — [info-008-tests](tickets/info-008-tests.md): oracle against native `lean --server` (`tests/info/`), 9 cases identical; `Lean2js.Info` uses the server's snapshot-tree goal selection; `tests/e2e/infocases.lean`.
+
 * 2026-11-05 — [demo-002-lsp-infoview-in-demo](tickets/demo-002-lsp-infoview-in-demo.md) filed (real LSP server + live infoview in demo.html; after the self-* tickets).
 
 * 2026-11-05 — [demo-001-interactive-web-app](tickets/demo-001-interactive-web-app.md): `Lean2js/Session.lean` (persistent elaboration session API), `web/selfhost/demo.html` (script + data.json + evaluating console), `rt.runInitializers()`, `rt.errorMessage`, browser test for both pages.

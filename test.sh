@@ -2,7 +2,8 @@
 # Runs all tests:
 #   1. lcnf-dump golden tests              (tests/run.sh)
 #   2. demo programs: `lean --run` vs. the native binary vs. the compiled JavaScript under node (stdout and exit code must be identical)
-#   3. end-to-end differential tests       (tests/e2e/run.sh; programs in tests/e2e/*.lean)
+#   3. infoview: Lean2js.Info vs. the native language server (tests/info/run.sh)
+#   4. end-to-end differential tests       (tests/e2e/run.sh; programs in tests/e2e/*.lean)
 # Usage: ./test.sh [--quick] [--update]
 #   --quick   skip the slow e2e tests that transpile all of `Lean` (those with a .flags file, e.g. mvars, import)
 #   --update  regenerate the lcnf-dump golden files
@@ -34,6 +35,9 @@ for src in demo/*.lean; do
   if [ $erc -eq $arc ] && cmp -s "out/demo/$n.expected" "out/demo/$n.actual" && [ $erc -eq $nrc ] && cmp -s "out/demo/$n.expected" "out/demo/$n.native"; then echo "ok: $src"
   else echo "FAIL: $src (exit interpreter=$erc js=$arc binary=$nrc)"; diff "out/demo/$n.expected" "out/demo/$n.actual" | head -5; status=1; fi
 done
+
+echo "== infoview vs. the native language server"
+tests/info/run.sh || status=1
 
 echo "== end-to-end tests (native lean vs. compiled JavaScript)"
 names=""

@@ -31,37 +31,92 @@ private def rangeJson (text : FileMap) (r : Lsp.Range) : Json := Json.mkObj
 private def severityName : MessageSeverity → String
   | .information => "information" | .warning => "warning" | .error => "error"
 
+open Language in
+/-- The first command snapshot whose range (with trailing whitespace) contains `hoverPos` (cf. `Lean.Language.Lean.findCmdParsedSnap`). -/
+private partial def findCmd (first : Lean.Language.Lean.CommandParsedSnapshot) (text : FileMap) (hoverPos : String.Pos.Raw) :
+    Option Lean.Language.Lean.CommandParsedSnapshot :=
+  let contains (c : Lean.Language.Lean.CommandParsedSnapshot) : Bool :=
+    match c.stx.getRangeWithTrailing? (canonicalOnly := true) with
+    | some range => text.rangeContainsHoverPos range hoverPos (includeStop := false)
+    | none => false
+  let isAfter (c : Lean.Language.Lean.CommandParsedSnapshot) : Bool :=
+    match c.stx.getPos? (canonicalOnly := true) with
+    | some startPos => hoverPos < startPos
+    | none => false
+  let rec go (c : Lean.Language.Lean.CommandParsedSnapshot) : Option Lean.Language.Lean.CommandParsedSnapshot :=
+    if contains c then some c
+    else if isAfter c then none
+    else match c.nextCmdSnap? with
+      | some next => go next.task.get
+      | none => none
+  go first
+
+open Language in
+/-- The goals at `hoverPos`: the language server's `findGoalsAt?` (Lean/Server/FileWorker/RequestHandling.lean) on the snapshot tree of the command. -/
+private def findGoalsAt (cmdParsed : Lean.Language.Lean.CommandParsedSnapshot) (text : FileMap) (hoverPos : String.Pos.Raw) :
+    List GoalsAtResult :=
+  let getPositions (stx : Syntax) : Option (String.Pos.Raw × String.Pos.Raw × String.Pos.Raw) := do
+    let pos ← stx.getPos? (canonicalOnly := true)
+    let tailPos ← stx.getTailPos? (canonicalOnly := true)
+    let trailingPos? ← stx.getTrailingTailPos? (canonicalOnly := true)
+    return (pos, tailPos, trailingPos?)
+  let t := toSnapshotTree cmdParsed.elabSnap |>.foldSnaps [] fun snap oldGoals => Id.run do
+    let some stx := snap.stx?
+      | return .pure (oldGoals, .proceed (foldChildren := false))
+    let some (pos, tailPos, trailingPos) := getPositions stx
+      | return .pure (oldGoals, .proceed (foldChildren := true))
+    let snapRange : Lean.Syntax.Range := ⟨pos, trailingPos⟩
+    let hasNoTrailingWhitespace := tailPos == trailingPos
+    if ! text.rangeContainsHoverPos snapRange hoverPos (includeStop := hasNoTrailingWhitespace) then
+      return .pure (oldGoals, .proceed (foldChildren := false))
+    return snap.task.map (sync := true) fun tree => Id.run do
+      let some infoTree := tree.element.infoTree?
+        | return (oldGoals, .proceed (foldChildren := true))
+      let goals := infoTree.goalsAt? text hoverPos
+      let optimalSnapRange : Lean.Syntax.Range := ⟨pos, tailPos⟩
+      let isOptimalGoalSet :=
+        text.rangeContainsHoverPos optimalSnapRange hoverPos (includeStop := hasNoTrailingWhitespace)
+          || goals.any fun goal => ! goal.indented
+      if isOptimalGoalSet then
+        return (goals, .done)
+      return (goals, .proceed (foldChildren := true))
+  t.get
+
+open Language in
+/-- The term goal at `hoverPos` (the language server's `getInteractiveTermGoal` lookup). -/
+private def findTermGoalTree (cmdParsed : Lean.Language.Lean.CommandParsedSnapshot) (text : FileMap) (hoverPos : String.Pos.Raw) :
+    Option Elab.InfoTree :=
+  match (toSnapshotTree cmdParsed.elabSnap |>.findInfoTreeAtPos text hoverPos (includeStop := true)).get with
+  | some t => some t
+  | none => cmdParsed.elabSnap.infoTreeSnap.task.get.infoTree?
+
 /-- The info at byte position `pos` of `source` (elaborated in the session's environment; the session is not modified). -/
 def infoAtPos (s : Session) (source : String) (pos : String.Pos.Raw) : IO Json := do
   let inputCtx := Parser.mkInputContext source "<info>"
   let text := inputCtx.fileMap
-  let st ← IO.processCommands inputCtx {} { s.cmdState with messages := {} }
-  let trees := st.commandState.infoState.trees.toList
+  let inc ← IO.processCommandsIncrementally inputCtx {} { s.cmdState with messages := {} } none
+  let st := inc.toState
+  let cmd? := findCmd inc.initialSnap text pos
   -- goals
-  let mut goalRes : List GoalsAtResult := []
-  for t in trees do
-    let rs := t.goalsAt? text pos
-    unless rs.isEmpty do
-      goalRes := rs
-      break
+  let goalRes := match cmd? with | some c => findGoalsAt c text pos | none => []
   let goals ← renderGoals goalRes
   let rendered :=
     if goalRes.isEmpty then "" else if goals.isEmpty then "no goals"
     else String.intercalate "\n---\n" (goals.toList.map fun g => s!"```lean\n{g}\n```")
   -- term goal
   let mut termGoal : Json := Json.null
-  for t in trees do
-    if let some { ctx := ci, info := i@(Info.ofTermInfo ti), .. } := t.termGoalAt? pos then
-      let ty ← ci.runMetaM i.lctx do
-        instantiateMVars <| ti.expectedType?.getD (← Meta.inferType ti.expr)
-      let lctx' := if ti.isBinder then i.lctx.pop else i.lctx
-      let goal ← ci.runMetaM lctx' do
-        Widget.goalToInteractive (← Meta.mkFreshExprMVar ty).mvarId!
-      let range := match i.range? with
-        | some r => rangeJson text (r.toLspRange text)
-        | none => Json.null
-      termGoal := Json.mkObj [("goal", toString goal.pretty), ("range", range)]
-      break
+  if let some c := cmd? then
+    if let some t := findTermGoalTree c text pos then
+      if let some { ctx := ci, info := i@(Info.ofTermInfo ti), .. } := t.termGoalAt? pos then
+        let ty ← ci.runMetaM i.lctx do
+          instantiateMVars <| ti.expectedType?.getD (← Meta.inferType ti.expr)
+        let lctx' := if ti.isBinder then i.lctx.pop else i.lctx
+        let goal ← ci.runMetaM lctx' do
+          Widget.goalToInteractive (← Meta.mkFreshExprMVar ty).mvarId!
+        let range := match i.range? with
+          | some r => rangeJson text (r.toLspRange text)
+          | none => Json.null
+        termGoal := Json.mkObj [("goal", toString goal.pretty), ("range", range)]
   -- messages: all of them, flagged when their range contains the position
   let mut msgs : Array Json := #[]
   for m in st.commandState.messages.toList do
