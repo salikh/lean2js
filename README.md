@@ -14,7 +14,7 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
-* **2026-11-05 (last) — infoview started.** `Lean2js/Info.lean` (goals / term goal / messages at a position, prefix and cursor mode) compiles; it is untested so far ([info-004](docs/tickets/info-004-infotree-goals.md)).
+* **2026-11-05 (last) — infoview started.** `Lean2js/Info.lean` (goals / term goal / messages at a position, prefix and cursor mode) works, identical natively and in JS (`tests/e2e/info.lean`); not yet compared with the language server's responses ([info-004](docs/tickets/info-004-infotree-goals.md)).
 
 * **2026-11-05 (late) — interactive demo.** `web/selfhost/demo.html`: a Lean script pane, a `data.json` pane (visible to the script as the file `data.json`) and a console that shows the script's
   output and **evaluates what you type** — `main`, `mean #[1.0, 2.0, 6.0]`, `def …`, any `IO` action — in a persistent Lean session (`Lean2js/Session.lean`). The default example computes count/mean/min/max/stdev of the
