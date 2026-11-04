@@ -1,12 +1,12 @@
-# demo.html with the real LSP server and a live infoview
+# lsp.html: the real LSP server and a live infoview (a new page based on demo.html)
 
 Parent: [demo-001](demo-001-interactive-web-app.md), [info-001](info-001-infoview-epic.md)
 Status: **filed 2026-11-05 — implement after the remaining `self-*` tickets are complete** (user instruction)
 
 ## Request
 
-Embed the **actual Lean language server** into `web/selfhost/demo.html` and add an **infoview pane that updates when the cursor moves** in the editor pane
-(goals at the cursor, term goal, messages for the cursor; later hover).
+Create a **new page `web/selfhost/lsp.html`**, based on (a copy of) `demo.html`, that embeds the **actual Lean language server** and has an **infoview pane that updates when the cursor moves** in the editor pane
+(goals at the cursor, term goal, messages for the cursor; later hover). **`demo.html` stays as it is** (user instruction 2026-11-05): no edits to it for this ticket; shared code goes to modules (`driver.js`, a new `lsp.js`) that both pages may import.
 
 ## Relation to earlier decisions
 
@@ -24,9 +24,9 @@ two backends can coexist behind the same JSON shapes.
    while it keeps serving requests. In the single-threaded cooperative scheduler this needs **yielding to the host event loop**: elaboration jobs run in slices (between requests, between commands) so that the page
    stays responsive and requests (cursor moves) are served promptly; today a call runs to completion and freezes the page. Depends on [self-010](self-010-promise-drop-heuristic.md) (promise semantics) and benefits from
    [self-008](self-008-bundle-startup-size.md) (startup/memory).
-3. **Page.** Editor pane (textarea → CodeMirror/Monaco later) sending `didChange` on edits (debounced) and `plainGoal`/`plainTermGoal` requests on `selectionchange`/`keyup`/`click`; infoview pane showing the latest
-   response for the cursor, plus the message list; keep `data.json` and the console of demo-001. Messages also drive inline error markers.
-4. **Tests.** Scripted LSP transcripts through the in-memory transport compared with the native server's responses (info-008), a headless-Chrome test that moves the cursor and checks the infoview text.
+3. **Page `lsp.html`.** Editor pane (textarea → CodeMirror/Monaco later) sending `didChange` on edits (debounced) and `plainGoal`/`plainTermGoal` requests on `selectionchange`/`keyup`/`click`; infoview pane showing the latest
+   response for the cursor, plus the message list; keep `data.json` and the console of demo-001 (copied from `demo.html`). Messages also drive inline error markers.
+4. **Tests.** Scripted LSP transcripts through the in-memory transport compared with the native server's responses (info-008), a headless-Chrome test (extend `web/selfhost/test-browser.sh` with an `lsp` page test) that moves the cursor and checks the infoview text; `demo.html`'s existing test must keep passing unchanged.
 
 ## Risks
 
