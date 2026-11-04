@@ -9,3 +9,9 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 * Interpretation of Lean4 LCNF
 * Transpilation of Lean4 LCNF to Javascript
 * Compilation of Lean4 .cc code to wasm
+
+## Tools
+
+* `lake exe lcnf-dump FILE.lean [--phase base|mono|impure]` — elaborates a Lean file
+  and dumps its LCNF (compiler IR) as JSON. See [docs/design/lcnf-json.md](docs/design/lcnf-json.md).
+* `tests/run.sh` — golden tests for the above.

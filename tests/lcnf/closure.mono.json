@@ -1,0 +1,397 @@
+{"version": 1,
+ "phase": "mono",
+ "leanVersion": "4.35.0",
+ "file": "tests/lcnf/closure.lean",
+ "decls":
+ [{"value":
+   {"kind": "code",
+    "body":
+    {"value":
+     {"name": "Tree.ctorElim._redArg",
+      "levels": [],
+      "kind": "const",
+      "args":
+      [{"kind": "fvar", "id": "_uniq.3"}, {"kind": "fvar", "id": "_uniq.5"}]},
+     "type": "lcAny",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.6",
+     "body": {"var": "_uniq.6", "kind": "return"}}},
+   "type":
+   "forall {motive : lcErased}, Nat -> Tree -> lcErased -> lcAny -> lcAny",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "lcErased", "name": "motive", "id": "_uniq.1", "borrow": false},
+    {"type": "Nat", "name": "ctorIdx", "id": "_uniq.2", "borrow": false},
+    {"type": "Tree", "name": "t", "id": "_uniq.3", "borrow": false},
+    {"type": "lcErased", "name": "h", "id": "_uniq.4", "borrow": false},
+    {"type": "lcAny", "name": "k", "id": "_uniq.5", "borrow": false}],
+   "name": "Tree.ctorElim",
+   "levelParams": [],
+   "inline": "inline"},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"typeName": "Tree",
+     "resultType": "lcAny",
+     "kind": "cases",
+     "discr": "_uniq.1",
+     "alts":
+     [{"params": [],
+       "kind": "alt",
+       "ctor": "Tree.leaf",
+       "body": {"var": "_uniq.2", "kind": "return"}},
+      {"params":
+       [{"type": "Tree", "name": "a.1", "id": "_uniq.3", "borrow": false},
+        {"type": "Nat", "name": "a.2", "id": "_uniq.4", "borrow": false},
+        {"type": "Tree", "name": "a.3", "id": "_uniq.5", "borrow": false}],
+       "kind": "alt",
+       "ctor": "Tree.node",
+       "body":
+       {"value":
+        {"kind": "app",
+         "fn": "_uniq.2",
+         "args":
+         [{"kind": "fvar", "id": "_uniq.3"},
+          {"kind": "fvar", "id": "_uniq.4"},
+          {"kind": "fvar", "id": "_uniq.5"}]},
+        "type": "lcAny",
+        "name": "_x.4",
+        "kind": "let",
+        "id": "_uniq.6",
+        "body": {"var": "_uniq.6", "kind": "return"}}}]}},
+   "type": "Tree -> lcAny -> lcAny",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "Tree", "name": "t", "id": "_uniq.1", "borrow": false},
+    {"type": "lcAny", "name": "k", "id": "_uniq.2", "borrow": false}],
+   "name": "Tree.ctorElim._redArg",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"typeName": "Tree",
+     "resultType": "Nat",
+     "kind": "cases",
+     "discr": "_uniq.1",
+     "alts":
+     [{"params": [],
+       "kind": "alt",
+       "ctor": "Tree.leaf",
+       "body":
+       {"value": {"lit": {"value": 0, "kind": "nat"}, "kind": "lit"},
+        "type": "Nat",
+        "name": "_x.1",
+        "kind": "let",
+        "id": "_uniq.2",
+        "body": {"var": "_uniq.2", "kind": "return"}}},
+      {"params":
+       [{"type": "Tree", "name": "a.2", "id": "_uniq.3", "borrow": false},
+        {"type": "Nat", "name": "a.3", "id": "_uniq.4", "borrow": false},
+        {"type": "Tree", "name": "a.4", "id": "_uniq.5", "borrow": false}],
+       "kind": "alt",
+       "ctor": "Tree.node",
+       "body":
+       {"value": {"lit": {"value": 1, "kind": "nat"}, "kind": "lit"},
+        "type": "Nat",
+        "name": "_x.5",
+        "kind": "let",
+        "id": "_uniq.6",
+        "body": {"var": "_uniq.6", "kind": "return"}}}]}},
+   "type": "Tree -> Nat",
+   "safe": true,
+   "recursive": false,
+   "params": [{"type": "Tree", "name": "x", "id": "_uniq.1", "borrow": false}],
+   "name": "Tree.ctorIdx",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value":
+     {"name": "Tree.ctorElim._redArg",
+      "levels": [],
+      "kind": "const",
+      "args":
+      [{"kind": "fvar", "id": "_uniq.2"}, {"kind": "fvar", "id": "_uniq.4"}]},
+     "type": "lcAny",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.5",
+     "body": {"var": "_uniq.5", "kind": "return"}}},
+   "type": "forall {motive : lcErased}, Tree -> lcErased -> lcAny -> lcAny",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "lcErased", "name": "motive", "id": "_uniq.1", "borrow": false},
+    {"type": "Tree", "name": "t", "id": "_uniq.2", "borrow": false},
+    {"type": "lcErased", "name": "h", "id": "_uniq.3", "borrow": false},
+    {"type": "lcAny", "name": "leaf", "id": "_uniq.4", "borrow": false}],
+   "name": "Tree.leaf.elim",
+   "levelParams": [],
+   "inline": "inline"},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value":
+     {"name": "Tree.ctorElim._redArg",
+      "levels": [],
+      "kind": "const",
+      "args":
+      [{"kind": "fvar", "id": "_uniq.1"}, {"kind": "fvar", "id": "_uniq.2"}]},
+     "type": "lcAny",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.3",
+     "body": {"var": "_uniq.3", "kind": "return"}}},
+   "type": "Tree -> lcAny -> lcAny",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "Tree", "name": "t", "id": "_uniq.1", "borrow": false},
+    {"type": "lcAny", "name": "leaf", "id": "_uniq.2", "borrow": false}],
+   "name": "Tree.leaf.elim._redArg",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value":
+     {"name": "Tree.ctorElim._redArg",
+      "levels": [],
+      "kind": "const",
+      "args":
+      [{"kind": "fvar", "id": "_uniq.2"}, {"kind": "fvar", "id": "_uniq.4"}]},
+     "type": "lcAny",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.5",
+     "body": {"var": "_uniq.5", "kind": "return"}}},
+   "type":
+   "forall {motive : lcErased}, Tree -> lcErased -> (Tree -> Nat -> Tree -> lcAny) -> lcAny",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "lcErased", "name": "motive", "id": "_uniq.1", "borrow": false},
+    {"type": "Tree", "name": "t", "id": "_uniq.2", "borrow": false},
+    {"type": "lcErased", "name": "h", "id": "_uniq.3", "borrow": false},
+    {"type": "Tree -> Nat -> Tree -> lcAny",
+     "name": "node",
+     "id": "_uniq.4",
+     "borrow": false}],
+   "name": "Tree.node.elim",
+   "levelParams": [],
+   "inline": "inline"},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value":
+     {"name": "Tree.ctorElim._redArg",
+      "levels": [],
+      "kind": "const",
+      "args":
+      [{"kind": "fvar", "id": "_uniq.1"}, {"kind": "fvar", "id": "_uniq.2"}]},
+     "type": "lcAny",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.3",
+     "body": {"var": "_uniq.3", "kind": "return"}}},
+   "type": "Tree -> (Tree -> Nat -> Tree -> lcAny) -> lcAny",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "Tree", "name": "t", "id": "_uniq.1", "borrow": false},
+    {"type": "Tree -> Nat -> Tree -> lcAny",
+     "name": "node",
+     "id": "_uniq.2",
+     "borrow": false}],
+   "name": "Tree.node.elim._redArg",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"typeName": "Tree",
+     "resultType": "Nat",
+     "kind": "cases",
+     "discr": "_uniq.1",
+     "alts":
+     [{"params": [],
+       "kind": "alt",
+       "ctor": "Tree.leaf",
+       "body":
+       {"value": {"lit": {"value": 0, "kind": "nat"}, "kind": "lit"},
+        "type": "Nat",
+        "name": "_x.2",
+        "kind": "let",
+        "id": "_uniq.2",
+        "body": {"var": "_uniq.2", "kind": "return"}}},
+      {"params":
+       [{"type": "Tree", "name": "a.3", "id": "_uniq.3", "borrow": false},
+        {"type": "Nat", "name": "a.4", "id": "_uniq.4", "borrow": false},
+        {"type": "Tree", "name": "a.5", "id": "_uniq.5", "borrow": false}],
+       "kind": "alt",
+       "ctor": "Tree.node",
+       "body":
+       {"value":
+        {"name": "Tree.sum",
+         "levels": [],
+         "kind": "const",
+         "args": [{"kind": "fvar", "id": "_uniq.3"}]},
+        "type": "Nat",
+        "name": "_x.6",
+        "kind": "let",
+        "id": "_uniq.6",
+        "body":
+        {"value":
+         {"name": "Nat.add",
+          "levels": [],
+          "kind": "const",
+          "args":
+          [{"kind": "fvar", "id": "_uniq.6"},
+           {"kind": "fvar", "id": "_uniq.4"}]},
+         "type": "Nat",
+         "name": "_x.7",
+         "kind": "let",
+         "id": "_uniq.7",
+         "body":
+         {"value":
+          {"name": "Tree.sum",
+           "levels": [],
+           "kind": "const",
+           "args": [{"kind": "fvar", "id": "_uniq.5"}]},
+          "type": "Nat",
+          "name": "_x.8",
+          "kind": "let",
+          "id": "_uniq.8",
+          "body":
+          {"value":
+           {"name": "Nat.add",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.7"},
+             {"kind": "fvar", "id": "_uniq.8"}]},
+           "type": "Nat",
+           "name": "_x.9",
+           "kind": "let",
+           "id": "_uniq.9",
+           "body": {"var": "_uniq.9", "kind": "return"}}}}}}]}},
+   "type": "Tree -> Nat",
+   "safe": true,
+   "recursive": true,
+   "params":
+   [{"type": "Tree", "name": "x.1", "id": "_uniq.1", "borrow": false}],
+   "name": "Tree.sum",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value":
+     {"kind": "app",
+      "fn": "_uniq.1",
+      "args": [{"kind": "fvar", "id": "_uniq.2"}]},
+     "type": "Nat",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.3",
+     "body":
+     {"value":
+      {"kind": "app",
+       "fn": "_uniq.1",
+       "args": [{"kind": "fvar", "id": "_uniq.3"}]},
+      "type": "Nat",
+      "name": "_x.2",
+      "kind": "let",
+      "id": "_uniq.4",
+      "body": {"var": "_uniq.4", "kind": "return"}}}},
+   "type": "(Nat -> Nat) -> Nat -> Nat",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "Nat -> Nat", "name": "f", "id": "_uniq.1", "borrow": false},
+    {"type": "Nat", "name": "x", "id": "_uniq.2", "borrow": false}],
+   "name": "twice",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value":
+     {"name": "useTwice._lam_0",
+      "levels": [],
+      "kind": "const",
+      "args": [{"kind": "fvar", "id": "_uniq.1"}]},
+     "type": "Nat -> Nat",
+     "name": "_f.1",
+     "kind": "let",
+     "id": "_uniq.2",
+     "body":
+     {"value": {"lit": {"value": 3, "kind": "nat"}, "kind": "lit"},
+      "type": "Nat",
+      "name": "_x.2",
+      "kind": "let",
+      "id": "_uniq.3",
+      "body":
+      {"value":
+       {"name": "twice",
+        "levels": [],
+        "kind": "const",
+        "args":
+        [{"kind": "fvar", "id": "_uniq.2"}, {"kind": "fvar", "id": "_uniq.3"}]},
+       "type": "Nat",
+       "name": "_x.3",
+       "kind": "let",
+       "id": "_uniq.4",
+       "body": {"var": "_uniq.4", "kind": "return"}}}}},
+   "type": "Nat -> Nat",
+   "safe": true,
+   "recursive": false,
+   "params": [{"type": "Nat", "name": "k", "id": "_uniq.1", "borrow": false}],
+   "name": "useTwice",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value":
+     {"name": "Nat.mul",
+      "levels": [],
+      "kind": "const",
+      "args":
+      [{"kind": "fvar", "id": "_uniq.2"}, {"kind": "fvar", "id": "_uniq.1"}]},
+     "type": "Nat",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.3",
+     "body":
+     {"value": {"lit": {"value": 1, "kind": "nat"}, "kind": "lit"},
+      "type": "Nat",
+      "name": "_x.2",
+      "kind": "let",
+      "id": "_uniq.4",
+      "body":
+      {"value":
+       {"name": "Nat.add",
+        "levels": [],
+        "kind": "const",
+        "args":
+        [{"kind": "fvar", "id": "_uniq.3"}, {"kind": "fvar", "id": "_uniq.4"}]},
+       "type": "Nat",
+       "name": "_x.3",
+       "kind": "let",
+       "id": "_uniq.5",
+       "body": {"var": "_uniq.5", "kind": "return"}}}}},
+   "type": "Nat -> Nat -> Nat",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "Nat", "name": "k", "id": "_uniq.1", "borrow": false},
+    {"type": "Nat", "name": "n", "id": "_uniq.2", "borrow": false}],
+   "name": "useTwice._lam_0",
+   "levelParams": [],
+   "inline": null}]}

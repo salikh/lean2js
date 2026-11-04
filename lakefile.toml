@@ -8,3 +8,8 @@ name = "Lean2js"
 [[lean_exe]]
 name = "lean2js"
 root = "Main"
+
+[[lean_exe]]
+name = "lcnf-dump"
+root = "LcnfDump"
+supportInterpreter = true
