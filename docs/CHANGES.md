@@ -2,6 +2,9 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-04 — [self-001-compiler-to-js-epic](tickets/self-001-compiler-to-js-epic.md): new epic to compile the Lean
+  frontend to JS; feasibility probe (self-002) and subtickets self-003…009 created, no code changes.
+
 * 2026-11-04 — [js-013-question-ir-backend](tickets/js-013-question-ir-backend.md), [js-012](tickets/js-012-array-updates.md):
   new default IR backend (`Lean2js/CodegenIR.lean`, `runtime/lean_rt.js`) that translates Lean's final IR with
   reference counting; Array/structure updates are in place when exclusive (100k pushes: 55 s → 0.14 s).
