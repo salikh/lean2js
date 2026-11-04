@@ -16,6 +16,7 @@
 
 import { install as installExpr } from "./lean_expr.js";
 import { install as installFs } from "./lean_fs.js";
+import { parseRegion, freeRegion, sget, uget } from "./lean_olean.js";
 import { install as installNum } from "./lean_num.js";
 import { install as installSys } from "./lean_sys.js";
 
@@ -655,7 +656,7 @@ P.lean_ptr_addr = (a) => {
 };
 installNum(P, { bool });
 installSys(P, { inc, dec, ap, some, bool, unit, okR, errR, objId: (o) => P.lean_ptr_addr(o), P });
-installExpr(P, { inc, dec, ap, some, exports, mixHash: P.lean_uint64_mix_hash });
+installExpr(P, { inc, dec, ap, some, exports, mixHash: P.lean_uint64_mix_hash, sget });
 
 /* ---------- IO ---------- */
 
@@ -717,7 +718,9 @@ P.lean_get_stderr = () => { inc(curStreams.err); return curStreams.err; };
 P.lean_get_stdin = () => { inc(curStreams.in); return curStreams.in; };
 /** In-memory file system used instead of `fs` outside Node (path → Uint8Array); hosts may preload files. */
 export const vfs = new Map();
+export { sget, uget };
 installFs(P, { inc, dec, okR, errR, some, mkBytes, unit, nodeFs, vfs,
+  olean: { parseRegion, freeRegion, hooks: { get Thunk() { return Thunk; }, get Task() { return Task; }, get Ref() { return Ref; } } },
   getStdStreams: () => curStreams, setStdStreams: (o) => Object.assign(curStreams, o) });
 
 /* ---- time, environment, process ---- */
@@ -778,6 +781,21 @@ export function setInit(f) { initFn = f; }
 
 let errorToString = null;
 export function setErrorToString(f) { errorToString = f; }
+
+/* ---- Nat/Int tolerance ----
+ * Computed Nat/Int values are BigInts, but small values read from .olean files are boxed scalars, i.e. plain JS numbers (their static
+ * type is not known to the loader, see lean_olean.js). Primitives that take a Nat/Int therefore accept both; results are BigInts. */
+{
+  const w1 = (f) => (a) => f(typeof a === "number" ? BigInt(a) : a);
+  const w2 = (f) => (a, b) => f(typeof a === "number" ? BigInt(a) : a, typeof b === "number" ? BigInt(b) : b);
+  const w3 = (f) => (a, b, c) => f(typeof a === "number" ? BigInt(a) : a, typeof b === "number" ? BigInt(b) : b, typeof c === "number" ? BigInt(c) : c);
+  const wrapAll = (f) => (f.length <= 1 ? w1(f) : f.length === 2 ? w2(f) : w3(f));
+  const wrapFirst = (f) => (a, ...r) => f(typeof a === "number" ? BigInt(a) : a, ...r);
+  for (const name of Object.keys(P)) {
+    if (/^lean_(nat|int)_/.test(name) && !/^lean_(nat|int)_to_uint/.test(name)) P[name] = wrapAll(P[name]);
+    else if (/^lean_(u?int(8|16|32|64)|usize|isize|float|float32)_of_(nat|int)(_mk)?$/.test(name)) P[name] = wrapFirst(P[name]);
+  }
+}
 
 /** Stack size (MB) of the worker thread running `main` under Node; Lean programs recurse deeply. */
 export const STACK_MB = 512;

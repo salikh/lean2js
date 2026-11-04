@@ -13,20 +13,22 @@ const MASK32 = 0xffffffffn;
 const T = { bvar: 0, fvar: 1, mvar: 2, sort: 3, const: 4, app: 5, lam: 6, forallE: 7, letE: 8, lit: 9, mdata: 10, proj: 11 };
 
 export function install(P, h) {
-  const { inc, dec, ap, some, exports: X, mixHash } = h;
+  const { inc, dec, ap, some, exports: X, mixHash, sget } = h;
   const bool = (b) => (b ? 1 : 0);
 
-  const dataOf = (e) => e["s" + e.n + "_0"];
+  const dataOf = (e) => e["s" + e.n + "_0"] ?? sget(e, e.n, 0, 8);
   const range = (e) => Number(dataOf(e) >> 44n);
   const hashOf = (e) => dataOf(e) & MASK32;
   const hasFVarOrMVar = (e) => (dataOf(e) & (3n << 40n)) !== 0n;
 
   /* ---- Name / Level equality ---- */
+  // scalar fields of objects loaded from .olean files are decoded lazily (rt.sget)
+  const h64 = (x, n) => x["s" + n + "_0"] ?? sget(x, n, 0, 8);
   function nameEq(a, b) {
     for (;;) {
       if (a === b) return true;
       if (typeof a === "number" || typeof b === "number") return false;
-      if (a.t !== b.t || a.s2_0 !== b.s2_0 || a.a1 !== b.a1) return false;
+      if (a.t !== b.t || h64(a, 2) !== h64(b, 2) || a.a1 != b.a1) return false;
       a = a.a0; b = b.a0;
     }
   }
@@ -91,13 +93,13 @@ export function install(P, h) {
         const d = sub(m.a1, 0), b = sub(m.a2, 1);
         if (same(d, m.a1, b, m.a2)) return m;
         inc(m.a0);
-        return (m.t === T.lam ? X.lean_expr_mk_lambda : X.lean_expr_mk_forall)(m.a0, d, b, m.s3_8);
+        return (m.t === T.lam ? X.lean_expr_mk_lambda : X.lean_expr_mk_forall)(m.a0, d, b, m.s3_8 ?? sget(m, 3, 8, 1));
       }
       case T.letE: {
         const t = sub(m.a1, 0), v = sub(m.a2, 0), b = sub(m.a3, 1);
         if (same(t, m.a1, v, m.a2, b, m.a3)) return m;
         inc(m.a0);
-        return X.lean_expr_mk_let(m.a0, t, v, b, m.s4_8);
+        return X.lean_expr_mk_let(m.a0, t, v, b, m.s4_8 ?? sget(m, 4, 8, 1));
       }
       case T.mdata: {
         const x = sub(m.a1, 0);
@@ -143,7 +145,7 @@ export function install(P, h) {
     return replace(e, (m, off) => {
       const s1 = s + off;
       if (range(m) <= s1) return keep(m);
-      if (m.t === T.bvar) return mkBVar(m.a0 + BigInt(d));       // idx >= s1 here
+      if (m.t === T.bvar) return mkBVar(BigInt(m.a0) + BigInt(d));       // idx >= s1 here
       return null;
     });
   }
@@ -152,7 +154,7 @@ export function install(P, h) {
     return replace(e, (m, off) => {
       const s1 = s + off;
       if (range(m) <= s1) return keep(m);
-      if (m.t === T.bvar) return mkBVar(m.a0 - BigInt(d));
+      if (m.t === T.bvar) return mkBVar(BigInt(m.a0) - BigInt(d));
       return null;
     });
   }
@@ -231,17 +233,17 @@ export function install(P, h) {
       if (shared) { const s = seen.get(a); if (s !== undefined && s.has(b)) return true; }
       let r;
       switch (a.t) {
-        case T.bvar: r = a.a0 === b.a0; break;
+        case T.bvar: r = a.a0 == b.a0; break;
         case T.fvar: case T.mvar: r = nameEq(a.a0, b.a0); break;
         case T.sort: r = levelEq(a.a0, b.a0); break;
         case T.const: r = nameEq(a.a0, b.a0) && levelsEq(a.a1, b.a1); break;
         case T.app: r = go(a.a0, b.a0) && go(a.a1, b.a1); break;
         case T.lam: case T.forallE:
-          r = go(a.a1, b.a1) && go(a.a2, b.a2) && (!binderInfo || a.s3_8 === b.s3_8); break;
+          r = go(a.a1, b.a1) && go(a.a2, b.a2) && (!binderInfo || (a.s3_8 ?? sget(a, 3, 8, 1)) === (b.s3_8 ?? sget(b, 3, 8, 1))); break;
         case T.letE: r = go(a.a1, b.a1) && go(a.a2, b.a2) && go(a.a3, b.a3); break;
-        case T.lit: r = a.a0.t === b.a0.t && a.a0.a0 === b.a0.a0; break;
+        case T.lit: r = a.a0.t === b.a0.t && a.a0.a0 == b.a0.a0; break;
         case T.mdata: r = go(a.a1, b.a1); break;
-        case T.proj: r = a.a1 === b.a1 && nameEq(a.a0, b.a0) && go(a.a2, b.a2); break;
+        case T.proj: r = a.a1 == b.a1 && nameEq(a.a0, b.a0) && go(a.a2, b.a2); break;
         default: r = false;
       }
       if (r && shared) { let s = seen.get(a); if (s === undefined) seen.set(a, (s = new Set())); s.add(b); }
@@ -260,7 +262,7 @@ export function install(P, h) {
     for (let i = 0; i < Math.min(pa.length, pb.length); i++) {
       const x = pa[i], y = pb[i];
       if (x.t !== y.t) return x.t === 1 ? 1 : -1;  // str (tag 1) > num (tag 2)
-      if (x.a1 !== y.a1) return x.a1 < y.a1 ? -1 : 1;
+      if (x.a1 != y.a1) return x.a1 < y.a1 ? -1 : 1;
     }
     return pa.length === pb.length ? 0 : pa.length < pb.length ? -1 : 1;
   };

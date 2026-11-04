@@ -4,6 +4,7 @@
 cd "$(dirname "$0")/../.." || exit 1
 lake build lean2js >/dev/null 2>&1 || { echo "build failed"; exit 1; }
 mkdir -p out
+export LEAN_SYSROOT=$(lake env lean --print-prefix)
 cp runtime/*.js out/
 
 names="$*"

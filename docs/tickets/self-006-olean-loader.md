@@ -1,7 +1,7 @@
 # .olean loader in JS
 
 Parent: [self-001](self-001-compiler-to-js-epic.md)
-Status: open
+Status: **done for the public module data** (2026-11-04) — see [design/olean-loader.md](../design/olean-loader.md). `importModules #[Init]` runs in JS and matches native (`tests/e2e/import.lean`). Open: memory/laziness for big imports (self-008), private/server parts, v3 format.
 
 `lean_compacted_region_read` / `readModuleData` must turn an `.olean` file (compacted region: header with
 base address + root pointer, objects laid out as `lean_object` headers, little-endian, pointers relative to base)

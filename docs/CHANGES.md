@@ -2,6 +2,9 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-04 — [self-006-olean-loader](tickets/self-006-olean-loader.md): `runtime/lean_olean.js` reads real .olean files; lazy scalar-field decoding (`rt.sget`/`uget` emitted by CodegenIR);
+  Nat/Int primitives accept boxed-scalar numbers; `importModules Init` works in JS; tests `olean`, `import` ([design](design/olean-loader.md)).
+
 * 2026-11-04 — [self-003-module-initializers](tickets/self-003-module-initializers.md) done (`--init-all`, lazy init constants, `IO.initializing`, retrying order-tolerant startup;
   [design](design/module-initializers.md)); signed Int8/16/32/64 + Float32 + version/platform primitives (`lean_num.js`, `lean_sys.js`); tests `init`, `sints`, `mvars`
   (the full `Lean` initialization and `MetaM` run in JS).

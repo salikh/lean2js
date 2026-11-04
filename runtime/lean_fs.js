@@ -6,7 +6,7 @@
 const enc = new TextEncoder(), dec_ = new TextDecoder();
 
 export function install(P, h) {
-  const { inc, dec, okR, errR, some, mkBytes, unit, nodeFs, vfs, getStdStreams, setStdStreams } = h;
+  const { inc, dec, okR, errR, some, mkBytes, unit, nodeFs, vfs, getStdStreams, setStdStreams, olean } = h;
 
   /* ---- IO.Error values (constructor tags of `IO.Error`) ---- */
   // tags: alreadyExists 0 (Option filename), otherError 1, unsupportedOperation 4, noFileOrDirectory 11 (filename), invalidArgument…noSuchThing 12–16 (Option filename)
@@ -136,6 +136,19 @@ export function install(P, h) {
     arr.rc = 1;
     return okR(arr);
   };
+
+  /* ---- .olean files: CompactedRegion.read / free (the region id is its base address) ---- */
+  P.lean_compacted_region_read = (path, _deps) => {
+    let bytes;
+    try { bytes = nodeFs ? nodeFs.readFileSync(path) : vfs.get(path); } catch (e) { return fail(e, path); }
+    if (bytes === undefined) return errR(ioErr(11, "no such file or directory", path));
+    try {
+      const region = olean.parseRegion(bytes, [], olean.hooks, path);
+      return okR({ t: 0, rc: 1, n: 2, a0: region.root, a1: BigInt(region.base) });
+    } catch (e) { return errR(userError(String(e && e.message || e))); }
+  };
+  P.lean_compacted_region_free = (base) => { olean.freeRegion(Number(base)); return okR(unit); };
+  P.lean_compacted_region_save = unsupported(".olean writing");
 
   /* ---- redirection of the standard streams (thread-local in native Lean; global here) ---- */
   P.lean_get_set_stdout = (s) => { const old = getStdStreams().out; setStdStreams({ out: s }); return old; };

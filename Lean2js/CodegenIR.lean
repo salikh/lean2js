@@ -61,8 +61,12 @@ def genExpr (ctx : Ctx) (ind : String) (x : VarId) (ty : IRType) : IR.Expr → M
     return s!"{ind}let {v};\n{ind}if (typeof {vid y} === \"number\") {v} = {ctorObj i (ys.toList.map argStr)};\n"
       ++ s!"{ind}else \{\n{ind}  {v} = {vid y};\n{tag}{ind}  {v}.n = {i.size};\n{sets}{ind}}\n"
   | .proj i y => return s!"{ind}const {vid x} = {vid y}.a{i};\n"
-  | .uproj i y => return s!"{ind}const {vid x} = {vid y}.u{i};\n"
-  | .sproj n off y => return s!"{ind}const {vid x} = {vid y}.s{n}_{off};\n"
+  -- Scalar fields of objects loaded from .olean files are decoded lazily from the raw bytes (`rt.sget`/`rt.uget`), see lean_olean.js.
+  | .uproj i y => return s!"{ind}const {vid x} = {vid y}.u{i} ?? rt.uget({vid y}, {i});\n"
+  | .sproj n off y =>
+    let code := match ty with
+      | .uint8 => 1 | .uint16 => 2 | .uint32 => 4 | .uint64 => 8 | .float => 9 | .float32 => 10 | _ => 8
+    return s!"{ind}const {vid x} = {vid y}.s{n}_{off} ?? rt.sget({vid y}, {n}, {off}, {code});\n"
   | .fap c ys => do
     let some d := ctx.decls[c]? | throw s!"unknown function '{c}'"
     unless d.params.size == ys.size do throw s!"arity mismatch in call to '{c}'"

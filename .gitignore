@@ -10,3 +10,4 @@ web/prog.stdin
 /web/lean_fs.js
 /web/lean_num.js
 /web/lean_sys.js
+/web/lean_olean.js
