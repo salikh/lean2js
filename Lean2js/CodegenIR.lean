@@ -1,7 +1,7 @@
 import Lean
 import Std.Data.HashMap
 import Std.Data.HashSet
-import Lean2js.Codegen
+import Lean2js.JsUtil
 
 /-!
 # Lean IR (λRC) → JavaScript
@@ -19,7 +19,7 @@ collected from the environment together with everything they reference. See
 namespace Lean2js.CodegenIR
 
 open Lean IR
-open Lean2js.Codegen (mangle declId jsString Tarjan strongConnect)
+open Lean2js.JsUtil (mangle declId jsString Tarjan strongConnect)
 open Std (HashMap HashSet)
 
 abbrev M := Except String

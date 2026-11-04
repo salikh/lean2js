@@ -2,6 +2,9 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-04 — [js-014-cleanup-gaps](tickets/js-014-cleanup-gaps.md) item 1: removed the mono-LCNF backend (Codegen, Ast, lean_runtime.js,
+  `--backend`, JSON input, docs/design/js-transpiler.md); shared helpers in `Lean2js/JsUtil.lean`. `lcnf-dump` stays.
+
 * 2026-11-04 — [self-007-misc-primitives](tickets/self-007-misc-primitives.md) (partly): Int64, promises, ptr_addr, heartbeats,
   mutex stubs etc. in `runtime/lean_rt.js`; test `tests/e2e/prims2.lean` (31 e2e programs pass). Kernel decision for self-005 recorded.
 

@@ -1,8 +1,8 @@
 # IR backend (default): Lean IR with reference counting → JavaScript
 
-Decision: [js-013](../tickets/js-013-question-ir-backend.md). `lake exe lean2js FILE.lean [--run] [--out F.js]` uses this
-backend (`--backend ir`, default for `.lean` input). The older mono-LCNF backend ([js-transpiler.md](js-transpiler.md))
-remains available with `--backend mono` / JSON input and is used as a reference.
+Decision: [js-013](../tickets/js-013-question-ir-backend.md). `lake exe lean2js FILE.lean [--run] [--out F.js]` is the only backend. The older mono-LCNF backend
+(JSON input, copy-on-write arrays) was removed on 2026-11-04 ([js-014](../tickets/js-014-cleanup-gaps.md)); it is in the jj history
+(`jj log -r 'description(substring:"IR backend")'`, commits before the cleanup) together with its design doc `js-transpiler.md`.
 
 Why: only the final IR (λRC) carries ownership information (`inc`/`dec`, borrowed params, `isShared`,
 `reset`/`reuse`). With it, `Array.push` etc. mutate in place exactly when native Lean would: 100 000 pushes went from
@@ -49,13 +49,13 @@ arguments must `dec` them when not storing them. Primitives never receive erased
   labeled block + assignments + `break` (so tail calls inside join points still work).
 * `reset`/`reuse` ↦ `rt.reset(x, n)` and an inline allocate-or-reuse; `del` is a no-op; `isShared` ↦ `rt.isShared`.
 * Tail calls: saturated self tail calls ↦ `while (true)` loops; strongly connected groups of mutually tail-calling
-  functions ↦ one dispatch loop (same machinery as the mono backend). Non-tail recursion uses the JS stack; Node runs
+  functions ↦ one dispatch loop. Non-tail recursion uses the JS stack; Node runs
   the program in a worker with a 512 MB stack.
 * Extern wrappers `l_f(a0, …)` call `rt.prims["lean_symbol"]` without erased/void arguments.
 
 ## Tests
 
-`tests/e2e/run.sh [NAME…]` runs the differential tests with `BACKEND=ir` (default) or `BACKEND=mono`. `aliasing.lean`
+`tests/e2e/run.sh [NAME…]` runs the differential tests `aliasing.lean`
 checks that copies stay persistent (arrays shared through values, closures, thunks, refs, constants, structure updates);
-`bigperf.lean` is a performance smoke test. `node tests/e2e/missing.mjs` lists primitives used by generated code that the
+`bigperf.lean` is a performance smoke test. `node tests/e2e/missing.mjs [FILE.js…]` lists primitives used by generated code that the
 runtime lacks.

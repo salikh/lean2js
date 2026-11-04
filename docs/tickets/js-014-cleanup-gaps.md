@@ -5,9 +5,9 @@ Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 Status: open
 
 Fresh-agent notes: read docs/design/js-transpiler-ir.md first. Runtime: `runtime/lean_rt.js` (IR backend, default),
-`runtime/lean_runtime.js` (mono backend). Generator: `Lean2js/CodegenIR.lean` (IR), `Lean2js/Codegen.lean` (mono).
+Generator: `Lean2js/CodegenIR.lean` (+ `JsUtil.lean`). The mono backend no longer exists (item 1).
 
-1. **Retire or share the mono backend.** Both runtimes duplicate Nat/Int/UInt/Float/String/hash primitives
+1. **DONE 2026-11-04 — mono backend removed** (`Codegen.lean`, `Ast.lean`, `runtime/lean_runtime.js`, `--backend`, JSON input, `BACKEND=` in run.sh; shared helpers moved to `Lean2js/JsUtil.lean`). `lcnf-dump` (incl. `--with-deps`) is kept as a standalone tool. Original text: **Retire or share the mono backend.** Both runtimes duplicate Nat/Int/UInt/Float/String/hash primitives
    (copied verbatim). Either delete the mono backend + `lean_runtime.js` + JSON input path (and `lcnf-dump --with-deps`
    consumers), or split the shared primitives into `runtime/prims_core.js`. `lcnf-dump` itself stays useful.
 2. **Missing primitives** (time, getenv, exit, random bytes, pid already done in `lean_rt.js`) (fail only when called, with "missing primitive 'x'"): file system (`IO.FS.*`, `Handle`),
