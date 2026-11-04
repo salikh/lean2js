@@ -3,12 +3,13 @@ import Lean2js.LcnfDump
 open Lean2js LcnfDump
 
 def usage : String :=
-  "usage: lcnf-dump FILE.lean [--phase base|mono|impure] [--compact] [--out OUT.json]"
+  "usage: lcnf-dump FILE.lean [--phase base|mono|impure] [--with-deps] [--compact] [--out OUT.json]"
 
 structure Args where
   file : Option String := none
   phase : DumpPhase := defaultPhase
   compact : Bool := false
+  deps : Bool := false
   out : Option String := none
 
 partial def parseArgs (a : Args) : List String → Except String Args
@@ -17,6 +18,7 @@ partial def parseArgs (a : Args) : List String → Except String Args
     match DumpPhase.parse? p with
     | some ph => parseArgs { a with phase := ph } rest
     | none => .error s!"unknown phase '{p}'"
+  | "--with-deps" :: rest => parseArgs { a with deps := true } rest
   | "--compact" :: rest => parseArgs { a with compact := true } rest
   | "--out" :: o :: rest => parseArgs { a with out := some o } rest
   | f :: rest =>
@@ -31,7 +33,9 @@ def main (args : List String) : IO UInt32 := do
   let some file := a.file | IO.eprintln usage; return 2
   let some env ← elaborate file
     | IO.eprintln "lcnf-dump: elaboration failed"; return 1
-  let j := dumpJson env file a.phase
+  if a.deps && a.phase != .mono then
+    IO.eprintln "lcnf-dump: --with-deps requires --phase mono"; return 2
+  let j := if a.deps then dumpWithDepsJson env file else dumpJson env file a.phase
   let s := if a.compact then j.compress else j.pretty
   match a.out with
   | some o => IO.FS.writeFile o (s ++ "\n")

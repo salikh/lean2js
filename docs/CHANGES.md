@@ -2,6 +2,9 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-04 — [js-006-dump-dependencies](tickets/js-006-dump-dependencies.md): `lcnf-dump --with-deps`
+  dumps transitive (imported) dependencies, extern primitives and inductive metadata.
+
 * 2026-11-04 — [lcnf-001-json-dump](tickets/lcnf-001-json-dump.md): added the
   `lcnf-dump` command (`lake exe lcnf-dump FILE.lean [--phase base|mono|impure]
   [--compact] [--out F]`) that elaborates a Lean file and dumps its LCNF as JSON;

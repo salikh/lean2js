@@ -18,6 +18,12 @@ for src in tests/lcnf/*.lean; do
   # output must be valid JSON
   printf '%s\n' "$actual" | python3 -c 'import json,sys; json.load(sys.stdin)' || { echo "FAIL (invalid JSON): $src"; fail=1; }
 done
+# dependency closure (only for basic.lean)
+actual=$(lake exe lcnf-dump tests/lcnf/basic.lean --with-deps 2>/dev/null)
+golden=tests/lcnf/basic.deps.json
+if [ "$1" = "--update" ]; then printf '%s\n' "$actual" > "$golden"
+elif [ "$actual" = "$(cat "$golden" 2>/dev/null)" ]; then echo "ok: basic.lean --with-deps"
+else echo "FAIL: basic.lean --with-deps"; fail=1; fi
 # elaboration errors: non-zero exit, empty stdout
 bad=$(mktemp --suffix=.lean); echo 'def x : Nat := "a"' > "$bad"
 out=$(lake exe lcnf-dump "$bad" 2>/dev/null); rc=$?

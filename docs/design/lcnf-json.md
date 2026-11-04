@@ -62,6 +62,20 @@ declaration.
 application of a local variable), and impure-only `ctor oproj uproj sproj fap pap
 reset reuse box unbox isShared`.
 
+## `--with-deps`
+
+`lcnf-dump FILE.lean --with-deps` (mono only) additionally dumps every declaration reachable from
+the file's declarations through `const` references, including imported ones from `Init`/`Std`/`Lean`
+(imported modules do keep `mono` bodies, verified for Lean 4.35.0). Differences from the plain dump:
+
+* top-level `"withDeps": true`;
+* each decl has `"module"`: defining module name, or `null` for the current file / generated aux decls;
+* primitives are decls with `value.kind == "extern"`; `entries` hold e.g.
+  `{"kind":"standard","backend":"all","fn":"lean_nat_add"}`; their `params` give the arity;
+* `"inductives"`: for every inductive type used in `cases`/`proj`/constructor application:
+  `{name, numParams, numIndices, isRec, ctors:[{name, cidx, numParams, numFields}]}`;
+* `"missing"`: referenced names with neither LCNF nor constructor info (normally empty).
+
 ## Changing decisions
 
 The provisional design choices are tracked in `docs/tickets/lcnf-*.md`. Bump

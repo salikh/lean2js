@@ -2,7 +2,10 @@
 
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 
-Status: open
+Status: **done** (2026-11-04). Findings: imported `Init`/`Std` decls DO have mono bodies
+(`getDeclCore? env monoExt`), primitives are `.extern` decls with `standard` entries naming the C symbol,
+so no IR fallback is needed. Implemented as `--with-deps` (differs slightly from the spec: no separate
+`externs` array — externs are decls with `value.kind == "extern"`). See docs/design/lcnf-json.md.
 
 ## Goal
 
