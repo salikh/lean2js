@@ -1,7 +1,7 @@
 # Interactive web demo: Lean script + data file + console
 
 Parent: [self-001](self-001-compiler-to-js-epic.md) (builds on the browser build in `web/selfhost/`)
-Status: in progress (2026-11-05)
+Status: **done** (2026-11-05) — `web/selfhost/demo.html`, `Lean2js/Session.lean`, test `tests/e2e/session.lean`, browser test in `web/selfhost/test-browser.sh`
 
 ## Requirements (user, 2026-11-05)
 
@@ -31,3 +31,15 @@ Status: in progress (2026-11-05)
 
 `import Lean` support in the browser (lazy download of more library files, Json parsing with `Lean.Json`), editor features (syntax highlighting; the infoview epic [info-001](info-001-infoview-epic.md)),
 running Lean in a worker once the stack-size problem is solved.
+
+## Result
+
+* Page: `web/selfhost/demo.html` (build with `web/selfhost/build.sh`, serve with `node web/selfhost/serve.mjs`, open `/demo.html`). Left: Lean script (default: `examples/stats.lean`) and the `data.json` pane
+  (`examples/stats.json`); right: console. *Run script* elaborates the script in a fresh session and runs `main`; console lines are evaluated in that session (`main`, `mean #[1.0, 2.0, 6.0]`, `def twice …`,
+  `IO.println "x"`, errors shown with Lean's message). The JSON pane is written to the runtime's file system as `data.json` before every run/console line, so editing it and typing `main` re-reads it.
+* Lean's `#eval` captures `IO.println` and reports it as a message, so output of evaluated IO actions appears in the console in order; direct writes of the runtime to stdout/stderr
+  (`rt.setStdout/setStderr`) also go to the console (`.err` styling for stderr).
+* Host API (usable from any page/test): `driver.js` — `loadProgram`, `newSession`, `sessionRun`, `sessionConsole`; the Lean side: `lean2js_session_new/run/console` (exports rooted by the prefix `lean2js_session_`).
+  Hosts that call exports without `main` must call `rt.runInitializers()` (done by `loadProgram`) — forgetting it gives "invalid environment extension" panics.
+* Known limits: the page freezes while Lean runs; `import Lean` in the script is not available in the browser (only the `Init` library files are downloaded: ~160 MB); `←` inside a console term needs `do`
+  (Lean's own rule); first load ≈ 40 s locally.

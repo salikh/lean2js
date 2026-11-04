@@ -1,0 +1,20 @@
+— running script —
+(script elaborated, no messages)
+count = 8
+mean  = 4.031250
+min   = 1.000000
+max   = 9.000000
+stdev = 2.476254
+> main
+count = 8
+mean  = 4.031250
+min   = 1.000000
+max   = 9.000000
+stdev = 2.476254
+> mean #[1.0, 2.0, 6.0]
+3.000000
+> def twice (x : Nat) := 2 * x
+> twice 21
+42
+> nosuchname
+<console>:1:6: error(lean.unknownIdentifier): Unknown identifier `nosuchname`

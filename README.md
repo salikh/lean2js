@@ -14,6 +14,10 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
+* **2026-11-05 (late) — interactive demo.** `web/selfhost/demo.html`: a Lean script pane, a `data.json` pane (visible to the script as the file `data.json`) and a console that shows the script's
+  output and **evaluates what you type** — `main`, `mean #[1.0, 2.0, 6.0]`, `def …`, any `IO` action — in a persistent Lean session (`Lean2js/Session.lean`). The default example computes count/mean/min/max/stdev of the
+  numbers in the JSON. Checked in headless Chrome by `web/selfhost/test-browser.sh` ([demo-001](docs/tickets/demo-001-interactive-web-app.md)).
+
 * **2026-11-05 (night) — promise drops are exact.** The cooperative scheduler resolves a promise with `none` when its last reference disappears (reference counting), as native Lean does; the
   "guess" fallback fired 36× per sample before and never now ([self-010](docs/tickets/self-010-promise-drop-heuristic.md), strict mode in the selfhost tests). Infoview design decision recorded:
   thin layer over the `InfoTree` ([info-002](docs/tickets/info-002-question-architecture.md)); work on it starts after the remaining `self-*` tickets.
@@ -58,5 +62,5 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 * `lean2js --init-all` runs the initializers of all imported modules ([docs/design/module-initializers.md](docs/design/module-initializers.md)).
 * `runtime/lean_expr.js` — JS versions of the C++ `Expr`/`Level` primitives (see [docs/design/lean-expr-prims.md](docs/design/lean-expr-prims.md)).
 * `Lean2js/Kernel.lean`, `Lean2js/KernelCasesOn.lean`, `vendor/lean4lean` — the kernel entry points for the self-hosted compiler ([docs/tickets/self-005-question-kernel-strategy.md](docs/tickets/self-005-question-kernel-strategy.md)).
-* `web/selfhost/` — the Lean frontend in the browser (see Status); `selfhost/Elab.lean` is the program (stdin → messages).
+* `web/selfhost/` — the Lean frontend in the browser: `index.html` (editor → messages) and `demo.html` (script + data + console, see Status); `selfhost/Elab.lean` is the program (stdin → messages).
 * `tests/e2e/run.sh` — differential tests: native `lean --run` vs. transpiled JS under Node.

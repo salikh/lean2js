@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lean in the browser — script, data and console</title>
+<style>
+  :root { --bg: #fff; --fg: #1b1b1b; --pane: #f4f4f4; --accent: #2a6; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1b1b1b; --fg: #ddd; --pane: #262626; } }
+  body { font: 14px/1.4 system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--fg); }
+  header { padding: .5rem 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  h1 { font-size: 1.1rem; margin: 0; }
+  main { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; padding: 0 1rem 1rem; height: calc(100vh - 3.5rem); box-sizing: border-box; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; height: auto; } }
+  .col { display: flex; flex-direction: column; gap: .5rem; min-height: 0; }
+  label { font-weight: 600; font-size: .85rem; }
+  textarea, #console { font: 13px/1.4 ui-monospace, monospace; background: var(--pane); color: var(--fg); border: 1px solid #8884; padding: .5rem; box-sizing: border-box; }
+  textarea { width: 100%; resize: vertical; }
+  #lean { flex: 3 1 14rem; }
+  #json { flex: 1 1 5rem; }
+  #console { flex: 1 1 auto; overflow: auto; white-space: pre-wrap; min-height: 10rem; }
+  .in { color: var(--accent); }
+  .err { color: #c44; }
+  #line { width: 100%; font: 13px ui-monospace, monospace; padding: .4rem; box-sizing: border-box; background: var(--pane); color: var(--fg); border: 1px solid #8884; }
+  button { font: inherit; padding: .3rem .8rem; }
+  #status { font-size: .85rem; opacity: .8; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Lean in the browser</h1>
+  <button id="run" disabled>Run script</button>
+  <button id="clear">Clear console</button>
+  <span id="status">loading …</span>
+</header>
+<main>
+  <div class="col">
+    <label for="lean">Lean script (reads <code>data.json</code>)</label>
+    <textarea id="lean" spellcheck="false"></textarea>
+    <label for="json"><code>data.json</code> (edit, then type <code>main</code> in the console)</label>
+    <textarea id="json" spellcheck="false"></textarea>
+  </div>
+  <div class="col">
+    <label for="line">Console — Lean commands, terms and IO actions are evaluated; try <code>main</code></label>
+    <div id="console" aria-live="polite"></div>
+    <input id="line" placeholder="main" autocomplete="off" spellcheck="false" disabled>
+  </div>
+</main>
+<script type="module">
+  import { loadProgram, rt, newSession, sessionRun, sessionConsole } from "./driver.js";
+  const $ = (id) => document.getElementById(id);
+  const consoleEl = $("console"), statusEl = $("status"), runBtn = $("run"), lineEl = $("line");
+  const params = new URLSearchParams(location.search);
+  const DATA = "data.json";                                   // the fixed name under which the Lean script sees the JSON pane
+
+  function print(text, cls) {
+    if (!text) return;
+    const span = document.createElement("span");
+    if (cls) span.className = cls;
+    span.textContent = text.endsWith("\n") ? text : text + "\n";
+    consoleEl.appendChild(span);
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  }
+  const enc = new TextEncoder();
+  const syncData = () => rt.vfs.set(DATA, enc.encode($("json").value));
+
+  async function busy(msg, f) {                               // the page freezes while Lean runs: paint the status first
+    statusEl.textContent = msg;
+    await new Promise((r) => setTimeout(r, 30));
+    try { return f(); } catch (e) { print(String(e.message || e), "err"); } finally { statusEl.textContent = "ready"; }
+  }
+
+  let session = null;
+  async function runScript() {
+    syncData();
+    await busy("elaborating the script …", () => {
+      session = newSession();
+      print("— running script —", "in");
+      const out = sessionRun(session, $("lean").value, "script.lean");
+      print(out || "(script elaborated, no messages)");
+      if (!/error/.test(out)) print(sessionConsole(session, "main"));      // run `main` if the script defines it
+    });
+  }
+  async function consoleInput(line) {
+    print("> " + line, "in");
+    syncData();                                                            // the data pane may have changed since the last run
+    await busy("evaluating …", () => print(sessionConsole(session, line)));
+  }
+
+  // library + compiler
+  const [manifest, lean, json] = await Promise.all([fetch("./files.json").then((r) => r.json()),
+    fetch("./examples/stats.lean").then((r) => r.text()), fetch("./examples/stats.json").then((r) => r.text())]);
+  $("lean").value = lean; $("json").value = json;
+  rt.setStdout((s) => print(s)); rt.setStderr((s) => print(s, "err"));
+  await loadProgram({ files: manifest.files, root: manifest.root, onStatus: (s) => { statusEl.textContent = s; } });
+  runBtn.disabled = false; lineEl.disabled = false; statusEl.textContent = "ready";
+
+  runBtn.addEventListener("click", runScript);
+  $("clear").addEventListener("click", () => { consoleEl.textContent = ""; });
+  const history = []; let hpos = 0;
+  lineEl.addEventListener("keydown", async (ev) => {
+    if (ev.key === "Enter" && lineEl.value.trim() !== "") {
+      const line = lineEl.value; lineEl.value = ""; history.push(line); hpos = history.length;
+      if (session === null) await runScript();
+      await consoleInput(line);
+    } else if (ev.key === "ArrowUp" && hpos > 0) { lineEl.value = history[--hpos]; ev.preventDefault(); }
+    else if (ev.key === "ArrowDown") { hpos = Math.min(hpos + 1, history.length); lineEl.value = history[hpos] ?? ""; ev.preventDefault(); }
+  });
+
+  window.demo = { runScript, consoleInput, get text() { return consoleEl.textContent; } };
+  if (params.has("autorun")) {                                 // headless test: run the script, evaluate the `console` parameter lines, report
+    await runScript();
+    for (const l of params.getAll("console")) await consoleInput(l);
+    if (params.has("report")) await fetch("/report", { method: "POST", body: JSON.stringify({ code: 0, out: consoleEl.textContent, seconds: performance.now() / 1000 }) });
+  }
+</script>
+</body>
+</html>

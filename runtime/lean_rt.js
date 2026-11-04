@@ -958,10 +958,23 @@ function nameId(n) {
   return "l_" + comps.reverse().join("$$");
 }
 let initFn = null;
+let initialized = false;
 /** Registers the generated `initialize()` (returns null, or an error result); run by `runMain` before `main`. */
 export function setInit(f) { initFn = f; }
+let initDone = false;
+/** Runs the module initializers once (what `runMain` does before `main`); for hosts that call exported functions without `main`. Throws on failure. */
+export function runInitializers() {
+  if (initDone || initFn === null) return;
+  initDone = true;
+  initDepth++;
+  let r;
+  try { r = initFn(); } finally { initDepth--; }
+  if (r !== null && r.t !== 0) throw new Error("initialization failed: " + errorMessage(r.a0));
+}
 
 let errorToString = null;
+/** Message of an `IO.Error` value (for hosts that call exported IO functions). */
+export function errorMessage(e) { return errorToString ? errorToString(e) : JSON.stringify(e); }
 export function setErrorToString(f) { errorToString = f; }
 
 /* ---- Nat/Int tolerance ----
@@ -1006,7 +1019,7 @@ function runMainHere(main, arity, args) {
     const ms = () => Math.round(performance.now());
     if (tm) console.error(`[timing] program loaded at ${ms()} ms (since process start)`);
     initDepth++;
-    try { r = initFn ? initFn() : null; } finally { initDepth--; }
+    try { r = initFn && !initDone ? initFn() : null; initDone = true; } finally { initDepth--; }
     if (tm) console.error(`[timing] initializers done at ${ms()} ms`);   // module initializers; an error result aborts like in a native executable
     if (r === null) { r = arity >= 2 ? main(listFromArray(args), 0) : main(0); runPendingTasks(); if (tm) console.error(`[timing] main done at ${ms()} ms; promises dropped by refcount: ${droppedPromises}, dropped-promise guesses: ${droppedGuesses}`); }
   } catch (e) {
