@@ -93,7 +93,12 @@ export class Clo {
 export function pap(fn, arity, args) { return new Clo(fn, arity, args); }
 
 /** Apply closure `f` to `args`; both are owned (consumed), like `lean_apply_n`. */
+// Debugging aid: LEAN2JS_WATCHDOG=<seconds> aborts a run that takes longer, with the JS stack of wherever it is (a spinning program has no other way to be inspected).
+const watchdogLimit = (globalThis.process && globalThis.process.env && Number(globalThis.process.env.LEAN2JS_WATCHDOG)) || 0;
+const watchdogStart = Date.now();
+let watchdogTick = 0;
 export function ap(f, args) {
+  if (watchdogLimit !== 0 && (++watchdogTick & 0xffff) === 0 && Date.now() - watchdogStart > watchdogLimit * 1000) { Error.stackTraceLimit = 60; throw new Error("watchdog: run time limit exceeded"); }
   for (;;) {
     const fixed = f.args.length, have = fixed + args.length;
     if (have < f.arity) {
@@ -606,8 +611,9 @@ P.lean_thunk_get = P.lean_thunk_get_own;
  * queued jobs, nested on its own stack, until the awaited task has finished — and at the end of `main`. A job always runs to
  * completion; a wait that finds the queue empty while its task is unresolved is a genuine deadlock. */
 class Task {
-  constructor(v) { this.v = v; this.rc = 1; this.pend = false; this.waiters = null; }
+  constructor(v) { this.v = v; this.rc = 1; this.pend = false; this.waiters = null; this.cancelled = false; }
 }
+let currentTask = null;                       // the task whose job is running (for IO.checkCanceled)
 const runQueue = [];
 let queueHead = 0;
 function newPendingTask() { const t = new Task(0); t.pend = true; t.waiters = []; return t; }
@@ -617,9 +623,16 @@ function resolveTask(t, v) {
   for (const w of ws) w();
 }
 /** Runs `job` (a function returning the task's value) later; returns the pending result task. */
-function spawnJob(job) {
+function spawnJob(job, dedicated = false) {
   const t = newPendingTask();
-  runQueue.push(() => resolveTask(t, job()));
+  const run = () => {
+    if (!t.pend) return;                      // already run (a lazy task that someone waited for)
+    const prev = currentTask; currentTask = t;
+    try { resolveTask(t, job()); } finally { currentTask = prev; }
+  };
+  // Dedicated tasks are long-running background loops in the language server (e.g. the refresh poller, which sleeps and polls until cancelled).
+  // Without preemption such a job would starve everything below it on the stack, so it only runs when somebody waits for it.
+  if (dedicated) t.lazy = run; else runQueue.push(run);
   return t;
 }
 /** After `src` has finished, run `job(src.v)` (a function of the value) later and resolve the returned task with its result. */
@@ -649,6 +662,7 @@ function runOneJob() {
 }
 function waitFor(t) {
   while (t.pend) {
+    if (t.lazy) { const f = t.lazy; t.lazy = null; f(); continue; }
     if (runOneJob()) continue;
     // Nothing can run any more. In native Lean a promise that is dropped without being resolved yields `none`; we do not track
     // drops, so the oldest still-unresolved promise is treated as dropped (a heuristic of last resort, see docs/design/tasks.md).
@@ -686,7 +700,7 @@ P.lean_task_bind = (t, f, _prio, _sync) => {
   return afterTaskBind(t, (v) => { inc(v); return ap(f, [v]); });
 };
 // BaseIO.asTask / mapTask / bindTask: the actions are BaseIO (raw result, state token passed as 0)
-P.lean_io_as_task = (act, _prio) => spawnJob(() => ap(act, [0]));
+P.lean_io_as_task = (act, prio) => spawnJob(() => ap(act, [0]), prio === 9 || prio === 9n);   // Task.Priority.dedicated = 9
 P.lean_io_map_task = (f, t, _prio, sync) => {
   if (sync && !t.pend) { inc(t.v); return new Task(ap(f, [t.v, 0])); }
   inc(t);
@@ -705,9 +719,11 @@ P.lean_io_wait_any = (tasks) => {
     if (!runOneJob()) throw new Error("deadlock: IO.waitAny on tasks that can never finish");
   }
 };
-P.lean_io_cancel = (_t) => unit;
-P.lean_io_check_canceled = () => 0;
-P.lean_io_has_finished = (t) => bool(!t.pend);
+// Cooperative cancellation: `IO.cancel` sets the flag, `IO.checkCanceled` (polled by long-running tasks) reads the flag of the running task.
+P.lean_io_cancel = (t) => { t.cancelled = true; return unit; };
+P.lean_io_check_canceled = () => bool(currentTask !== null && currentTask.cancelled);
+// Polling a task (or sleeping) lets other tasks run: without preemption a loop like `while !(← t.hasFinished) do IO.sleep 10` would never end.
+P.lean_io_has_finished = (t) => { if (t.pend) runOneJob(); return bool(!t.pend); };
 
 /* ---- promises: `result?` is a task that finishes when the promise is resolved ---- */
 /** The last reference to an unresolved promise disappeared: native Lean resolves `result?` with `none` (see docs/tickets/self-010). */
@@ -725,7 +741,7 @@ P.lean_option_get_or_block = (o) => {
   if (typeof o === "object") { inc(o.a0); const v = o.a0; dec(o); return v; }
   throw new Error("deadlock: Option.getOrBlock! on none (dropped Promise)");
 };
-P.lean_io_get_task_state = (t) => (t.pend ? 0 : 2);
+P.lean_io_get_task_state = (t) => { if (t.pend) runOneJob(); return t.pend ? 0 : 2; };
 P.lean_io_get_tid = () => 1n;
 P.lean_internal_get_hardware_concurrency = () => 1;
 P.lean_io_basemutex_new = () => ({ rc: 1 });
@@ -893,7 +909,7 @@ class ExitSignal { constructor(code) { this.code = code; } }
 P.lean_io_exit = (code) => { throw new ExitSignal(code); };
 P.lean_io_process_get_pid = () => (isNode ? globalThis.process.pid : 0);
 P.lean_io_app_path = () => okR(isNode ? globalThis.process.argv[1] : "");
-P.lean_io_sleep = (_ms) => unit;
+P.lean_io_sleep = (_ms) => { for (let i = 0; i < 64 && runOneJob(); i++); return unit; };
 
 /** Result of running an `[init]` action (an `EStateM` result): the value, or an `InitError` carrying the `IO.Error`. */
 class InitError { constructor(err, what) { this.err = err; this.what = what; } }

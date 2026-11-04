@@ -12,4 +12,7 @@ JavaScript is single-threaded, so `Task`, `IO.Promise`, `BaseIO.asTask/mapTask/b
   empty the oldest unresolved promise is treated as dropped; both events are counted (`LEAN2JS_TIMING=1`), `LEAN2JS_TRACE_TASKS=1` logs them with the creation site, and
   `LEAN2JS_STRICT_TASKS=1` makes the fallback an error. On the test corpus the fallback never fires.
 * **Risk and follow-up:** see [self-010](../tickets/self-010-promise-drop-heuristic.md).
+* **Cancellation and polling:** `IO.cancel` sets a flag on the task, `IO.checkCanceled` reads the flag of the running task; `IO.hasFinished`, `getTaskState` and `IO.sleep` run queued jobs (so poll loops make progress).
+  **Dedicated tasks** (priority 9) run lazily, only when awaited (the language server's refresh poller is an endless sleep loop that would otherwise starve the stack). `LEAN2JS_WATCHDOG=<s>` aborts a spinning run with the JS stack.
+  Limit: no coroutines — see [demo-002](../tickets/demo-002-lsp-infoview-in-demo.md) for what that means for the real language server.
 * No parallelism, priorities and cancellation (`IO.cancel` is a no-op); `getTaskState` reports waiting/finished only.

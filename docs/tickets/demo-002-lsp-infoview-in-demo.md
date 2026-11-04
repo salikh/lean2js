@@ -32,3 +32,27 @@ two backends can coexist behind the same JSON shapes.
 
 Stack depth in the browser main thread (the server code recurses a lot); memory (worker + imported environment ≈ the demo's 3 GB plus snapshots); the page freezing during elaboration unless jobs are sliced (step 2 is the critical piece);
 `Lean.Server.FileWorker` imports more of `Lean` than the batch frontend (bigger JS).
+
+## Experiment 2026-11-05: the real `FileWorker` in JS (batch mode) and the blocker
+
+`selfhost/LspBatch.lean` calls `Lean.Server.FileWorker.initAndRunWorker` with stdin/stdout/stderr streams; input = framed JSON-RPC messages (`selfhost/mklsp.mjs`), ending with `exit`.
+* Natively it works (40 messages out, `$/lean/plainGoal` returns the two goals).
+* In JS (transpiled with `--init-all --eval-all --small`) the worker **starts** (header setup info, progress, refresh requests) but the elaboration never completes before the main loop reaches `exit`:
+  plainGoal/plainTermGoal answer `null`. Findings that needed runtime changes (all done, in `lean_rt.js`): `IO.cancel`/`IO.checkCanceled` are now real (cooperative flag of the running task);
+  polling calls (`IO.hasFinished`, `getTaskState`, `IO.sleep`) run queued jobs; **dedicated tasks run lazily** (only when awaited) because the worker's refresh poller is an endless `sleep`/poll loop that,
+  without preemption, starved everything below it; `LEAN2JS_WATCHDOG=<s>` prints the JS stack of a run that exceeds the limit (this is how the spin was found).
+* **Root problem:** the worker is written for *concurrent* threads: a handler blocks on a task (`IO.wait`) while other tasks make progress, tasks block on each other and on promises that other
+  tasks resolve later, and the main loop blocks on stdin. The cooperative scheduler runs every job to completion on the stack of whoever waits, so a job that waits for something only an interleaved
+  job below it on the stack can provide cannot complete. A faithful solution needs **coroutines** (suspend a task in the middle): e.g. compile Lean code in CPS / as generator functions (slow and large),
+  or one Web Worker per Lean thread with the heap shared… (not possible: JS objects cannot be shared), or a custom stack-switching runtime (WebAssembly stack switching/JSPI, not available everywhere).
+
+## Decision needed (human)
+
+*Question:* how should demo-002 get its "LSP server" given the blocker?
+1. **(Recommended) Protocol adapter over `Lean2js.Info`:** an in-memory LSP server written in Lean (`Lean2js/Lsp.lean`: `initialize`, `didOpen`, `didChange`, `$/lean/plainGoal`, `$/lean/plainTermGoal`, `textDocument/hover`,
+   `publishDiagnostics`), using the very same Lean functions as the real server for goal selection and rendering (already verified identical to `lean --server` on 9 cases). It speaks real LSP JSON-RPC, so a stock LSP
+   client (Monaco + `monaco-languageclient`) could be attached later; `lsp.html` uses it with a live infoview. The responses can be compared with the real server by the existing oracle (info-008). Cost: small.
+2. Coroutine-capable runtime so that the unmodified `FileWorker` runs (CPS/generator backend for `Task`-reachable code, or JSPI): large, uncertain, slow code; revisit if (1) proves insufficient.
+3. Run the real worker in batch mode per request: ~10 s per request, freezes the page; not usable.
+
+Until answered, option 1 is the default; I will not start `lsp.html` before a decision is recorded here (the question is in TODO for humans).

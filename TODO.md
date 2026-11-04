@@ -5,7 +5,7 @@ links to detailed tickets.
 
 ## TODO for humans
 
-* None
+* [demo-002-lsp-infoview-in-demo](docs/tickets/demo-002-lsp-infoview-in-demo.md): the real `FileWorker` cannot run unmodified in the cooperative single-threaded runtime (needs coroutines). Use a protocol adapter over `Lean2js.Info` (recommended), or invest in a coroutine runtime?
 
 ## Open tasks
 
