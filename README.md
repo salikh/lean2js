@@ -14,6 +14,8 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
+* **2026-11-05 (latest) — the JS kernel type checks.** `Kernel.whnf/isDefEq/check` and `addDecl` run lean4lean's type checker in JS (on by default, `LEAN2JS_KERNEL_CHECK=0` to disable):
+  the self-hosted frontend rejects ill-typed declarations with exactly the native kernel's messages (tests `kernelops`, `selfhostcheck`).
 * **2026-11-05 (later) — smaller and faster.** `lean2js --small` (short identifiers, no indentation) shrinks the self-hosted frontend from 452 MB to 174 MB of JS
   (~14 MB with brotli); a faster `.olean` loader brings a complete run (load, initialize, import `Init`, elaborate, `#eval`) from ~40 s to ~14 s. Memory (~3 GB) is the next problem
   ([self-008](docs/tickets/self-008-bundle-startup-size.md)).

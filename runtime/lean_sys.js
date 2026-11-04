@@ -34,6 +34,11 @@ export function install(P, { inc, ap, some, bool, unit, okR, errR, P: _P }) {
   // `initialize_<Module>` of the modules compiled into the program (Init, Std, Lean) ran at startup (--init-all): "native initializer found"
   P.lean_run_mod_init_core = (sym) => okR(bool(/^initialize_(Init|Std|Lean)(_|$)/.test(sym)));
   P.lean_run_init = () => errR({ t: 4, rc: 1, n: 1, a0: "running interpreted [init] declarations is not supported in this JavaScript runtime", s1_0: 0 });
+  // Type checking in `lean_add_decl` is ON by default; LEAN2JS_KERNEL_CHECK=0 (or globalThis.LEAN2JS_KERNEL_CHECK = false in a browser) turns it off.
+  P.lean2js_kernel_check = () => {
+    const v = globalThis.LEAN2JS_KERNEL_CHECK ?? (globalThis.process && globalThis.process.env && globalThis.process.env.LEAN2JS_KERNEL_CHECK);
+    return bool(!(v === false || v === "0" || v === "false"));
+  };
   P.lean_dbg_sleep = (_ms, f) => ap(f, [0]);
   P.lean_string_uget_byte_fast = (s, i) => P.lean_string_get_byte_fast(s, i);
   const unsupported = (what) => () => errR({ t: 4, rc: 1, n: 1, a0: `${what} is not supported in this JavaScript runtime`, s1_0: 0 });

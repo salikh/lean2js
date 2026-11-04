@@ -2,6 +2,8 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-05 — [self-005-question-kernel-strategy](tickets/self-005-question-kernel-strategy.md): type-checking kernel on by default (lean4lean `check := true`), `lean_kernel_whnf/is_def_eq/check`; tests `kernelops`, `selfhostcheck`.
+
 * 2026-11-05 — [self-008-bundle-startup-size](tickets/self-008-bundle-startup-size.md): `--small` (short ids, no indentation: 452 → 174 MB), olean loader 6× faster (binary search of regions, 32-bit reads), no-alloc string hash; startup 40 s → 14 s.
 
 * 2026-11-05 — [self-009-milestone-hello-elab](tickets/self-009-milestone-hello-elab.md) **reached**: `selfhost/Elab.lean` (the Lean frontend) elaborates and evaluates Lean source as JavaScript, output identical to native;

@@ -60,3 +60,11 @@ The user approved option 1 (vendor lean4lean + Batteries). Done: `vendor/lean4le
 `Lean4Lean.addDecl … (check := false)` after a redeclaration check; `Lean2js/KernelCasesOn.lean` implements `lean_mk_cases_on` (identical to the C++
 result on 35 Init types incl. nested `Lean.Syntax`; tests `casesOn`, `kernel`). Open: `check := true` (fix `Primitive.checkDef` for 4.35), kernel
 `whnf`/`isDefEq`/`check` externs (`lean_kernel_*`), mutual-inductive tests once user inductives can be declared in JS.
+
+## Type checking enabled (2026-11-05)
+
+`lean_add_decl` / `lean_elab_add_decl` now type check with lean4lean by default (`LEAN2JS_KERNEL_CHECK=0` disables it; `…_without_checking` never checks), and
+`lean_kernel_whnf/is_def_eq/check` are implemented (`Lean2js/Kernel.lean`). On the test programs the overhead is not measurable (22.2 s vs 22.2 s). Tests: `kernelops`
+(real kernel vs lean4lean), `selfhostcheck` (the self-hosted frontend rejects ill-typed `addDecl`s with exactly the native kernel messages), `selfhost`. Known gap:
+`Primitive.checkDef` fails for Lean 4.35's `Nat.div` (so *re-declaring* the primitive `Nat`/`String` functions, i.e. compiling `Init.Prelude` itself, is not possible yet).
+Status: the epic's kernel question is resolved; remaining: that gap, kernel diagnostics, performance of `decide`-heavy proofs (not measured).

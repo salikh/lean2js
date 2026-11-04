@@ -16,7 +16,7 @@ structures with `deriving Repr`, inductive types (kernel: vendored lean4lean), `
 |---|---|
 | runtime (`lean.h`, objects, `Nat`, strings, IO) | `runtime/lean_rt.js`, `lean_num.js`, `lean_fs.js`, `lean_sys.js` |
 | `Expr`/`Level`/`instantiateMVars` (C++) | `runtime/lean_expr.js` ([lean-expr-prims.md](lean-expr-prims.md)) |
-| kernel `add_decl`, inductive types | `Lean2js/Kernel.lean` → vendored lean4lean, trusting (`check := false`) |
+| kernel `add_decl`, inductive types, `whnf`/`isDefEq` | `Lean2js/Kernel.lean` → vendored lean4lean (type checking on by default) |
 | `casesOn` construction (C++) | `Lean2js/KernelCasesOn.lean` |
 | module initialization | `--init-all` ([module-initializers.md](module-initializers.md)) |
 | `.olean` mmap | `runtime/lean_olean.js` ([olean-loader.md](olean-loader.md)) |
@@ -31,6 +31,6 @@ Identifiers: `nameId` encodes a `Name` by components (`l_` + components joined b
 ## Limits / known gaps
 
 * Size and startup: 452 MB (`--init-all --eval-all`), 174 MB with `--small`; a complete small run takes ~14 s and ~3 GB of memory ([self-008](../tickets/self-008-bundle-startup-size.md)). Build with `--init-all --eval-all --small` for everyday use.
-* No type checking in the kernel (`check := false`); `kernel.whnf/isDefEq/check` externs are stubs; Environment-level `decide` with `Decidable` instances uses `Meta` and works.
+* The kernel is lean4lean (`Lean2js/Kernel.lean`): it type checks declarations by default (`LEAN2JS_KERNEL_CHECK=0` to skip), `Kernel.whnf/isDefEq/check` work; gap: `Primitive.checkDef` vs. Lean 4.35's `Nat.div` (only matters when compiling `Init.Prelude` itself).
 * Unresolved promises are treated as dropped when nothing else can run (heuristic, see tasks.md).
 * `import` of anything but `Init`/`Std`/`Lean` oleans under `$LEAN_SYSROOT/lib/lean` was not tested; evaluation of declarations from other modules needs their code (`--eval-all` only covers what the program was built with).
