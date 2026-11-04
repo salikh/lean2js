@@ -10,9 +10,8 @@ Fresh-agent notes: read docs/design/js-transpiler-ir.md first. Runtime: `runtime
 1. **Retire or share the mono backend.** Both runtimes duplicate Nat/Int/UInt/Float/String/hash primitives
    (copied verbatim). Either delete the mono backend + `lean_runtime.js` + JSON input path (and `lcnf-dump --with-deps`
    consumers), or split the shared primitives into `runtime/prims_core.js`. `lcnf-dump` itself stays useful.
-2. **Missing primitives** (fail only when called, with "missing primitive 'x'"): file system (`IO.FS.*`, `Handle`),
-   `IO.getRandomBytes`/`IO.rand` seeds, time (`IO.monoMsNow`, `IO.monoNanosNow`), env/args/process (`IO.Process.exit`,
-   `IO.getEnv`, `IO.appPath`), `Mutex`/`Condvar`, `IO.sleep`, remaining Float math/`Float32`, `Int` bit ops,
+2. **Missing primitives** (time, getenv, exit, random bytes, pid already done in `lean_rt.js`) (fail only when called, with "missing primitive 'x'"): file system (`IO.FS.*`, `Handle`),
+   `IO.rand` (needs `[init]` declarations such as `IO.stdGenRef`, which the lazy-constant scheme does not run — design needed), `Mutex`/`Condvar`, `IO.sleep`, remaining Float math/`Float32`, `Int` bit ops,
    `String` ops not exercised yet. Use `node tests/e2e/missing.mjs` after transpiling a new program.
 3. **Transpile-time check of missing primitives** (`--check`): list externs the runtime lacks instead of failing at run time.
 4. **`--bundle`**: single self-contained JS file (inline runtime), source maps.

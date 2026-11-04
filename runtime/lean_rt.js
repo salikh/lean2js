@@ -653,6 +653,27 @@ P.lean_get_stdout = () => stdoutStream;
 P.lean_get_stderr = () => stderrStream;
 P.lean_get_stdin = () => stdinStream;
 
+/* ---- time, environment, process ---- */
+P.lean_io_mono_ms_now = () => BigInt(Math.floor(performance.now()));
+P.lean_io_mono_nanos_now = () => BigInt(Math.floor(performance.now() * 1e6));
+P.lean_io_get_random_bytes = (n) => {
+  const b = new Uint8Array(Number(n));
+  for (let i = 0; i < b.length; i += 65536) crypto.getRandomValues(b.subarray(i, Math.min(i + 65536, b.length)));
+  b.rc = 1;
+  return okR(b);
+};
+P.lean_io_getenv = (name) => {
+  const v = isNode ? globalThis.process.env[name] : undefined;
+  return v === undefined ? none() : some(v);
+};
+P.lean_io_initializing = () => 0;
+class ExitSignal { constructor(code) { this.code = code; } }
+// Unwinds the stack up to `runMain` (process.exit from a worker thread with a huge stack crashes V8 teardown).
+P.lean_io_exit = (code) => { throw new ExitSignal(code); };
+P.lean_io_process_get_pid = () => (isNode ? globalThis.process.pid : 0);
+P.lean_io_app_path = () => okR(isNode ? globalThis.process.argv[1] : "");
+P.lean_io_sleep = (_ms) => unit;
+
 let errorToString = null;
 export function setErrorToString(f) { errorToString = f; }
 
@@ -677,7 +698,16 @@ export function runMain(main, arity, args = (isNode ? globalThis.process.argv.sl
 }
 
 function runMainHere(main, arity, args) {
-  const r = arity >= 2 ? main(listFromArray(args.map((a) => a)), 0) : main(0);
+  let r;
+  try {
+    r = arity >= 2 ? main(listFromArray(args), 0) : main(0);
+  } catch (e) {
+    if (e instanceof ExitSignal) {
+      if (isNode) globalThis.process.exitCode = e.code;
+      return e.code;
+    }
+    throw e;
+  }
   if (r.t === 0) {
     const code = typeof r.a0 === "number" ? r.a0 : 0;
     if (isNode) globalThis.process.exitCode = code;
