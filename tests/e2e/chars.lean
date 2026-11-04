@@ -1,0 +1,18 @@
+def main : IO Unit := do
+  IO.println 'a'
+  IO.println ('a'.toNat)
+  IO.println ('A'.toLower)
+  IO.println ('z'.isAlpha, '5'.isDigit, ' '.isWhitespace)
+  IO.println ("Hello".toList)
+  IO.println ("Hello".toList.map Char.toNat)
+  IO.println (String.ofList ['a', 'b'])
+  IO.println ("héllo wörld".capitalize)
+  IO.println (String.ofList "abc".toList.reverse)
+  IO.println (repr "quote\"d\n")
+  IO.println ("😀 emoji".length)
+  IO.println ("😀 emoji".utf8ByteSize)
+  IO.println ("a-b-c".splitOn "-")
+  IO.println ("abc".drop 1)
+  IO.println ("abcdef".take 3)
+  IO.println ("abc".startsWith "ab")
+  IO.println ("hello world".contains 'w')
