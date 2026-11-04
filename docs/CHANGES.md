@@ -2,6 +2,10 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-04 — [js-001-transpiler-epic](tickets/js-001-transpiler-epic.md) (in progress): `lean2js`
+  LCNF→JavaScript transpiler in Lean (js-007), JS runtime (js-008, js-009 partly), CLI (js-010 partly) and
+  22 differential e2e tests (js-011); design in [design/js-transpiler.md](design/js-transpiler.md).
+
 * 2026-11-04 — [js-006-dump-dependencies](tickets/js-006-dump-dependencies.md): `lcnf-dump --with-deps`
   dumps transitive (imported) dependencies, extern primitives and inductive metadata.
 

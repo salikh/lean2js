@@ -386,7 +386,7 @@ def genProgram (p : Program) (opts : Options) : M String := do
     if !opts.roots.isEmpty then opts.roots
     else if decls.contains "main" then #["main"]
     else (p.decls.filter (·.module.isNone)).map (·.name)
-  let keep := if opts.all then (HashSet.ofList (p.decls.toList.map (·.name))) else reachable decls exports roots
+  let keep := if opts.all then (HashSet.ofList (p.decls.toList.map (·.name))) else reachable decls exports (roots.push "IO.Error.toString")
   let mut externBindings : Array (String × String) := #[]
   let mut seenBinding : HashSet String := {}
   let mut body := ""
@@ -423,12 +423,16 @@ def genProgram (p : Program) (opts : Options) : M String := do
     s!"const {b} = rt.prims[{jsString key}] ?? rt.missing({jsString key});\n")
   let exports := String.join (roots.toList.filterMap fun r =>
     if keep.contains r && decls.contains r then some s!"export \{ {declId r} as {mangle "" r} };\n" else none)
+  let errHook :=
+    if keep.contains "IO.Error.toString" && decls.contains "IO.Error.toString" then
+      s!"rt.setErrorToString({declId "IO.Error.toString"});\n"
+    else ""
   let run :=
     if opts.run then
       match decls["main"]? with
       | some d => s!"rt.runMain({declId "main"}, {d.params.size});\n"
       | none => ""
     else ""
-  return header ++ binds ++ "\n" ++ body ++ "\n" ++ exports ++ run
+  return header ++ binds ++ "\n" ++ body ++ "\n" ++ exports ++ errHook ++ run
 
 end Lean2js.Codegen

@@ -2,7 +2,7 @@
 
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 
-Status: open. Depends on js-004; can start before js-007 is done.
+Status: **partly done** (2026-11-04): stdout/stderr/stdin, ST.Ref, Thunk, eager Task, runMain with exit codes and uncaught-exception messages, worker thread with big stack. Open: file system, process, time/random/env APIs, Mutex/Condvar, browser stdin demo.
 
 ## Goal
 

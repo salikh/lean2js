@@ -2,7 +2,7 @@
 
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 
-Status: open. Depends on js-007.
+Status: **partly done** (2026-11-04): `lake exe lean2js FILE.lean|FILE.json --out F.js --run`. Open: `--bundle` single file, `web/index.html` demo, `--allow-missing`/transpile-time listing of missing primitives, source maps.
 
 ## Goal
 

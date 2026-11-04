@@ -2,7 +2,7 @@
 
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 
-Status: open. Depends on provisional answers of js-002…js-005; benefits from js-006.
+Status: **done** (2026-11-04); see docs/design/js-transpiler.md. Not covered: impure-phase input, `fun` closures with self-loops (by design), source maps.
 
 ## Goal
 

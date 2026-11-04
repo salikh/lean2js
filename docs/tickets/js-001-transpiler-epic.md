@@ -1,6 +1,6 @@
 # Epic: LCNF → JavaScript transpiler
 
-Status: open (planning done; no implementation yet)
+Status: **in progress** — core transpiler, runtime and 22 differential tests work (2026-11-04); see docs/design/js-transpiler.md and the status of each subticket.
 
 ## Goal
 
@@ -49,6 +49,7 @@ Work:
 4. [js-009-runtime-io](js-009-runtime-io.md) — runtime: IO, ST.Ref, panic, stdout/stderr/stdin, Thunk, Task, files.
 5. [js-010-cli-bundling](js-010-cli-bundling.md) — `lean2js` command, entry-point wiring, browser/Node bundle.
 6. [js-011-end-to-end-tests](js-011-end-to-end-tests.md) — differential tests: native Lean output vs JS output.
+7. [js-012-array-updates](js-012-array-updates.md) — in-place Array updates (performance).
 
 Dependencies: 007 needs 002–005 decided (provisional answers suffice) and 006 for
 non-trivial programs; 008/009 can proceed in parallel with 007; 010 needs 007; 011 grows

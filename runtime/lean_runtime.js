@@ -13,6 +13,10 @@
 
 export const erased = 0;
 
+const isNode = !!(globalThis.process && globalThis.process.versions && globalThis.process.versions.node);
+const nodeFs = isNode ? await import("node:fs") : null;
+const nodeWorker = isNode ? await import("node:worker_threads") : null;
+
 /* ---------- closures ---------- */
 
 export class Clo {
@@ -447,17 +451,17 @@ P.lean_io_has_finished = (_t, _w) => okResult(1);
 
 /* ---------- IO ---------- */
 
-let stdoutSink = (s) => {
-  if (globalThis.process && globalThis.process.stdout) globalThis.process.stdout.write(s);
-  else console.log(s);
-};
-let stderrSink = (s) => {
-  if (globalThis.process && globalThis.process.stderr) globalThis.process.stderr.write(s);
-  else console.error(s);
-};
+function fdWrite(fd, s) {                    // synchronous, ordered, works from worker threads
+  const buf = Buffer.from(s, "utf8");
+  let off = 0;
+  while (off < buf.length) {
+    try { off += nodeFs.writeSync(fd, buf, off); }
+    catch (e) { if (e.code !== "EAGAIN") throw e; }
+  }
+}
+let stdoutSink = (s) => (nodeFs ? fdWrite(1, s) : console.log(s));
+let stderrSink = (s) => (nodeFs ? fdWrite(2, s) : console.error(s));
 // stdin: a line source. Node: blocking reads from fd 0; browser: set with setStdinLine(fn).
-const nodeFs = globalThis.process && globalThis.process.versions && globalThis.process.versions.node
-  ? await import("node:fs") : null;
 let stdinLine = null;       // () => string ("" at EOF, otherwise including "\n")
 export function setStdinLine(f) { stdinLine = f; }
 let inBuf = typeof Buffer !== "undefined" ? Buffer.alloc(0) : null;
@@ -502,15 +506,39 @@ P.lean_get_stdin = (_w) => okResult(stdinStream);
 P.lean_get_stdout = (_w) => okResult(stdoutStream);
 P.lean_get_stderr = (_w) => okResult(stderrStream);
 
-/** Run `main` (arity 1: `IO Unit`/`IO UInt32`; arity 2: also takes `List String`). */
-export function runMain(main, arity, args = (globalThis.process ? globalThis.process.argv.slice(2) : [])) {
+let errorToString = null;
+export function setErrorToString(f) { errorToString = f; }
+
+/** Stack size (MB) of the worker thread running `main` under Node; Lean programs recurse deeply. */
+export const STACK_MB = 512;
+
+/**
+ * Run `main` (arity 1: `IO Unit`/`IO UInt32`; arity 2: also takes `List String`).
+ * Under Node the program runs in a worker thread with a large stack, unless LEAN2JS_NO_WORKER is set.
+ */
+export function runMain(main, arity, args = (isNode ? globalThis.process.argv.slice(2) : [])) {
+  if (isNode && nodeWorker.isMainThread && !globalThis.process.env.LEAN2JS_NO_WORKER) {
+    const script = globalThis.process.argv[1];
+    const w = new nodeWorker.Worker(script, {
+      argv: args, resourceLimits: { stackSizeMb: STACK_MB, maxOldGenerationSizeMb: 8192 },
+    });
+    w.on("exit", (code) => { globalThis.process.exitCode = code; });
+    w.on("error", (e) => { console.error(e); globalThis.process.exitCode = 1; });
+    return;
+  }
+  const code = runMainHere(main, arity, args);
+  return code;
+}
+
+function runMainHere(main, arity, args) {
   const r = arity >= 2 ? main(listFromArray(args), 0) : main(0);
   if (r.t === 0) {
     const code = typeof r.a0 === "number" ? r.a0 : 0;
-    if (globalThis.process) globalThis.process.exitCode = code;
+    if (isNode) globalThis.process.exitCode = code;
     return code;
   }
-  stderrSink("uncaught exception: " + JSON.stringify(r.a0) + "\n");
-  if (globalThis.process) globalThis.process.exitCode = 1;
+  const msg = errorToString ? errorToString(r.a0) : JSON.stringify(r.a0);
+  stderrSink("uncaught exception: " + msg + "\n");
+  if (isNode) globalThis.process.exitCode = 1;
   return 1;
 }

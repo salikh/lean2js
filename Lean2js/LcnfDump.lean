@@ -108,7 +108,8 @@ def dumpWithDepsJson (env : Environment) (fileName : String) : Json := Id.run do
     | some e => m.insert e.toString n
     | none => m
   let roots := (monoExt.getState env).toArray.map (·.1)
-  let mut work : Array Name := roots
+  -- `IO.Error.toString` is needed by the runtime to report uncaught exceptions
+  let mut work : Array Name := roots.push `IO.Error.toString
   let mut seen : NameSet := {}
   let mut decls : Array (Decl .pure) := #[]
   let mut types : NameSet := {}

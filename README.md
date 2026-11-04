@@ -15,3 +15,7 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 * `lake exe lcnf-dump FILE.lean [--phase base|mono|impure]` — elaborates a Lean file
   and dumps its LCNF (compiler IR) as JSON. See [docs/design/lcnf-json.md](docs/design/lcnf-json.md).
 * `tests/run.sh` — golden tests for the above.
+* `lake exe lean2js FILE.lean --run --out F.js` — transpile a Lean program (with all its dependencies) to
+  JavaScript; run with `node F.js` (needs `runtime/lean_runtime.js` next to it). See
+  [docs/design/js-transpiler.md](docs/design/js-transpiler.md).
+* `tests/e2e/run.sh` — differential tests: native `lean --run` vs. transpiled JS under Node.

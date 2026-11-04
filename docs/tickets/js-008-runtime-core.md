@@ -2,7 +2,7 @@
 
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 
-Status: open. Depends on js-004 (value representation).
+Status: **mostly done** (2026-11-04): Nat/Int/UIntN/Float/String/Array/hash primitives needed by the 22 e2e programs exist. Open: ByteArray/FloatArray, remaining Float math, Char/String edge cases, a standalone `node --test` unit suite, more `Int` bit ops.
 
 ## Goal
 
