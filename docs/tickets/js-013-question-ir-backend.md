@@ -3,7 +3,8 @@
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md); supersedes the approaches in
 [js-012-array-updates](js-012-array-updates.md) if accepted.
 
-Status: **open — needs human decision** (asked by the user on 2026-11-04; recommendation below)
+Status: **decided (2026-11-04)**: the user approved the recommendation; implementation in progress.
+Deviation from the plan: the IR generator consumes `Lean.IR.Decl` in-process (no JSON dump), because `lean2js` links Lean anyway; `--dump-ir` prints the collected IR as text for debugging.
 
 ## Context / evidence
 

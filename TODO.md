@@ -5,8 +5,7 @@ links to detailed tickets.
 
 ## TODO for humans
 
-* [js-013-question-ir-backend](docs/tickets/js-013-question-ir-backend.md): transpile Lean's final IR (with
-  reference counting) to get in-place Array updates? Recommended: yes.
+* None
 
 ## Open tasks
 
