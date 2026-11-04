@@ -39,8 +39,19 @@ export function uget(x, i) {
   return v;
 }
 
-/** Loaded regions by base address, for cross-region pointers. */
+/** Loaded regions sorted by base address (binary search for cross-region pointers). */
 const regions = [];
+function regionAt(addr, hint) {
+  if (hint !== null && addr >= hint.base && addr < hint.base + hint.size) return hint;
+  let lo = 0, hi = regions.length - 1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1, r = regions[mid];
+    if (addr < r.base) hi = mid - 1;
+    else if (addr >= r.base + r.size) lo = mid + 1;
+    else return r;
+  }
+  return null;
+}
 
 /**
  * Parses an .olean file image. `deps`: regions (as returned here) whose objects may be referenced. `hooks`: { Thunk, Task, Ref }
@@ -56,7 +67,7 @@ export function parseRegion(bytes, deps, hooks, name = "<olean>") {
   const size = bytes.length;
   const objs = new Array(size >> 3);
   const region = { base, size, objs, bytes, dv };
-  const depList = deps.concat(regions);
+  let hint = null;                                       // last dependency region hit (pointers cluster)
 
   const ptr = (lo, hi) => {
     if (lo & 1) {                                        // boxed scalar
@@ -71,30 +82,42 @@ export function parseRegion(bytes, deps, hooks, name = "<olean>") {
       if (v === undefined) throw new Error(`${name}: forward reference to offset ${off}`);
       return v;
     }
-    for (const r of depList) {
-      if (addr >= r.base && addr < r.base + r.size) return r.objs[(addr - r.base) >> 3];
-    }
+    const r = regionAt(addr, hint) ?? deps.find((d) => addr >= d.base && addr < d.base + d.size) ?? null;
+    if (r !== null) { hint = r; return r.objs[(addr - r.base) >> 3]; }
     throw new Error(`${name}: pointer 0x${addr.toString(16)} outside the region and its dependencies`);
   };
 
+  // 32-bit view for the headers and pointers (copy when the buffer is not 4-byte aligned)
+  const aligned = (bytes.byteOffset & 3) === 0;
+  const u32 = new Uint32Array(aligned ? bytes.buffer : bytes.slice().buffer, aligned ? bytes.byteOffset : 0, size >> 2);
   let off = 96;
   while (off < size) {
-    const csSz = dv.getUint16(off + 4, true), other = dv.getUint8(off + 6), tag = dv.getUint8(off + 7);
+    const w = u32[(off >> 2) + 1];
+    const csSz = w & 0xffff, other = (w >>> 16) & 0xff, tag = w >>> 24;
     let obj, len;
     if (tag <= 244) {
       len = csSz;
-      obj = { t: tag, rc: 0, n: other };
-      for (let i = 0; i < other; i++) obj["a" + i] = ptr(dv.getUint32(off + 8 + 8 * i, true), dv.getUint32(off + 12 + 8 * i, true));
+      const q = (off >> 2) + 2;
+      switch (other) {
+        case 0: obj = { t: tag, rc: 0, n: 0 }; break;
+        case 1: obj = { t: tag, rc: 0, n: 1, a0: ptr(u32[q], u32[q + 1]) }; break;
+        case 2: obj = { t: tag, rc: 0, n: 2, a0: ptr(u32[q], u32[q + 1]), a1: ptr(u32[q + 2], u32[q + 3]) }; break;
+        case 3: obj = { t: tag, rc: 0, n: 3, a0: ptr(u32[q], u32[q + 1]), a1: ptr(u32[q + 2], u32[q + 3]), a2: ptr(u32[q + 4], u32[q + 5]) }; break;
+        default:
+          obj = { t: tag, rc: 0, n: other };
+          for (let i = 0; i < other; i++) obj["a" + i] = ptr(u32[q + 2 * i], u32[q + 2 * i + 1]);
+      }
       if (len > 8 + 8 * other) { obj.sbuf = dv; obj.soff = off + 8 + 8 * other; }
     } else if (tag === 246) {
-      const n = dv.getUint32(off + 8, true), cap = dv.getUint32(off + 16, true);
+      const q = off >> 2, n = u32[q + 2], cap = u32[q + 4];
       obj = new Array(n);
-      for (let i = 0; i < n; i++) obj[i] = ptr(dv.getUint32(off + 24 + 8 * i, true), dv.getUint32(off + 28 + 8 * i, true));
+      for (let i = 0; i < n; i++) obj[i] = ptr(u32[q + 6 + 2 * i], u32[q + 7 + 2 * i]);
       obj.rc = 0;
       len = 24 + 8 * cap;
     } else if (tag === 249) {
-      const sz = dv.getUint32(off + 8, true), cap = dv.getUint32(off + 16, true);
-      obj = utf8.decode(bytes.subarray(off + 32, off + 32 + sz - 1));
+      const q = off >> 2, sz = u32[q + 2], cap = u32[q + 4];
+      const start = off + 32, end = start + sz - 1;
+      obj = utf8.decode(bytes.subarray(start, end));
       len = 32 + ((cap + 7) & ~7);
     } else if (tag === 248) {
       const n = dv.getUint32(off + 8, true), cap = dv.getUint32(off + 16, true);
@@ -122,7 +145,9 @@ export function parseRegion(bytes, deps, hooks, name = "<olean>") {
     off += len;
   }
   const rootOff = ptr(dv.getUint32(88, true), dv.getUint32(92, true));
-  regions.push(region);
+  let i = regions.length;
+  while (i > 0 && regions[i - 1].base > base) i--;
+  regions.splice(i, 0, region);
   region.root = rootOff;
   return region;
 }

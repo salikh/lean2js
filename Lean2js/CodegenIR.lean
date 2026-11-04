@@ -39,6 +39,8 @@ structure Ctx where
   tailSingle : Bool := true
   /-- constants with an `[init]`/`[builtin_init]` function: value = result of running that `IO` action (lazily, once). -/
   initFns : HashMap Name Name := {}
+  /-- short JS identifiers for the declarations (`--small`); names without an entry use `nameId`. -/
+  ids : HashMap Name String := {}
   jps : HashMap Nat (String × Array String) := {}
 
 def isScalarTy : IRType → Bool
@@ -48,6 +50,8 @@ def isScalarTy : IRType → Bool
 private def ctorObj (i : CtorInfo) (fields : List String) : String :=
   let fs := (fields.mapIdx fun k a => s!"a{k}: {a}")
   "{" ++ ", ".intercalate (s!"t: {i.cidx}" :: "rc: 1" :: s!"n: {i.size}" :: fs) ++ "}"
+
+def Ctx.id (ctx : Ctx) (n : Name) : String := ctx.ids.getD n (nameId n)
 
 def genExpr (ctx : Ctx) (ind : String) (x : VarId) (ty : IRType) : IR.Expr → M String
   | .ctor i ys =>
@@ -70,10 +74,10 @@ def genExpr (ctx : Ctx) (ind : String) (x : VarId) (ty : IRType) : IR.Expr → M
   | .fap c ys => do
     let some d := ctx.decls[c]? | throw s!"unknown function '{c}'"
     unless d.params.size == ys.size do throw s!"arity mismatch in call to '{c}'"
-    return s!"{ind}const {vid x} = {nameId c}({argsStr ys});\n"
+    return s!"{ind}const {vid x} = {ctx.id c}({argsStr ys});\n"
   | .pap c ys => do
     let some d := ctx.decls[c]? | throw s!"unknown function '{c}'"
-    return s!"{ind}const {vid x} = rt.pap({nameId c}, {d.params.size}, {listStr ys});\n"
+    return s!"{ind}const {vid x} = rt.pap({ctx.id c}, {d.params.size}, {listStr ys});\n"
   | .ap y ys => return s!"{ind}const {vid x} = rt.ap({vid y}, {listStr ys});\n"
   | .box _ y => return s!"{ind}const {vid x} = {vid y};\n"
   | .unbox y => return s!"{ind}const {vid x} = {vid y};\n"
@@ -141,7 +145,7 @@ partial def tailCallees (arity : Name → Option Nat) (b : FnBody) (acc : Array 
   | b => if b.isTerminal then acc else tailCallees arity b.body acc
 
 /-- JS wrapper of an extern primitive; also returns the runtime binding `(js name, prim key)` it needs. -/
-def genExternWrapper (exports : HashMap String Name) (decls : HashMap Name Decl) (d : Decl) : String × Option (String × String) :=
+def genExternWrapper (ctx : Ctx) (exports : HashMap String Name) (decls : HashMap Name Decl) (d : Decl) : String × Option (String × String) :=
   match d with
   | .fdecl .. => ("", none)
   | .extern f ps _ data =>
@@ -155,25 +159,25 @@ def genExternWrapper (exports : HashMap String Name) (decls : HashMap Name Decl)
       let pairs := ps.toList.zip implPs.toList |>.mapIdx fun i (e, m) => (i, e.borrow, m.borrow)
       let incs := String.join <| pairs.filterMap fun (i, eb, mb) => if eb && !mb then some s!"rt.inc(a{i}); " else none
       let decsAfter := String.join <| pairs.filterMap fun (i, eb, mb) => if !eb && mb then some s!" rt.dec(a{i});" else none
-      let call := s!"{nameId impl}({formals})"
+      let call := s!"{ctx.id impl}({formals})"
       let body := if decsAfter.isEmpty then s!"{incs}return {call};" else s!"{incs}const r = {call};{decsAfter} return r;"
-      (s!"function {nameId f}({formals}) " ++ "{ " ++ body ++ " }\n", none)
+      (s!"function {ctx.id f}({formals}) " ++ "{ " ++ body ++ " }\n", none)
     else
       let binding := mangle "e_" key
       let used := (ps.toList.mapIdx fun i p => (i, p)).filter (fun (_, p) => !(p.ty.isErased || p.ty.isVoid))
         |>.map fun (i, _) => s!"a{i}"
       let body := if ps.isEmpty then s!"return typeof {binding} === \"function\" ? {binding}() : {binding};"
         else s!"return {binding}({", ".intercalate used});"
-      (s!"function {nameId f}({formals}) " ++ "{ " ++ body ++ " }\n", some (binding, key))
+      (s!"function {ctx.id f}({formals}) " ++ "{ " ++ body ++ " }\n", some (binding, key))
 
 def genFDecl (ctx : Ctx) (d : Decl) : M String := do
   let .fdecl f ps _ body _ := d | throw "internal: extern"
-  let fid := nameId f
+  let fid := ctx.id f
   let n := ps.size
   let ctx := { ctx with tail := {} }
   if n == 0 then
     let b ← match ctx.initFns[f]? with
-      | some initFn => pure s!"    return rt.runInit({nameId initFn}, {jsString f.toString});\n"
+      | some initFn => pure s!"    return rt.runInit({ctx.id initFn}, {jsString f.toString});\n"
       | none => genBody ctx "    " body
     return s!"let c_{fid};\nfunction {fid}() " ++ "{\n" ++ s!"  if (c_{fid} === undefined) \{ c_{fid} = (() => " ++ "{\n" ++ b ++ "  })(); rt.persist(c_" ++ fid ++ "); }\n"
       ++ s!"  return c_{fid};\n" ++ "}\n"
@@ -192,7 +196,7 @@ def genGroup (ctx : Ctx) (ds : Array Decl) : M String := do
   let members : HashMap Name (Nat × Nat) :=
     ds.toList.mapIdx (fun i d => (d.name, (i, d.params.size))) |>.foldl (fun m (k, v) => m.insert k v) {}
   let gctx := { ctx with tail := members, tailSingle := false }
-  let name := "g_" ++ nameBody ds[0]!.name
+  let name := "g_" ++ (ctx.ids.get? ds[0]!.name |>.getD (nameBody ds[0]!.name))
   let formals := ", ".intercalate ("w" :: (List.range maxN).map (s!"a{·}"))
   let mut cases := ""
   for (d, i) in ds.toList.zip (List.range ds.size) do
@@ -203,7 +207,7 @@ def genGroup (ctx : Ctx) (ds : Array Decl) : M String := do
   let mut out := s!"function {name}({formals}) " ++ "{\n  _loop: while (true) {\n    switch (w) {\n" ++ cases ++ "    }\n  }\n}\n"
   for (d, i) in ds.toList.zip (List.range ds.size) do
     let ps := (List.range d.params.size).map (s!"a{·}")
-    out := out ++ s!"function {nameId d.name}({", ".intercalate ps}) " ++ "{ "
+    out := out ++ s!"function {ctx.id d.name}({", ".intercalate ps}) " ++ "{ "
       ++ s!"return {name}({", ".intercalate (toString i :: ps)}); " ++ "}\n"
   return out
 
@@ -289,6 +293,8 @@ structure Options where
   initAll : Bool := false
   /-- make every declaration with IR of the imported modules available to `evalConst` (root them all and emit a name lookup). -/
   evalAll : Bool := false
+  /-- smaller output: short global identifiers (`_<base36>`) and no indentation; makes the output unreadable. -/
+  small : Bool := false
 
 /-- Order key of an initializer: (module index, `_hyg` counter of the init function's name, name). Imported oleans do not record
 declaration order, but the macro-scope counter grows with source position. -/
@@ -316,6 +322,19 @@ def initOrder (env : Environment) (all : Bool) : Array Name := Id.run do
     a.1.1 < b.1.1 || (a.1.1 == b.1.1 && (a.1.2.1 < b.1.2.1 || (a.1.2.1 == b.1.2.1 && a.1.2.2 < b.1.2.2)))
   return sorted.map (·.2)
 
+/-- Short identifier `_` + base-36 digits of `i` (never a JS keyword). -/
+def shortId (i : Nat) : String :=
+  let digit (d : Nat) : Char := if d < 10 then Char.ofNat (48 + d) else Char.ofNat (87 + d)   -- 0-9, a-z
+  let rec go (n : Nat) (acc : List Char) (fuel : Nat) : List Char :=
+    match fuel with
+    | 0 => acc
+    | fuel + 1 => if n < 36 then digit n :: acc else go (n / 36) (digit (n % 36) :: acc) fuel
+  "_" ++ String.ofList (go i [] 16)
+
+/-- Removes the indentation of every line. -/
+def stripIndent (s : String) : String :=
+  "\n".intercalate ((s.splitOn "\n").map fun l => (l.dropWhile (· == ' ')).toString)
+
 def genProgram (env : Environment) (fileName : String) (opts : Options) : M (String × Array Decl) := do
   let localDecls := (getDecls env).toArray.map (·.name)
   let roots :=
@@ -331,48 +350,53 @@ def genProgram (env : Environment) (fileName : String) (opts : Options) : M (Str
     match d with
     | .fdecl n ps .. => if ps.isEmpty then (match getInitFnNameFor? env n with | some i => m.insert n i | none => m) else m
     | _ => m
-  let ctx : Ctx := { decls, initFns }
+  let ids : HashMap Name String :=
+    if opts.small then c.decls.foldl (init := {}) fun m d => m.insert d.name (shortId m.size) else {}
+  let ctx : Ctx := { decls, initFns, ids }
+  let strip := fun (t : String) => if opts.small then stripIndent t else t
   let groups := tailGroups decls c.decls
   let mut grouped : HashSet Name := {}
   let mut body := ""
   for g in groups do
     for d in g do grouped := grouped.insert d.name
-    body := body ++ (← genGroup ctx g)
+    body := body ++ strip (← genGroup ctx g)
   let mut externCode := ""
   let mut externBinds : Array (String × String) := #[]
   for d in c.decls do
     if grouped.contains d.name then continue
     match d with
     | .extern .. =>
-      let (code, bind?) := genExternWrapper c.exports decls d
+      let (code, bind?) := genExternWrapper ctx c.exports decls d
       externCode := externCode ++ code
       if let some bk := bind? then
         unless externBinds.any (·.1 == bk.1) do externBinds := externBinds.push bk
-    | .fdecl .. => body := body ++ (← genFDecl ctx d)
+    | .fdecl .. => body := body ++ strip (← genFDecl ctx d)
   let header := s!"// Generated by lean2js (IR backend) from {fileName}. Do not edit.\n"
     ++ s!"import * as rt from {jsString opts.runtime};\n"
   let bindStr := String.join (externBinds.toList.map fun (b, key) =>
     s!"const {b} = rt.prims[{jsString key}] ?? rt.missing({jsString key});\n")
   let mainDecl := decls[`main]?
   let exports := match mainDecl with
-    | some d => s!"export \{ {nameId `main} as main };\nexport const mainArity = {d.params.size};\n"
+    | some d => s!"export \{ {ctx.id `main} as main };\nexport const mainArity = {d.params.size};\n"
     | none => ""
-  let errHook := if decls.contains `IO.Error.toString then s!"rt.setErrorToString({nameId `IO.Error.toString});\n" else ""
+  let errHook := if decls.contains `IO.Error.toString then s!"rt.setErrorToString({ctx.id `IO.Error.toString});\n" else ""
   let rtExportReg := String.join <| (rtExports.qsort (fun a b => a.1 < b.1)).toList.filterMap fun (sym, n) =>
-    if decls.contains n then some s!"rt.exports[{jsString sym}] = {nameId n};\n" else none
+    if decls.contains n then some s!"rt.exports[{jsString sym}] = {ctx.id n};\n" else none
   let initCalls := String.join <| inits.toList.filterMap fun n =>
     match decls[n]? with
     | some d =>
       if d.isExtern then none
-      else if d.params.isEmpty then some s!"  () => \{ {nameId n}(); return null; },\n"
-      else some s!"  () => {nameId n}(0),\n"
+      else if d.params.isEmpty then some s!"  () => \{ {ctx.id n}(); return null; },\n"
+      else some s!"  () => {ctx.id n}(0),\n"
     | none => none
   let initFn := if initCalls.isEmpty then "" else
     "const initSteps = [\n" ++ initCalls ++ "];\nexport function initialize() { return rt.runInitSteps(initSteps); }\nrt.setInit(initialize);\n"
-  let lookup := if opts.evalAll then
+  let index := if opts.evalAll && opts.small then
+    "rt.setIndex({" ++ ",".intercalate (c.decls.toList.map fun d => s!"{jsString (nameId d.name)}:{jsString (ctx.id d.name)}") ++ "});\n" else ""
+  let lookup := index ++ if opts.evalAll then
     "rt.setLookup((id) => { try { return eval(id); } catch (e) { if (e instanceof ReferenceError) return undefined; throw e; } });\nrt.setEval((code) => eval(code));\n" else ""
   let run := match mainDecl with
-    | some d => if opts.run then s!"rt.runMain({nameId `main}, {d.params.size});\n" else ""
+    | some d => if opts.run then s!"rt.runMain({ctx.id `main}, {d.params.size});\n" else ""
     | none => ""
   return (header ++ bindStr ++ "\n" ++ externCode ++ body ++ "\n" ++ exports ++ errHook ++ rtExportReg ++ lookup ++ initFn ++ run, c.decls)
 
@@ -418,7 +442,14 @@ def genChunk (env : Environment) (root : Name) (defined : Array String) : Except
     body := body ++ (← genGroup ctx g)
   for d in decls do
     unless grouped.contains d.name do body := body ++ (← genFDecl ctx d)
-  let pre := if earlier.isEmpty then "" else s!"const \{ {", ".intercalate earlier.toList} } = D;\n"
+  -- imported functions (part of the base program, possibly under short identifiers) are bound through `rt.fn`
+  let mut imported : HashSet Name := {}
+  for d in decls do
+    if let .fdecl _ _ _ b _ := d then
+      for c in bodyRefs b #[] do
+        unless dm0.contains c do imported := imported.insert c
+  let importedPre := String.join <| imported.toList.map fun c => s!"const {nameId c} = rt.fn({jsString (nameId c)});\n"
+  let pre := importedPre ++ if earlier.isEmpty then "" else s!"const \{ {", ".intercalate earlier.toList} } = D;\n"
   let post := String.join <| decls.toList.map fun d => s!"D.{nameId d.name} = {nameId d.name};\n"
   return s!"(D) => \{\n" ++ pre ++ body ++ post ++ "}"
 

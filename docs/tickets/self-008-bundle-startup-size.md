@@ -43,3 +43,22 @@ Agree numbers with the user, provisional: ≤ ~40 MB uncompressed / ≤ ~8 MB br
 to first `#check` ≤ ~10 s in Chrome. Record the achieved numbers here and in `docs/design/`.
 
 Related: js-014 item 4 (`--bundle`).
+
+## Progress (2026-11-05)
+
+Measured with `selfhost/Elab.lean` (`--init-all --eval-all`), Node 24, input `def x := 1 / #check / #eval / theorem`:
+
+| | before | now |
+|---|---|---|
+| JS size | 452 MB | **174 MB** with `--small` (short ids `_<base36>`, no indentation; the long-name → short-id table for `evalConst` is included) |
+| brotli (estimated from a 40 MB sample) | – | **~14 MB** (gzip would be ~30 MB) |
+| run time (cold, whole run incl. elaboration) | ~40 s | **~14 s**: load 4.5 s, initializers 1.4 s, `importModules Init` + elaboration 8 s |
+| RSS | – | 2.8 GB (3.4 GB without `--small`) |
+
+What got faster: `lean_olean.js` (region lookup by binary search instead of a linear scan over thousands of regions: 28 s → 7 s; 32-bit header/pointer reads and fixed-shape
+object literals: 2× on top; ~180 MB/s now), `string_hash` without allocation. Node's compile cache (`NODE_COMPILE_CACHE=dir`) saves ~1.7 s on warm runs.
+
+Revised view of the gate: download size is fine (brotli ~14 MB, comparable to the official wasm builds), **memory (≈ 3 GB) and the 14 s start are the open problems**.
+Next ideas, by payoff: (1) lazy decoding of `.olean` regions (`.server` and `.ir` parts and most constants are never touched: ~1 GB of JS objects today),
+(2) lazy loading of code chunks by module (needs a synchronous loader or an async entry), (3) snapshotting the post-initialization state (see item 4 above),
+(4) prune `--eval-all` to modules whose declarations can be reached by attributes (macros/parsers) instead of everything.

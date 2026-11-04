@@ -1,1 +1,1 @@
---init-all --eval-all
+--init-all --eval-all --small

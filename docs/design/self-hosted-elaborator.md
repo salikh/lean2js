@@ -30,7 +30,7 @@ Identifiers: `nameId` encodes a `Name` by components (`l_` + components joined b
 
 ## Limits / known gaps
 
-* Size and startup: the file is 450 MB (`--init-all --eval-all`) and a run takes ~40 s before the first command ([self-008](../tickets/self-008-bundle-startup-size.md)).
+* Size and startup: 452 MB (`--init-all --eval-all`), 174 MB with `--small`; a complete small run takes ~14 s and ~3 GB of memory ([self-008](../tickets/self-008-bundle-startup-size.md)). Build with `--init-all --eval-all --small` for everyday use.
 * No type checking in the kernel (`check := false`); `kernel.whnf/isDefEq/check` externs are stubs; Environment-level `decide` with `Decidable` instances uses `Meta` and works.
 * Unresolved promises are treated as dropped when nothing else can run (heuristic, see tasks.md).
 * `import` of anything but `Init`/`Std`/`Lean` oleans under `$LEAN_SYSROOT/lib/lean` was not tested; evaluation of declarations from other modules needs their code (`--eval-all` only covers what the program was built with).

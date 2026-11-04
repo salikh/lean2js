@@ -14,6 +14,9 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
+* **2026-11-05 (later) — smaller and faster.** `lean2js --small` (short identifiers, no indentation) shrinks the self-hosted frontend from 452 MB to 174 MB of JS
+  (~14 MB with brotli); a faster `.olean` loader brings a complete run (load, initialize, import `Init`, elaborate, `#eval`) from ~40 s to ~14 s. Memory (~3 GB) is the next problem
+  ([self-008](docs/tickets/self-008-bundle-startup-size.md)).
 * **2026-11-05 — the Lean frontend runs as JavaScript.** `selfhost/Elab.lean`, transpiled by `lean2js --init-all --eval-all`, elaborates Lean source under
   Node with no native Lean code and prints exactly what native Lean prints: pattern-matching definitions, structures with `deriving Repr`, inductive types,
   `simp`, `decide`, `#check`, `#eval` (the compiler pipeline and an IR → JS generator run inside the JS program; see

@@ -274,6 +274,7 @@ P.lean_bool_to_uint64 = (b) => BigInt(b);
 P.lean_bool_to_usize = (b) => BigInt(b);
 
 /* ---- String (UTF-16 JS string; Lean positions are UTF-8 byte offsets) ---- */
+const TE = new TextEncoder(), TD = new TextDecoder(), TDfatal = new TextDecoder("utf-8", { fatal: true });
 const utf8Len = (cp) => (cp < 0x80 ? 1 : cp < 0x800 ? 2 : cp < 0x10000 ? 3 : 4);
 const infoCache = new Map();
 function sinfo(s) {
@@ -370,7 +371,7 @@ P.lean_string_memcmp = (l, r, ls, rs, len) => {
   const a = Number(ls), b = Number(rs), n = Number(len);
   const il = sinfo(l), ir = sinfo(r);
   if (il.ascii && ir.ascii) return bool(l.slice(a, a + n) === r.slice(b, b + n));
-  const enc = new TextEncoder(), x = enc.encode(l), y = enc.encode(r);
+  const x = TE.encode(l), y = TE.encode(r);
   for (let i = 0; i < n; i++) if (x[a + i] !== y[b + i]) return 0;
   return 1;
 };
@@ -382,10 +383,21 @@ P.lean_string_utf8_set = (s, pos, c) => {
 P.lean_string_mk = (l) => { const r = String.fromCodePoint(...listToArray(l)); dec(l); return r; };
 P.lean_string_data = (s) => listFromArray(Array.from(s, (ch) => ch.codePointAt(0)));
 P.lean_string_of_usize = (n) => n.toString();
-P.lean_string_hash = (s) => hash64(new TextEncoder().encode(s), 11n);
-P.lean_string_from_utf8_unchecked = (b) => { const r = new TextDecoder().decode(b); dec(b); return r; };
-P.lean_string_validate_utf8 = (b) => { try { new TextDecoder("utf-8", { fatal: true }).decode(b); return 1; } catch { return 0; } };
-P.lean_string_get_byte_fast = (s, i) => new TextEncoder().encode(s)[Number(i)];
+const scratch = new Uint8Array(4096);
+P.lean_string_hash = (s) => {
+  if (s.length <= 1365) {                       // up to 3 bytes per UTF-16 unit fit the scratch buffer: no allocation
+    const { written } = TE.encodeInto(s, scratch);
+    return hash64(scratch.subarray(0, written), 11n);
+  }
+  return hash64(TE.encode(s), 11n);
+};
+P.lean_string_from_utf8_unchecked = (b) => { const r = TD.decode(b); dec(b); return r; };
+P.lean_string_validate_utf8 = (b) => { try { TDfatal.decode(b); return 1; } catch { return 0; } };
+P.lean_string_get_byte_fast = (s, i) => {
+  const k = Number(i);
+  if (sinfo(s).ascii) return s.charCodeAt(k);   // ASCII: byte = code unit (no re-encoding on every call)
+  return TE.encode(s)[k];
+};
 
 /** MurmurHash64A as in Lean's runtime/hash.cpp */
 function hash64(bytes, seed) {
@@ -515,7 +527,7 @@ P.lean_byte_array_copy_slice = (src, srcOff, dest, destOff, len, _exact) => {
   return r;
 };
 P.lean_byte_array_hash = (a) => hash64(a, 11n);
-P.lean_string_to_utf8 = (s) => { const r = new TextEncoder().encode(s); r.rc = 1; return r; };
+P.lean_string_to_utf8 = (s) => { const r = TE.encode(s); r.rc = 1; return r; };
 
 /* ---- ST.Ref (BaseIO/ST primitives return plain values; state token and erased args are dropped) ---- */
 class Ref { constructor(v) { this.v = v; this.rc = 1; } }
@@ -740,7 +752,7 @@ installExpr(P, { inc, dec, ap, some, exports, mixHash: P.lean_uint64_mix_hash, s
 
 P.lean_eval_const = (_env, _opts, name) => {
   const id = nameId(name);
-  let f = lookupFn === null ? undefined : lookupFn(id);
+  let f = fn(id);
   let genError = null;
   if (f === undefined && evalFn !== null && exports.lean2js_gen_chunk !== undefined) {
     // a declaration of the module being elaborated: generate JS from its IR now
@@ -800,7 +812,7 @@ function getLine() {
 let carry = new Uint8Array(0);
 function stdinRead(n) {
   if (stdinLine) {
-    if (carry.length === 0) carry = new TextEncoder().encode(stdinLine());
+    if (carry.length === 0) carry = TE.encode(stdinLine());
     const r = carry.slice(0, n); carry = carry.slice(n); return r;
   }
   if (nodeFs) {
@@ -901,6 +913,15 @@ export function runInitSteps(steps) {
 /** Name lookup for `evalConst`, emitted by `--eval-all`: JS identifier → the compiled function (module-scope `eval`). */
 let lookupFn = null;
 export function setLookup(f) { lookupFn = f; }
+/** With `--small`: long identifier (`JsUtil.nameId`) → short identifier of the emitted function. */
+let nameIndex = null;
+export function setIndex(o) { nameIndex = o; }
+/** The compiled function with the (long) identifier `id`, or undefined. */
+export function fn(id) {
+  if (lookupFn === null) return undefined;
+  if (nameIndex !== null) { const s = nameIndex[id]; return s === undefined ? undefined : lookupFn(s); }
+  return lookupFn(id);
+}
 /** Direct `eval` in the scope of the generated program (so that new code can call its functions); see `lean2js_gen_chunk`. */
 let evalFn = null;
 export function setEval(f) { evalFn = f; }
@@ -965,9 +986,13 @@ export function runMain(main, arity, args = (isNode ? globalThis.process.argv.sl
 function runMainHere(main, arity, args) {
   let r;
   try {
+    const tm = globalThis.process && globalThis.process.env && globalThis.process.env.LEAN2JS_TIMING;
+    const ms = () => Math.round(performance.now());
+    if (tm) console.error(`[timing] program loaded at ${ms()} ms (since process start)`);
     initDepth++;
-    try { r = initFn ? initFn() : null; } finally { initDepth--; }   // module initializers; an error result aborts like in a native executable
-    if (r === null) { r = arity >= 2 ? main(listFromArray(args), 0) : main(0); runPendingTasks(); }
+    try { r = initFn ? initFn() : null; } finally { initDepth--; }
+    if (tm) console.error(`[timing] initializers done at ${ms()} ms`);   // module initializers; an error result aborts like in a native executable
+    if (r === null) { r = arity >= 2 ? main(listFromArray(args), 0) : main(0); runPendingTasks(); if (tm) console.error(`[timing] main done at ${ms()} ms`); }
   } catch (e) {
     if (e instanceof ExitSignal) {
       if (isNode) globalThis.process.exitCode = e.code;

@@ -62,6 +62,20 @@ def addDeclElabWithoutCheckingExport (env : Lean.Environment) (decl : Declaratio
     Except Kernel.Exception Lean.Environment :=
   addDeclElab env decl
 
+/-! Kernel `whnf` / `isDefEq` / `check` (used by `Kernel.whnf`, `decide +kernel`, …), through the vendored lean4lean type checker. -/
+
+@[export lean_kernel_whnf]
+def kernelWhnf (env : Lean.Environment) (lctx : LocalContext) (e : Expr) : Except Kernel.Exception Expr :=
+  Lean4Lean.TypeChecker.M.run env.toKernelEnv (lctx := lctx) (Lean4Lean.TypeChecker.whnf e)
+
+@[export lean_kernel_is_def_eq]
+def kernelIsDefEq (env : Lean.Environment) (lctx : LocalContext) (a b : Expr) : Except Kernel.Exception Bool :=
+  Lean4Lean.TypeChecker.M.run env.toKernelEnv (lctx := lctx) (Lean4Lean.TypeChecker.isDefEq a b)
+
+@[export lean_kernel_check]
+def kernelCheck (env : Lean.Environment) (lctx : LocalContext) (e : Expr) : Except Kernel.Exception Expr :=
+  Lean4Lean.TypeChecker.M.run env.toKernelEnv (lctx := lctx) (Lean4Lean.TypeChecker.checkType e)
+
 @[export lean_mk_cases_on]
 def mkCasesOnExport (env : Kernel.Environment) (declName : Name) : Except Kernel.Exception Declaration :=
   mkCasesOnDecl env declName
