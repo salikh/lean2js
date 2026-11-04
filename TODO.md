@@ -5,7 +5,7 @@ links to detailed tickets.
 
 ## TODO for humans
 
-* [self-005-question-kernel-strategy](docs/tickets/self-005-question-kernel-strategy.md): how to get a kernel in JS (recommended: trusting `add_decl` first)
+* None
 
 ## Open tasks
 

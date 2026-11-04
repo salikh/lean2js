@@ -28,7 +28,7 @@ function forEachChild(o, f) {
   if (o instanceof Clo) { for (let i = 0; i < o.args.length; i++) f(o.args[i]); return; }
   if (o instanceof Ref) { f(o.v); return; }
   if (o instanceof Thunk) { if (o.c !== null) f(o.c); f(o.v); return; }
-  if (o instanceof Task) { f(o.v); return; }
+  if (o instanceof Task) { if (o.pend !== true) f(o.v); return; }
   const n = o.n;
   if (n === undefined) return;               // typed arrays etc.
   for (let i = 0; i < n; i++) f(o["a" + i]);
@@ -594,6 +594,83 @@ P.lean_io_wait = (t) => { inc(t.v); const v = t.v; dec(t); return v; };
 P.lean_io_cancel = (_t) => unit;
 P.lean_io_check_canceled = () => 0;
 P.lean_io_has_finished = (_t) => 1;
+
+/* ---- self-007: promises (cooperative, single-threaded), Int64, misc runtime queries ---- */
+// A Promise resolves at most once; `result?` tasks over an unresolved promise cannot be waited for (no scheduler): deadlock error.
+class Promise_ { constructor() { this.rc = 1; this.done = false; this.val = 0; } }
+class PTask extends Task {
+  constructor(p) { super(0); this.p = p; }
+  get v() { if (!this.p.done) throw new Error("deadlock: waiting for an unresolved Promise (no scheduler)"); return some(this.p.val); }
+  set v(_) {}
+}
+P.lean_io_promise_new = () => new Promise_();
+P.lean_io_promise_resolve = (value, p) => { if (!p.done) { p.done = true; p.val = value; } else dec(value); return unit; };
+P.lean_io_promise_result_opt = (p) => { const t = new PTask(p); Object.defineProperty(t, "pend", { get() { return !p.done; } }); return t; };
+P.lean_option_get_or_block = (o) => {
+  if (typeof o === "object") { inc(o.a0); const v = o.a0; dec(o); return v; }
+  throw new Error("deadlock: Option.getOrBlock! on none (dropped Promise)");
+};
+P.lean_io_get_task_state = (t) => (t.pend === true ? 0 : 2);
+P.lean_io_get_tid = () => 1n;
+P.lean_internal_get_hardware_concurrency = () => 1;
+P.lean_io_basemutex_new = () => ({ rc: 1 });
+P.lean_io_basemutex_lock = (_m) => unit;
+P.lean_io_basemutex_unlock = (_m) => unit;
+let heartbeats = 0n;
+P.lean_io_get_num_heartbeats = () => heartbeats;
+P.lean_io_set_heartbeats = (n) => { heartbeats = n; return unit; };
+P.lean_profileit = (_cat, _opts, fn, decl) => { dec(decl); return ap(fn, [0]); };
+P.lean_runtime_mark_persistent = (a) => { persist(a); return a; };
+P.lean_runtime_forget = (_a) => unit;
+P.lean_strict_or = (a, b) => (a | b);
+P.lean_void_mk = (x) => x;
+P.lean_system_platform_osx = () => 0;
+P.lean_system_platform_windows = () => 0;
+P.lean_string_is_valid_pos = (s, pos) => {
+  const n = Number(pos);
+  if (n === 0) return 1;
+  const total = P.lean_string_utf8_byte_size(s);
+  if (BigInt(n) > BigInt(total)) return 0;
+  if (BigInt(n) === BigInt(total)) return 1;
+  return bool(isCharBoundary(s, n));
+};
+function isCharBoundary(s, n) {            // is UTF-8 byte offset n the start of a code point of s?
+  let off = 0;
+  for (const ch of s) { if (off === n) return true; if (off > n) return false; off += utf8Len(ch.codePointAt(0)); }
+  return off === n;
+}
+P.lean_float_isnan = (x) => bool(Number.isNaN(x));
+P.lean_float_isinf = (x) => bool(x === Infinity || x === -Infinity);
+const objIds = new WeakMap(); let nextId = 8n;
+P.lean_ptr_addr = (a) => {
+  if (typeof a === "object" && a !== null) { let i = objIds.get(a); if (i === undefined) { i = nextId; nextId += 8n; objIds.set(a, i); } return i; }
+  return BigInt(a) * 2n + 1n;
+};
+// Int64 (BigInt in [-2^63, 2^63)); other signed widths follow the same scheme
+for (const bits of [64]) {   // narrower signed widths are stored as unsigned bit patterns: not done yet
+  const w = (x) => BigInt.asIntN(bits, x);
+  const n = `int${bits}`;
+  const big = bits === 64;
+  const out = big ? (x) => x : (x) => Number(x);
+  const inn = big ? (x) => x : (x) => BigInt(x);
+  P[`lean_${n}_neg`] = (a) => out(w(-inn(a)));
+  P[`lean_${n}_dec_eq`] = (a, b) => bool(a === b);
+  P[`lean_${n}_dec_lt`] = (a, b) => bool(a < b);
+  P[`lean_${n}_dec_le`] = (a, b) => bool(a <= b);
+  P[`lean_${n}_of_nat`] = (a) => out(w(a));
+  P[`lean_${n}_to_int_sint`] = (a) => inn(a);
+  P[`lean_${n}_add`] = (a, b) => out(w(inn(a) + inn(b)));
+  P[`lean_${n}_sub`] = (a, b) => out(w(inn(a) - inn(b)));
+  P[`lean_${n}_mul`] = (a, b) => out(w(inn(a) * inn(b)));
+  P[`lean_${n}_div`] = (a, b) => (b === 0n ? 0n : out(w(inn(a) / inn(b))));          // truncating, x/0 = 0
+  P[`lean_${n}_mod`] = (a, b) => (b === 0n ? a : out(w(inn(a) % inn(b))));
+  P[`lean_${n}_land`] = (a, b) => out(w(inn(a) & inn(b)));
+  P[`lean_${n}_lor`] = (a, b) => out(w(inn(a) | inn(b)));
+  P[`lean_${n}_xor`] = (a, b) => out(w(inn(a) ^ inn(b)));
+  P[`lean_${n}_complement`] = (a) => out(w(~inn(a)));
+  P[`lean_${n}_shift_left`] = (a, b) => out(w(inn(a) << (inn(b) & BigInt(bits - 1))));
+  P[`lean_${n}_shift_right`] = (a, b) => out(w(inn(a) >> (inn(b) & BigInt(bits - 1))));
+}
 
 /* ---------- IO ---------- */
 

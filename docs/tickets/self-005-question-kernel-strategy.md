@@ -1,7 +1,7 @@
 # Question: how to get a kernel in JS?
 
 Parent: [self-001](self-001-compiler-to-js-epic.md)
-Status: **question** (provisional decision = recommended)
+Status: **decided 2026-11-04** — follow the recommendation below (A, then C, D as fallback)
 
 The Lean 4.35 kernel (`lean_add_decl`, `lean_kernel_whnf`, `lean_kernel_is_def_eq`, `lean_kernel_check`) is C++;
 it also generates recursors / casesOn-derived inductive data. The elaborator calls `addDecl` for every definition

@@ -2,6 +2,9 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-04 — [self-007-misc-primitives](tickets/self-007-misc-primitives.md) (partly): Int64, promises, ptr_addr, heartbeats,
+  mutex stubs etc. in `runtime/lean_rt.js`; test `tests/e2e/prims2.lean` (31 e2e programs pass). Kernel decision for self-005 recorded.
+
 * 2026-11-04 — [self-001-compiler-to-js-epic](tickets/self-001-compiler-to-js-epic.md): new epic to compile the Lean
   frontend to JS; feasibility probe (self-002) and subtickets self-003…009 created, no code changes.
 
