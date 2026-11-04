@@ -14,6 +14,12 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
+* **2026-11-05 (evening) — the Lean frontend runs in the browser.** `web/selfhost/build.sh` builds `elab.js` (174 MB) and the `Init` library files; `python3 -m http.server -d web/selfhost 8000`
+  (or `node web/selfhost/serve.mjs`) serves a page with an editor and an "Elaborate" button; `web/selfhost/test-browser.sh` checks it in headless Chrome (output identical to native, ~40 s
+  including the 160 MB download from localhost). It runs on the page's main thread because Chrome gives Web Workers only ~40% of the stack, which the compiler's recursion exceeds.
+  Planned next (after the remaining `self-*` tickets): an infoview equivalent, [info-001](docs/tickets/info-001-infoview-epic.md).
+
+* **Caveat:** the self-hosted frontend's task scheduler guesses that stuck promises were dropped ([self-010](docs/tickets/self-010-promise-drop-heuristic.md)); its output is verified only by the differential tests so far.
 * **2026-11-05 (latest) — the JS kernel type checks.** `Kernel.whnf/isDefEq/check` and `addDecl` run lean4lean's type checker in JS (on by default, `LEAN2JS_KERNEL_CHECK=0` to disable):
   the self-hosted frontend rejects ill-typed declarations with exactly the native kernel's messages (tests `kernelops`, `selfhostcheck`).
 * **2026-11-05 (later) — smaller and faster.** `lean2js --small` (short identifiers, no indentation) shrinks the self-hosted frontend from 452 MB to 174 MB of JS
@@ -49,4 +55,5 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 * `lean2js --init-all` runs the initializers of all imported modules ([docs/design/module-initializers.md](docs/design/module-initializers.md)).
 * `runtime/lean_expr.js` — JS versions of the C++ `Expr`/`Level` primitives (see [docs/design/lean-expr-prims.md](docs/design/lean-expr-prims.md)).
 * `Lean2js/Kernel.lean`, `Lean2js/KernelCasesOn.lean`, `vendor/lean4lean` — the kernel entry points for the self-hosted compiler ([docs/tickets/self-005-question-kernel-strategy.md](docs/tickets/self-005-question-kernel-strategy.md)).
+* `web/selfhost/` — the Lean frontend in the browser (see Status); `selfhost/Elab.lean` is the program (stdin → messages).
 * `tests/e2e/run.sh` — differential tests: native `lean --run` vs. transpiled JS under Node.

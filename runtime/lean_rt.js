@@ -654,12 +654,19 @@ function waitFor(t) {
     let dropped = false;
     while (pendingPromises.length > 0) {
       const p = pendingPromises.shift();
-      if (p.pend) { if (traceTasks) console.error("task: treating unresolved promise as dropped"); resolveTask(p, 0); dropped = true; break; }
+      if (p.pend) {
+        if (strictTasks) throw new Error("deadlock: an unresolved promise would be treated as dropped (LEAN2JS_STRICT_TASKS=1, see docs/tickets/self-010-promise-drop-heuristic.md)");
+        droppedGuesses++;
+        if (traceTasks) console.error("task: treating unresolved promise as dropped");
+        resolveTask(p, 0); dropped = true; break;
+      }
     }
     if (!dropped) throw new Error("deadlock: waiting for a task or promise that can never be resolved");
   }
 }
 const pendingPromises = [];
+let droppedGuesses = 0;                 // how often the heuristic fired (reported with LEAN2JS_TIMING)
+const strictTasks = !!(globalThis.process && globalThis.process.env && globalThis.process.env.LEAN2JS_STRICT_TASKS);
 const traceTasks = !!(globalThis.process && globalThis.process.env && globalThis.process.env.LEAN2JS_TRACE_TASKS);
 /** Runs all queued jobs (used at the end of `main`). */
 export function runPendingTasks() { while (runOneJob()); }
@@ -868,7 +875,8 @@ P.lean_io_get_random_bytes = (n) => {
   return okR(b);
 };
 P.lean_io_getenv = (name) => {
-  const v = isNode ? globalThis.process.env[name] : undefined;
+  // outside Node the host provides the environment as `globalThis.LEAN2JS_ENV = { NAME: "value" }`
+  const v = isNode ? globalThis.process.env[name] : (globalThis.LEAN2JS_ENV ? globalThis.LEAN2JS_ENV[name] : undefined);
   return v === undefined ? none() : some(v);
 };
 P.lean_io_initializing = () => bool(initDepth > 0);
@@ -992,7 +1000,7 @@ function runMainHere(main, arity, args) {
     initDepth++;
     try { r = initFn ? initFn() : null; } finally { initDepth--; }
     if (tm) console.error(`[timing] initializers done at ${ms()} ms`);   // module initializers; an error result aborts like in a native executable
-    if (r === null) { r = arity >= 2 ? main(listFromArray(args), 0) : main(0); runPendingTasks(); if (tm) console.error(`[timing] main done at ${ms()} ms`); }
+    if (r === null) { r = arity >= 2 ? main(listFromArray(args), 0) : main(0); runPendingTasks(); if (tm) console.error(`[timing] main done at ${ms()} ms; dropped-promise guesses: ${droppedGuesses}`); }
   } catch (e) {
     if (e instanceof ExitSignal) {
       if (isNode) globalThis.process.exitCode = e.code;

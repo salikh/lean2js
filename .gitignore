@@ -11,3 +11,10 @@ web/prog.stdin
 /web/lean_num.js
 /web/lean_sys.js
 /web/lean_olean.js
+/web/selfhost/elab.js
+/web/selfhost/lib/
+/web/selfhost/*.js
+!/web/selfhost/worker.js
+/web/selfhost/files.json
+/web/selfhost/filelist.txt
+/web/selfhost/report.json

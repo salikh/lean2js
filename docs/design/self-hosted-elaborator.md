@@ -28,6 +28,14 @@ structures with `deriving Repr`, inductive types (kernel: vendored lean4lean), `
 Identifiers: `nameId` encodes a `Name` by components (`l_` + components joined by `$$`, special characters `$u<hex>_`, numeric components
 `$n<k>`), instead of `Name.toString`, which is ambiguous.
 
+## In the browser (`web/selfhost/`)
+
+`build.sh` transpiles `selfhost/Elab.lean` without `--run` (`elab.js`), copies the runtime and the library files of `Init` (`lib/…`, listed in `files.json`). `driver.js` fills the
+runtime's in-memory file system (`rt.vfs`, paths `/lean/lib/lean/…`; a 12-connection fetch pool), sets `LEAN2JS_ENV = {LEAN_SYSROOT: "/lean"}`, hooks stdin/stdout and calls `rt.runMain`.
+The default is the **main thread**: V8 gives Chrome's workers ~570 KB-equivalent of stack (measured: a trivial recursion reaches 4.5 k frames in a worker, 12.4 k on the main thread, 7.8 k in Node) while
+the compiler needs 500–700 KB even for small inputs (`Simp.simp` overflowed in a worker); `?worker=1` runs it in a worker anyway. Memory ≈ 3 GB. The page freezes during elaboration.
+`test-browser.sh` runs the default program in headless Chrome through a local server and compares the output.
+
 ## Limits / known gaps
 
 * Size and startup: 452 MB (`--init-all --eval-all`), 174 MB with `--small`; a complete small run takes ~14 s and ~3 GB of memory ([self-008](../tickets/self-008-bundle-startup-size.md)). Build with `--init-all --eval-all --small` for everyday use.

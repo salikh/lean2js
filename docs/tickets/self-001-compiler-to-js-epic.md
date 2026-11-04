@@ -1,6 +1,6 @@
 # Epic: compile the Lean compiler itself to JavaScript
 
-Status: **open** (feasibility probe done 2026-11-04, see self-002)
+Status: **milestones reached** (2026-11-05): the frontend elaborates, `#eval`s and type checks in JS, also in the browser (`web/selfhost/`). Open: self-007 remainder, self-008 (memory/startup), self-010 (promise heuristic). Follow-on epic: [info-001](info-001-infoview-epic.md).
 
 ## Goal
 
@@ -41,7 +41,8 @@ transpilable today. What is missing is everything that is native (C/C++) in the 
 * [self-006-olean-loader](self-006-olean-loader.md)
 * [self-007-misc-primitives](self-007-misc-primitives.md)
 * [self-008-bundle-startup-size](self-008-bundle-startup-size.md)
-* [self-009-milestone-hello-elab](self-009-milestone-hello-elab.md) — first end-to-end milestone
+* [self-009-milestone-hello-elab](self-009-milestone-hello-elab.md) — first end-to-end milestone (reached)
+* [self-010-promise-drop-heuristic](self-010-promise-drop-heuristic.md) — investigate the dropped-promise guess in the task scheduler
 
 ## Suggested order
 

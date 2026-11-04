@@ -2,6 +2,12 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-05 — browser version of the self-hosted frontend: `web/selfhost/` (driver, worker option, `build.sh`, `serve.mjs`, `test-browser.sh`); `LEAN2JS_ENV` for `IO.getEnv` outside Node; fetch pool; stack-size finding documented.
+
+* 2026-11-05 — [info-001-infoview-epic](tickets/info-001-infoview-epic.md): plan for an infoview equivalent (tickets info-002 … info-008); no code. Browser build of the self-hosted frontend (`web/selfhost/`, verified in headless Chrome).
+
+* 2026-11-05 — [self-010-promise-drop-heuristic](tickets/self-010-promise-drop-heuristic.md) filed: the scheduler's "oldest unresolved promise is dropped" guess needs confirmation.
+
 * 2026-11-05 — [self-005-question-kernel-strategy](tickets/self-005-question-kernel-strategy.md): type-checking kernel on by default (lean4lean `check := true`), `lean_kernel_whnf/is_def_eq/check`; tests `kernelops`, `selfhostcheck`.
 
 * 2026-11-05 — [self-008-bundle-startup-size](tickets/self-008-bundle-startup-size.md): `--small` (short ids, no indentation: 452 → 174 MB), olean loader 6× faster (binary search of regions, 32-bit reads), no-alloc string hash; startup 40 s → 14 s.
