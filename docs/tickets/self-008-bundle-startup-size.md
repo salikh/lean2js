@@ -1,7 +1,7 @@
 # Bundle, startup time and size
 
 Parent: [self-001](self-001-compiler-to-js-epic.md)
-Status: open — **gate for the first end-to-end milestone** ([self-009](self-009-milestone-hello-elab.md)): the milestone is not "done" until the
+Status: **practical gate met** (2026-11-05): 174 MB JS (~14 MB brotli), ~11 s for a complete small run in Node, ~42 s including the download in headless Chrome, ≈ 2.6 GB RSS; the browser demos work. Further optimizations (below) are optional. Original status: open — **gate for the first end-to-end milestone** ([self-009](self-009-milestone-hello-elab.md)): the milestone is not "done" until the
 page/bundle size and startup time below are acceptable.
 
 ## Measurements (2026-11-04)

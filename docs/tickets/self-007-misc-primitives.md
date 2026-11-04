@@ -1,7 +1,7 @@
 # Remaining runtime primitives (non-Expr)
 
 Parent: [self-001](self-001-compiler-to-js-epic.md) | see js-014 item 2
-Status: **partly done** (2026-11-04)
+Status: **done** (2026-11-05) — what remains is intentionally unsupported in a JS runtime (process spawning, sockets, timers, dynamic loading, Windows time zones: error stubs; `Condvar`/`Mutex` are no-ops in the cooperative scheduler); revisit only if a program needs them
 
 Int64 ops, `lean_ptr_addr` (object identity ids via WeakMap), `lean_runtime_mark_persistent/forget`, `lean_strict_or`,
 `lean_void_mk`, platform queries, heartbeats get/set (`lean_io_get/set_num_heartbeats`), `lean_io_get_tid`,
