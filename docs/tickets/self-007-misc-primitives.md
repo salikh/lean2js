@@ -16,5 +16,7 @@ Done in `runtime/lean_rt.js` ("self-007" block): Int64 family (BigInt; narrower 
 `result?` task over an unresolved promise throws "deadlock" when waited — no scheduler), `option_get_or_block`, task state, tid, hardware concurrency,
 BaseMutex no-ops, heartbeats (counter stays 0, so `maxHeartbeats` never fires), `profileit`, `mark_persistent`, `forget`, `strict_or`, `void_mk`,
 platform queries, `string_is_valid_pos`, `float_isnan/isinf`, `ptr_addr` (WeakMap ids). Test: `tests/e2e/prims2.lean`.
+Also done: `runtime/lean_fs.js` — file handles (Node `fs`; in-memory `vfs` Map elsewhere), metadata, realpath, read/remove/rename/create dir,
+std stream redirection (`setStdout` etc.), `Std.Time` now, error stubs for process spawn / sockets / timers / dynlib / `evalConst`. Test: `tests/e2e/fs.lean`.
 Still open: file handles/metadata/realpath/process, uv sockets/timers stubs, dynlib/`eval_const`/`run_init` (see self-003), compacted region (self-006),
 Condvar, real scheduler for tasks if the elaborator needs to block on promises.

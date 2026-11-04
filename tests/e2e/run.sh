@@ -4,7 +4,7 @@
 cd "$(dirname "$0")/../.." || exit 1
 lake build lean2js >/dev/null 2>&1 || { echo "build failed"; exit 1; }
 mkdir -p out
-cp runtime/lean_rt.js runtime/lean_expr.js out/
+cp runtime/lean_rt.js runtime/lean_expr.js runtime/lean_fs.js out/
 
 names="$*"
 [ -z "$names" ] && names=$(ls tests/e2e/*.lean | sed 's|.*/||; s|\.lean$||')

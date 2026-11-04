@@ -237,7 +237,8 @@ def mkExportIndex (env : Environment) : HashMap String Name :=
 
 /-- Exported Lean functions that the JS runtime calls itself (constructors of `Expr`/`Level`/`Name`, which the native
 runtime's C++ code calls through their `@[export]` symbols); registered as `rt.exports[symbol]`. -/
-def runtimeExportPrefixes : Array String := #["lean_expr_mk_", "lean_level_mk_", "lean_name_mk_"]
+def runtimeExportPrefixes : Array String := #["lean_expr_mk_", "lean_level_mk_", "lean_name_mk_", "lean_get_lmvar_", "lean_get_mvar_", "lean_get_delayed_mvar_",
+    "lean_assign_lmvar", "lean_assign_mvar"]
 
 /-- IR declarations reachable from `roots` (names), following `fap`/`pap` and `@[export]` implementations of
 extern primitives. -/

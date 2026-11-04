@@ -2,6 +2,10 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-04 — self-004/self-007: `instantiateMVars` port (untested in JS until self-003), `runtime/lean_fs.js` (files, dirs, metadata, stream redirection, stubs); test `tests/e2e/fs.lean`.
+
+* 2026-11-04 — [js-001-transpiler-epic](tickets/js-001-transpiler-epic.md): updated to say the transpiler's source is now Lean IR (not LCNF JSON).
+
 * 2026-11-04 — [self-004-expr-primitives](tickets/self-004-expr-primitives.md) (mostly): `runtime/lean_expr.js` with Expr/Level/Name primitives, `rt.exports`
   registry for calling compiled Lean constructors, `tests/e2e/expr.lean`; fixed `lean_uint64_mix_hash` (now bit-identical hashes). Design: [design/lean-expr-prims.md](design/lean-expr-prims.md).
 

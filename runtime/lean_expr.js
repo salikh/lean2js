@@ -74,6 +74,46 @@ export function install(P, h) {
 
   /* ---- generic bottom-up rewriting (the kernel's replace_rec_fn): f(m, offset) → owned Expr, or null to descend ---- */
   const mkBVar = (i) => X.lean_expr_mk_bvar(i);
+  /** Rebuild `m` from its transformed children (`sub(child, binderDepthDelta)` → owned); returns an owned `m` itself if nothing changed. */
+  function rebuildNode(m, sub) {
+    const same = (...pairs) => {
+      for (let i = 0; i < pairs.length; i += 2) if (pairs[i] !== pairs[i + 1]) return false;
+      for (let i = 0; i < pairs.length; i += 2) dec(pairs[i]);
+      inc(m);
+      return true;
+    };
+    switch (m.t) {
+      case T.app: {
+        const a = sub(m.a0, 0), b = sub(m.a1, 0);
+        return same(a, m.a0, b, m.a1) ? m : X.lean_expr_mk_app(a, b);
+      }
+      case T.lam: case T.forallE: {
+        const d = sub(m.a1, 0), b = sub(m.a2, 1);
+        if (same(d, m.a1, b, m.a2)) return m;
+        inc(m.a0);
+        return (m.t === T.lam ? X.lean_expr_mk_lambda : X.lean_expr_mk_forall)(m.a0, d, b, m.s3_8);
+      }
+      case T.letE: {
+        const t = sub(m.a1, 0), v = sub(m.a2, 0), b = sub(m.a3, 1);
+        if (same(t, m.a1, v, m.a2, b, m.a3)) return m;
+        inc(m.a0);
+        return X.lean_expr_mk_let(m.a0, t, v, b, m.s4_8);
+      }
+      case T.mdata: {
+        const x = sub(m.a1, 0);
+        if (same(x, m.a1)) return m;
+        inc(m.a0);
+        return X.lean_expr_mk_mdata(m.a0, x);
+      }
+      case T.proj: {
+        const x = sub(m.a2, 0);
+        if (same(x, m.a2)) return m;
+        inc(m.a0); inc(m.a1);
+        return X.lean_expr_mk_proj(m.a0, m.a1, x);
+      }
+      default: inc(m); return m;
+    }
+  }
   function replace(e, f) {
     const cache = new Map();                       // offset → Map(shared subterm → owned result)
     function go(m, off) {
@@ -90,45 +130,7 @@ export function install(P, h) {
       if (shared) { inc(r); c.set(m, r); }
       return r;
     }
-    function same(m, ...pairs) {                   // all rebuilt children identical to the originals? then drop them
-      for (let i = 0; i < pairs.length; i += 2) if (pairs[i] !== pairs[i + 1]) return false;
-      for (let i = 0; i < pairs.length; i += 2) dec(pairs[i]);
-      inc(m);
-      return true;
-    }
-    function rebuild(m, off) {
-      switch (m.t) {
-        case T.app: {
-          const a = go(m.a0, off), b = go(m.a1, off);
-          return same(m, a, m.a0, b, m.a1) ? m : X.lean_expr_mk_app(a, b);
-        }
-        case T.lam: case T.forallE: {
-          const d = go(m.a1, off), b = go(m.a2, off + 1);
-          if (same(m, d, m.a1, b, m.a2)) return m;
-          inc(m.a0);
-          return (m.t === T.lam ? X.lean_expr_mk_lambda : X.lean_expr_mk_forall)(m.a0, d, b, m.s3_8);
-        }
-        case T.letE: {
-          const t = go(m.a1, off), v = go(m.a2, off), b = go(m.a3, off + 1);
-          if (same(m, t, m.a1, v, m.a2, b, m.a3)) return m;
-          inc(m.a0);
-          return X.lean_expr_mk_let(m.a0, t, v, b, m.s4_8);
-        }
-        case T.mdata: {
-          const x = go(m.a1, off);
-          if (same(m, x, m.a1)) return m;
-          inc(m.a0);
-          return X.lean_expr_mk_mdata(m.a0, x);
-        }
-        case T.proj: {
-          const x = go(m.a2, off);
-          if (same(m, x, m.a2)) return m;
-          inc(m.a0); inc(m.a1);
-          return X.lean_expr_mk_proj(m.a0, m.a1, x);
-        }
-        default: inc(m); return m;
-      }
-    }
+    const rebuild = (m, off) => rebuildNode(m, (c, d) => go(c, off + d));
     const r = go(e, 0);
     for (const c of cache.values()) for (const v of c.values()) dec(v);
     return r;
@@ -293,4 +295,118 @@ export function install(P, h) {
       const v = r.a0; inc(v); dec(r);
       return v;
     });
+
+  /* ---- instantiate metavariables (port of kernel/instantiate_mvars.cpp; mctx accessors are compiled Lean `@[export]`s) ---- */
+  const hasLMVar = (l) => typeof l !== "number" && ((dataOf(l) >> 32n) & 1n) === 1n;
+  const hasAnyMVar = (e) => (dataOf(e) & (3n << 41n)) !== 0n;
+  const hasExprMVar = (e) => (dataOf(e) & (1n << 41n)) !== 0n;
+  const mkPair = (a, b) => ({ t: 0, rc: 1, n: 2, a0: a, a1: b });
+  const mkCons = (a, b) => ({ t: 1, rc: 1, n: 2, a0: a, a1: b });
+
+  /** Substitutes bvars `0..sz-1` of `f`'s body binders by `revArgs` (Expr.betaRev with useZeta := true). All arguments borrowed. */
+  function betaRev(f, revArgs) {
+    const sz = revArgs.length;
+    if (sz === 0) return keep(f);
+    let e = f, i = 0;
+    for (;;) {
+      if (e.t === T.lam) {
+        if (i + 1 < sz) { e = e.a2; i++; continue; }
+        return instantiate(e.a2, sz, (j) => revArgs[j]);
+      }
+      if (e.t === T.letE) { e = instantiate(e.a3, 1, () => e.a2); continue; }       // zeta (the new `e` is owned and leaked on purpose)
+      if (e.t === T.mdata) { e = e.a1; continue; }
+      const n = sz - i;
+      let r = instantiate(e, sz - n, (j) => revArgs[n + j]);
+      for (let k = n - 1; k >= 0; k--) { inc(revArgs[k]); r = X.lean_expr_mk_app(r, revArgs[k]); }
+      return r;
+    }
+  }
+
+  function makeInstantiator(mctxIn) {
+    let mctx = mctxIn;                                  // owned; threaded through assignments
+    const call = (fn, ...args) => { inc(mctx); for (const a of args) inc(a); return fn(mctx, ...args); };
+    const assign = (fn, mid, v) => { inc(mid); inc(v); mctx = fn(mctx, mid, v); };
+
+    function lvl(l) {
+      if (!hasLMVar(l)) return keep(l);
+      switch (l.t) {
+        case 1: { const x = lvl(l.a0); if (x === l.a0) { dec(x); return keep(l); } return X.lean_level_mk_succ(x); }
+        case 2: case 3: {
+          const a = lvl(l.a0), b = lvl(l.a1);
+          if (a === l.a0 && b === l.a1) { dec(a); dec(b); return keep(l); }
+          return (l.t === 2 ? X.lean_level_mk_max : X.lean_level_mk_imax)(a, b);
+        }
+        case 5: {
+          const o = call(X.lean_get_lmvar_assignment, l.a0);
+          if (typeof o === "number") return keep(l);
+          const a = o.a0; inc(a); dec(o);
+          if (!hasLMVar(a)) return a;
+          const a2 = lvl(a);
+          if (a2 !== a) assign(X.lean_assign_lmvar, l.a0, a2);
+          return a2;
+        }
+        default: return keep(l);
+      }
+    }
+    const cache = new Map();
+    function getAssign(mid) {                           // instantiated assignment (owned) or null
+      const o = call(X.lean_get_mvar_assignment, mid);
+      if (typeof o === "number") return null;
+      const a = o.a0; inc(a); dec(o);
+      if (!hasAnyMVar(a)) return a;
+      const a2 = visit(a);
+      if (a2 !== a) assign(X.lean_assign_mvar, mid, a2);
+      return a2;
+    }
+    function visit(e) {
+      if (!hasAnyMVar(e)) return keep(e);
+      const shared = e.rc !== 1;
+      if (shared) { const r = cache.get(e); if (r !== undefined) { inc(r); return r; } }
+      let r;
+      switch (e.t) {
+        case T.sort: { const l = lvl(e.a0); if (l === e.a0) { dec(l); r = keep(e); } else r = X.lean_expr_mk_sort(l); break; }
+        case T.const: {
+          const lv = []; for (let l = e.a1; typeof l !== "number"; l = l.a1) lv.push(l.a0);
+          const nv = lv.map(lvl);
+          if (nv.every((x, i) => x === lv[i])) { nv.forEach(dec); r = keep(e); }
+          else { let lst = 0; for (let i = nv.length - 1; i >= 0; i--) lst = mkCons(nv[i], lst); inc(e.a0); r = X.lean_expr_mk_const(e.a0, lst); }
+          break;
+        }
+        case T.mvar: { const a = getAssign(e.a0); r = a === null ? keep(e) : a; break; }
+        case T.app: r = visitApp(e); break;
+        default: r = rebuildNode(e, (c) => visit(c));
+      }
+      if (shared) { inc(r); cache.set(e, r); }
+      return r;
+    }
+    function mvarAppArgs(e) {
+      return e.t === T.app ? X.lean_expr_mk_app(mvarAppArgs(e.a0), visit(e.a1)) : keep(e);
+    }
+    function visitApp(e) {
+      const args = []; let f = e;
+      while (f.t === T.app) { args.push(f.a1); f = f.a0; }
+      args.reverse();                                   // a_1 … a_n
+      if (f.t !== T.mvar) return rebuildNode(e, (c) => visit(c));
+      const mid = f.a0;
+      const a = getAssign(mid);
+      if (a !== null) {
+        const vs = args.map(visit).reverse();           // reversed for betaRev
+        return betaRev(a, vs);
+      }
+      const d = call(X.lean_get_delayed_mvar_assignment, mid);
+      if (typeof d === "number") return mvarAppArgs(e);
+      const dv = d.a0, fvars = dv.a0, pending = dv.a1;
+      if (fvars.length > args.length) return mvarAppArgs(e);
+      const val = getAssign(pending);
+      if (val === null || hasExprMVar(val)) return mvarAppArgs(e);
+      const vs = args.map(visit);
+      const abs = abstractRange(val, fvars.length, fvars);
+      let r = instantiate(abs, fvars.length, (j) => vs[fvars.length - j - 1]);   // instantiateRevRange 0 fvars.size args
+      for (let i = fvars.length; i < vs.length; i++) { inc(vs[i]); r = X.lean_expr_mk_app(r, vs[i]); }
+      return r;
+    }
+    return { lvl, visit, mctx: () => mctx };
+  }
+  P.lean_instantiate_level_mvars = (mctx, l) => { const I = makeInstantiator(mctx); const r = I.lvl(l); return mkPair(I.mctx(), r); };
+  P.lean_instantiate_expr_mvars = (mctx, e) => { const I = makeInstantiator(mctx); const r = I.visit(e); return mkPair(I.mctx(), r); };
 }

@@ -15,6 +15,7 @@
 // Erased and `void` (state token) arguments are not passed to primitives, as in the C ABI.
 
 import { install as installExpr } from "./lean_expr.js";
+import { install as installFs } from "./lean_fs.js";
 
 export const erased = 0;
 
@@ -732,9 +733,14 @@ const mkBytes = (b) => { b.rc = 1; return b; };
 const stdoutStream = mkStream((s) => stdoutSink(s), () => "");
 const stderrStream = mkStream((s) => stderrSink(s), () => "");
 const stdinStream = mkStream((_s) => {}, () => getLine());
-P.lean_get_stdout = () => stdoutStream;
-P.lean_get_stderr = () => stderrStream;
-P.lean_get_stdin = () => stdinStream;
+const curStreams = { out: stdoutStream, err: stderrStream, in: stdinStream };
+P.lean_get_stdout = () => { inc(curStreams.out); return curStreams.out; };
+P.lean_get_stderr = () => { inc(curStreams.err); return curStreams.err; };
+P.lean_get_stdin = () => { inc(curStreams.in); return curStreams.in; };
+/** In-memory file system used instead of `fs` outside Node (path → Uint8Array); hosts may preload files. */
+export const vfs = new Map();
+installFs(P, { inc, dec, okR, errR, some, mkBytes, unit, nodeFs, vfs,
+  getStdStreams: () => curStreams, setStdStreams: (o) => Object.assign(curStreams, o) });
 
 /* ---- time, environment, process ---- */
 P.lean_io_mono_ms_now = () => BigInt(Math.floor(performance.now()));
