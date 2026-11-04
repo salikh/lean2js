@@ -2,6 +2,8 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-05 — [demo-002](tickets/demo-002-lsp-infoview-in-demo.md): experiment with the real FileWorker in JS (blocked, decision asked); scheduler: cancellation, polling progress, lazy dedicated tasks, watchdog.
+
 * 2026-11-05 — [info-007-web-ui](tickets/info-007-web-ui.md) first version `web/selfhost/infoview.html`; [info-005](tickets/info-005-session-caching.md) measured (65 ms/request); driver `sessionInfo/sessionInfoEnd`; `selfhost/session-bench.mjs`.
 
 * 2026-11-05 — [info-008-tests](tickets/info-008-tests.md): oracle against native `lean --server` (`tests/info/`), 9 cases identical; `Lean2js.Info` uses the server's snapshot-tree goal selection; `tests/e2e/infocases.lean`.

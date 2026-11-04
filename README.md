@@ -14,6 +14,10 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
+* **2026-11-05 (night 3) — the real language server in JS: tried, blocked.** `Lean.Server.FileWorker` starts in the JS runtime (batch mode, `selfhost/LspBatch.lean`) but cannot finish
+  elaboration: it relies on concurrent threads and the runtime has no coroutines. Scheduler improvements that came out of it: real cancellation, polling that makes progress, lazy dedicated tasks, `LEAN2JS_WATCHDOG`.
+  Decision needed (recommended: an in-memory LSP *protocol adapter* over `Lean2js.Info`, already verified against the real server): [demo-002](docs/tickets/demo-002-lsp-infoview-in-demo.md).
+
 * **2026-11-05 (night 2) — a browser infoview.** `web/selfhost/infoview.html`: an editor and a panel with the goals, the expected type and the messages at the cursor (or, in prefix mode, for the text
   before the cursor), computed by the Lean frontend running in the page (`Lean2js/Info.lean`, ~65 ms per request after the one-time `Init` import). The answers are identical to the real language server's
   `$/lean/plainGoal` / `$/lean/plainTermGoal` on the test cases (`tests/info/run.sh`) and the page is checked in headless Chrome ([info-007](docs/tickets/info-007-web-ui.md)).
