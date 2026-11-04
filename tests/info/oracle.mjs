@@ -33,8 +33,9 @@ send({ jsonrpc: "2.0", method: "initialized", params: {} });
   const position = { line: c.line, character: c.character };
   const g = await request("$/lean/plainGoal", { textDocument: { uri }, position });
   const t = await request("$/lean/plainTermGoal", { textDocument: { uri }, position });
+  const h = await request("textDocument/hover", { textDocument: { uri }, position });
   proc.kill();
-  return { name: c.name, goal: g.result ?? null, termGoal: t.result ?? null };
+  return { name: c.name, goal: g.result ?? null, termGoal: t.result ?? null, hover: h.result ?? null };
 }
 }
 // a fresh server per case: a second document in the same server session was answered with null for some positions (races with elaboration)

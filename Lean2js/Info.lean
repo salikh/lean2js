@@ -1,5 +1,6 @@
 import Lean
 import Lean2js.Session
+import Lean.Server.FileWorker.ExampleHover
 open Lean Elab Meta
 
 /-!
@@ -90,6 +91,32 @@ private def findTermGoalTree (cmdParsed : Lean.Language.Lean.CommandParsedSnapsh
   | some t => some t
   | none => cmdParsed.elabSnap.infoTreeSnap.task.get.infoTree?
 
+open Language in
+/-- Hover text at `hoverPos`: the language server's `handleHover` (info-tree hover, falling back to the docstring of the parser/syntax kind). -/
+private def hoverAt (cmdParsed : Lean.Language.Lean.CommandParsedSnapshot) (env : Environment) (text : FileMap) (hoverPos : String.Pos.Raw) :
+    IO Json := do
+  let some infoTree := findTermGoalTree cmdParsed text hoverPos | pure Json.null
+  let mkHover (s : String) (r : Lean.Syntax.Range) : Json :=
+    Json.mkObj [("contents", Json.mkObj [("kind", "markdown"), ("value", Server.FileWorker.Hover.rewriteExamples s)]),
+      ("range", rangeJson text (r.toLspRange text))]
+  let stack? := cmdParsed.stx.findStack? (·.getRange?.any (·.contains hoverPos))
+  let stxDoc? ← match stack? with
+    | some stack => stack.findSomeM? fun (stx, _) => do
+      let .node _ kind _ := stx | pure none
+      let docStr ← findDocString? env kind
+      return docStr.map (·, stx.getRange?.get!)
+    | none => pure none
+  if let some result := infoTree.hoverableInfoAtM? (m := Id) hoverPos then
+    let ctx := result.ctx
+    let info := result.info
+    if let some range := info.range? then
+      if stxDoc?.all fun (_, stxRange) => stxRange.includes range then
+        if let some hoverFmt ← info.fmtHover? ctx then
+          return mkHover (toString hoverFmt.fmt) range
+  if let some (doc, range) := stxDoc? then
+    return mkHover doc range
+  return Json.null
+
 /-- The info at byte position `pos` of `source` (elaborated in the session's environment; the session is not modified). -/
 def infoAtPos (s : Session) (source : String) (pos : String.Pos.Raw) : IO Json := do
   let inputCtx := Parser.mkInputContext source "<info>"
@@ -117,6 +144,8 @@ def infoAtPos (s : Session) (source : String) (pos : String.Pos.Raw) : IO Json :
           | some r => rangeJson text (r.toLspRange text)
           | none => Json.null
         termGoal := Json.mkObj [("goal", toString goal.pretty), ("range", range)]
+  -- hover
+  let hover ← match cmd? with | some c => hoverAt c st.commandState.env text pos | none => pure Json.null
   -- messages: all of them, flagged when their range contains the position
   let mut msgs : Array Json := #[]
   for m in st.commandState.messages.toList do
@@ -129,7 +158,7 @@ def infoAtPos (s : Session) (source : String) (pos : String.Pos.Raw) : IO Json :
   let lsp := text.leanPosToLspPos (text.toPosition pos)
   return Json.mkObj
     [("position", Json.mkObj [("line", lsp.line), ("character", lsp.character)]),
-     ("goals", toJson goals), ("rendered", rendered), ("termGoal", termGoal), ("messages", Json.arr msgs)]
+     ("goals", toJson goals), ("rendered", rendered), ("termGoal", termGoal), ("hover", hover), ("messages", Json.arr msgs)]
 
 /-- Cursor mode: the info at the LSP position (`line`, UTF-16 `character`) of `source`, as pretty-printed JSON. -/
 @[export lean2js_session_info]

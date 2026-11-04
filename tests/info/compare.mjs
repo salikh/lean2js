@@ -7,9 +7,9 @@ const norm = (x) => JSON.stringify(x, (k, v) => (v && typeof v === "object" && !
 let bad = 0;
 for (let i = 0; i < oracle.length; i++) {
   const o = oracle[i], u = ours[i];
-  const same = norm(o.goal) === norm(u.goal) && norm(o.termGoal) === norm(u.termGoal);
+  const same = norm(o.goal) === norm(u.goal) && norm(o.termGoal) === norm(u.termGoal) && norm(o.hover) === norm(u.hover);
   if (same) console.log("ok: " + o.name);
-  else { bad++; console.log("DIFF: " + o.name + "\n  server: " + norm({ goal: o.goal, termGoal: o.termGoal }) + "\n  ours:   " + norm({ goal: u.goal, termGoal: u.termGoal })); }
+  else { bad++; console.log("DIFF: " + o.name + "\n  server: " + norm({ goal: o.goal, termGoal: o.termGoal, hover: o.hover }) + "\n  ours:   " + norm({ goal: u.goal, termGoal: u.termGoal, hover: u.hover })); }
 }
 console.log(`${oracle.length} cases, ${bad} differences`);
 process.exit(bad ? 1 : 0);

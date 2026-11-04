@@ -14,6 +14,7 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
+* Hover works too: `Lean2js.Info` returns the `textDocument/hover` markdown identical to the real server's on 6 cases (15 infoview cases in total, [info-006](docs/tickets/info-006-interactive-hover.md)).
 * **2026-11-05 (night 3) — the real language server in JS: tried, blocked.** `Lean.Server.FileWorker` starts in the JS runtime (batch mode, `selfhost/LspBatch.lean`) but cannot finish
   elaboration: it relies on concurrent threads and the runtime has no coroutines. Scheduler improvements that came out of it: real cancellation, polling that makes progress, lazy dedicated tasks, `LEAN2JS_WATCHDOG`.
   Decision needed (recommended: an in-memory LSP *protocol adapter* over `Lean2js.Info`, already verified against the real server): [demo-002](docs/tickets/demo-002-lsp-infoview-in-demo.md).

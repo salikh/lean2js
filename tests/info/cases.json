@@ -1,11 +1,92 @@
 [
-  {"name": "prefix constructor", "source": "theorem t (p q : Prop) (hp : p) (hq : q) : p ∧ q := by\n  constructor\n  ", "line": 2, "character": 2},
-  {"name": "after constructor", "source": "theorem t (p q : Prop) (hp : p) (hq : q) : p ∧ q := by\n  constructor\n  · exact hp\n  · exact hq\n", "line": 1, "character": 13},
-  {"name": "inside exact", "source": "theorem t (p q : Prop) (hp : p) (hq : q) : p ∧ q := by\n  constructor\n  · exact hp\n  · exact hq\n", "line": 3, "character": 10},
-  {"name": "induction cases", "source": "theorem t (n : Nat) : n + 0 = n := by\n  induction n with\n  | zero => rfl\n  | succ k ih => simp\n", "line": 2, "character": 12},
-  {"name": "have block", "source": "example (a b : Nat) (h : a = b) : b = a := by\n  have h2 : b = a := h.symm\n  exact h2\n", "line": 1, "character": 27},
-  {"name": "term hole", "source": "def f (n : Nat) : Nat := n + 1\n", "line": 0, "character": 28},
-  {"name": "no goals", "source": "example : True := by\n  trivial\n", "line": 1, "character": 9},
-  {"name": "unicode", "source": "theorem αβ (α : Prop) (h : α) : α ∨ False := by\n  left\n  exact h\n", "line": 2, "character": 3},
-  {"name": "error recovery", "source": "example (p : Prop) (hp : p) : p ∧ p := by\n  constructor\n  exact hq\n  exact hp\n", "line": 3, "character": 4}
+ {
+  "name": "prefix constructor",
+  "source": "theorem t (p q : Prop) (hp : p) (hq : q) : p ∧ q := by\n  constructor\n  ",
+  "line": 2,
+  "character": 2
+ },
+ {
+  "name": "after constructor",
+  "source": "theorem t (p q : Prop) (hp : p) (hq : q) : p ∧ q := by\n  constructor\n  · exact hp\n  · exact hq\n",
+  "line": 1,
+  "character": 13
+ },
+ {
+  "name": "inside exact",
+  "source": "theorem t (p q : Prop) (hp : p) (hq : q) : p ∧ q := by\n  constructor\n  · exact hp\n  · exact hq\n",
+  "line": 3,
+  "character": 10
+ },
+ {
+  "name": "induction cases",
+  "source": "theorem t (n : Nat) : n + 0 = n := by\n  induction n with\n  | zero => rfl\n  | succ k ih => simp\n",
+  "line": 2,
+  "character": 12
+ },
+ {
+  "name": "have block",
+  "source": "example (a b : Nat) (h : a = b) : b = a := by\n  have h2 : b = a := h.symm\n  exact h2\n",
+  "line": 1,
+  "character": 27
+ },
+ {
+  "name": "term hole",
+  "source": "def f (n : Nat) : Nat := n + 1\n",
+  "line": 0,
+  "character": 28
+ },
+ {
+  "name": "no goals",
+  "source": "example : True := by\n  trivial\n",
+  "line": 1,
+  "character": 9
+ },
+ {
+  "name": "unicode",
+  "source": "theorem αβ (α : Prop) (h : α) : α ∨ False := by\n  left\n  exact h\n",
+  "line": 2,
+  "character": 3
+ },
+ {
+  "name": "error recovery",
+  "source": "example (p : Prop) (hp : p) : p ∧ p := by\n  constructor\n  exact hq\n  exact hp\n",
+  "line": 3,
+  "character": 4
+ },
+ {
+  "name": "hover const",
+  "source": "#check Nat.add_comm\n",
+  "line": 0,
+  "character": 10
+ },
+ {
+  "name": "hover tactic keyword",
+  "source": "example (p q : Prop) (hp : p) (hq : q) : p ∧ q := by\n  constructor\n  · exact hp\n  · exact hq\n",
+  "line": 1,
+  "character": 5
+ },
+ {
+  "name": "hover local",
+  "source": "example (p q : Prop) (hp : p) (hq : q) : p ∧ q := by\n  constructor\n  · exact hp\n  · exact hq\n",
+  "line": 2,
+  "character": 12
+ },
+ {
+  "name": "hover type",
+  "source": "def f (n : Nat) : Nat := n + 1\n",
+  "line": 0,
+  "character": 11
+ },
+ {
+  "name": "hover command keyword",
+  "source": "theorem foo : True := trivial\n",
+  "line": 0,
+  "character": 2
+ },
+ {
+  "name": "hover nothing",
+  "source": "def f (n : Nat) : Nat := n + 1\n",
+  "line": 0,
+  "character": 3
+ }
 ]

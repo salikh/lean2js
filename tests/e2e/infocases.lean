@@ -15,5 +15,5 @@ unsafe def main : IO Unit := do
     let r ← IO.ofExcept (Json.parse (← Lean2js.Info.infoAt s source line ch))
     let rendered := r.getObjValAs? String "rendered" |>.toOption |>.getD ""
     let goal := if rendered == "" then Json.null else Json.mkObj [("goals", r.getObjValD "goals"), ("rendered", rendered)]
-    out := out.push <| Json.mkObj [("name", c.getObjValD "name"), ("goal", goal), ("termGoal", r.getObjValD "termGoal")]
+    out := out.push <| Json.mkObj [("name", c.getObjValD "name"), ("goal", goal), ("termGoal", r.getObjValD "termGoal"), ("hover", r.getObjValD "hover")]
   IO.println (Json.arr out).compress
