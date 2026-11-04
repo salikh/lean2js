@@ -2,7 +2,7 @@
 
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 
-Status: open — blocked on the decision in [js-013](js-013-question-ir-backend.md) (IR backend would solve this properly). Measured: 100 000 pushes = 55 s.
+Status: **done** (2026-11-04) via the IR backend ([js-013](js-013-question-ir-backend.md)); `tests/e2e/aliasing.lean` and `bigperf.lean` cover it.
 
 ## Problem
 

@@ -2,6 +2,11 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-04 — [js-013-question-ir-backend](tickets/js-013-question-ir-backend.md), [js-012](tickets/js-012-array-updates.md):
+  new default IR backend (`Lean2js/CodegenIR.lean`, `runtime/lean_rt.js`) that translates Lean's final IR with
+  reference counting; Array/structure updates are in place when exclusive (100k pushes: 55 s → 0.14 s).
+  Design: [design/js-transpiler-ir.md](design/js-transpiler-ir.md).
+
 * 2026-11-04 — [js-001-transpiler-epic](tickets/js-001-transpiler-epic.md) (in progress): `lean2js`
   LCNF→JavaScript transpiler in Lean (js-007), JS runtime (js-008, js-009 partly), CLI (js-010 partly) and
   22 differential e2e tests (js-011); design in [design/js-transpiler.md](design/js-transpiler.md).

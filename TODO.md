@@ -10,4 +10,4 @@ links to detailed tickets.
 ## Open tasks
 
 * [js-001-transpiler-epic](docs/tickets/js-001-transpiler-epic.md): LCNF → JavaScript transpiler
-  (epic; in progress; open: js-008…js-012, see ticket)
+  (epic; core done with the IR backend; open: js-008…js-011, js-014, see ticket)

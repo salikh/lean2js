@@ -1,4 +1,7 @@
-# LCNF → JavaScript transpiler
+# LCNF → JavaScript transpiler (mono-LCNF backend)
+
+> The default backend is now the reference-counted IR backend, see [js-transpiler-ir.md](js-transpiler-ir.md).
+> This document describes the mono-LCNF backend (`--backend mono`, JSON input), kept as a reference.
 
 Epic: [js-001](../tickets/js-001-transpiler-epic.md). Pipeline:
 

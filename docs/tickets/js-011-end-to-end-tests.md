@@ -2,7 +2,7 @@
 
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 
-Status: **in progress** (2026-11-04): `tests/e2e/run.sh`, 22 programs pass. Open: grow corpus to cover RBMap, deriving handlers, Char/Unicode edge cases, `IO.FS`, big outputs, performance sanity.
+Status: **in progress** (2026-11-04): `tests/e2e/run.sh` (BACKEND=ir|mono), 29 programs pass on both backends (aliasing/bigperf IR only checked so far). Open: more coverage (IO.FS, time/random, Unicode edge cases, ByteArray-heavy code).
 
 ## Goal
 

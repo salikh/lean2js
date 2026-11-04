@@ -3,7 +3,7 @@
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md); supersedes the approaches in
 [js-012-array-updates](js-012-array-updates.md) if accepted.
 
-Status: **decided (2026-11-04)**: the user approved the recommendation; implementation in progress.
+Status: **done** (2026-11-04): approved by the user and implemented; see docs/design/js-transpiler-ir.md. Result: 100k pushes 55 s -> 0.14 s.
 Deviation from the plan: the IR generator consumes `Lean.IR.Decl` in-process (no JSON dump), because `lean2js` links Lean anyway; `--dump-ir` prints the collected IR as text for debugging.
 
 ## Context / evidence

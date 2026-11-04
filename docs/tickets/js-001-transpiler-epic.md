@@ -49,7 +49,9 @@ Work:
 4. [js-009-runtime-io](js-009-runtime-io.md) — runtime: IO, ST.Ref, panic, stdout/stderr/stdin, Thunk, Task, files.
 5. [js-010-cli-bundling](js-010-cli-bundling.md) — `lean2js` command, entry-point wiring, browser/Node bundle.
 6. [js-011-end-to-end-tests](js-011-end-to-end-tests.md) — differential tests: native Lean output vs JS output.
-7. [js-012-array-updates](js-012-array-updates.md) — in-place Array updates (performance).
+7. [js-012-array-updates](js-012-array-updates.md) — in-place Array updates (done via js-013).
+8. [js-013-question-ir-backend](js-013-question-ir-backend.md) — IR (λRC) backend with reference counting (done, default).
+9. [js-014-cleanup-gaps](js-014-cleanup-gaps.md) — retire/dedupe the mono backend, remaining runtime gaps.
 
 Dependencies: 007 needs 002–005 decided (provisional answers suffice) and 006 for
 non-trivial programs; 008/009 can proceed in parallel with 007; 010 needs 007; 011 grows
