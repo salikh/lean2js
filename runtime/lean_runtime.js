@@ -253,6 +253,7 @@ function strLt(a, b) {                        // lexicographic by code point (= 
   }
   return x.length < y.length;
 }
+P.lean_string_compare = (a, b) => (a === b ? 1 : strLt(a, b) ? 0 : 2);   // Ordering: lt=0, eq=1, gt=2
 P.lean_string_utf8_get = (s, pos) => {
   const info = sinfo(s), ci = cpIndex(info, Number(pos));
   if (ci < 0 || ci >= info.n) return 65;       // default char
@@ -366,6 +367,35 @@ P.lean_array_swap = (a, i, j) =>
 
 P.lean_array_propagate_mark = (_src, dst) => dst;
 P.lean_array_mark_linear = (a) => a;
+
+/* ---- ByteArray (Uint8Array) / FloatArray (Float64Array); immutable like Array ---- */
+function defScalarArray(prefix, Ctor, mkEmpty) {
+  const idx = (a, i) => (i < BigInt(a.length) ? Number(i) : -1);
+  P[`lean_mk_empty_${mkEmpty}`] = (_cap) => new Ctor(0);
+  P[`lean_${prefix}_mk`] = (arr) => Ctor.from(arr);
+  P[`lean_${prefix}_data`] = (a) => Array.from(a);
+  P[`lean_${prefix}_size`] = (a) => BigInt(a.length);
+  P[`lean_sarray_size`] = P[`lean_${prefix}_size`];
+  P[`lean_${prefix}_push`] = (a, v) => { const r = new Ctor(a.length + 1); r.set(a); r[a.length] = v; return r; };
+  P[`lean_${prefix}_get`] = (a, i) => { const k = idx(a, i); return k < 0 ? (oob(0), Ctor === Uint8Array ? 0 : 0.0) : a[k]; };
+  P[`lean_${prefix}_fget`] = (a, i) => a[Number(i)];
+  P[`lean_${prefix}_uget`] = P[`lean_${prefix}_fget`];
+  P[`lean_${prefix}_fset`] = (a, i, v) => { const r = a.slice(); r[Number(i)] = v; return r; };
+  P[`lean_${prefix}_uset`] = P[`lean_${prefix}_fset`];
+  P[`lean_${prefix}_set`] = (a, i, v) => (idx(a, i) < 0 ? a : P[`lean_${prefix}_fset`](a, i, v));
+}
+defScalarArray("byte_array", Uint8Array, "byte_array");
+defScalarArray("float_array", Float64Array, "float_array");
+P.lean_byte_array_copy_slice = (src, srcOff, dest, destOff, len, _exact) => {
+  const so = Math.min(Number(srcOff), src.length);
+  const l = Math.min(Number(len), src.length - so);
+  const dof = Math.min(Number(destOff), dest.length);
+  const r = new Uint8Array(Math.max(dest.length, dof + l));
+  r.set(dest);
+  r.set(src.subarray(so, so + l), dof);
+  return r;
+};
+P.lean_byte_array_hash = (a) => hash64(a, 11n);
 
 /* ---- ST.Ref ---- */
 P.lean_st_mk_ref = (v, _w) => okResult({ v });

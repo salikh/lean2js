@@ -1,3 +1,5 @@
-/.lake
 /build
+/.lake
 /out
+/web/lean_runtime.js
+/web/prog.js

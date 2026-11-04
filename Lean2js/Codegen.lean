@@ -423,6 +423,10 @@ def genProgram (p : Program) (opts : Options) : M String := do
     s!"const {b} = rt.prims[{jsString key}] ?? rt.missing({jsString key});\n")
   let exports := String.join (roots.toList.filterMap fun r =>
     if keep.contains r && decls.contains r then some s!"export \{ {declId r} as {mangle "" r} };\n" else none)
+  let arityExport :=
+    match decls["main"]? with
+    | some d => if keep.contains "main" then s!"export const mainArity = {d.params.size};\n" else ""
+    | none => ""
   let errHook :=
     if keep.contains "IO.Error.toString" && decls.contains "IO.Error.toString" then
       s!"rt.setErrorToString({declId "IO.Error.toString"});\n"
@@ -433,6 +437,6 @@ def genProgram (p : Program) (opts : Options) : M String := do
       | some d => s!"rt.runMain({declId "main"}, {d.params.size});\n"
       | none => ""
     else ""
-  return header ++ binds ++ "\n" ++ body ++ "\n" ++ exports ++ errHook ++ run
+  return header ++ binds ++ "\n" ++ body ++ "\n" ++ exports ++ arityExport ++ errHook ++ run
 
 end Lean2js.Codegen
