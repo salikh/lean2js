@@ -5,17 +5,16 @@ links to detailed tickets.
 
 ## TODO for humans
 
+* [self-008-bundle-startup-size](docs/tickets/self-008-bundle-startup-size.md): is more memory/startup optimization wanted? (recommended: no, the browser demos work at ≈ 2.6 GB / 42 s)
+* [info-006-interactive-hover](docs/tickets/info-006-interactive-hover.md): representation of interactive goals / sub-expression popups (recommended: session object with integer ids + `infoPopup(id)`); everything else of info-006 is done
 * [demo-002-lsp-infoview-in-demo](docs/tickets/demo-002-lsp-infoview-in-demo.md): the real `FileWorker` cannot run unmodified in the cooperative single-threaded runtime (needs coroutines). Use a protocol adapter over `Lean2js.Info` (recommended), or invest in a coroutine runtime?
 
 ## Open tasks
 
-* [tools-001-demo-and-test-scripts](docs/tickets/tools-001-demo-and-test-scripts.md): `demo.sh` and `test.sh` (done)
+Done epics and tickets are listed in [docs/CHANGES.md](docs/CHANGES.md). What is left:
 
-* [js-001-transpiler-epic](docs/tickets/js-001-transpiler-epic.md): Lean (IR) → JavaScript transpiler
-  (epic; core done with the IR backend; mono backend removed; open: js-008…js-011, js-014, see ticket)
-* [demo-001-interactive-web-app](docs/tickets/demo-001-interactive-web-app.md): interactive demo — Lean script + data.json + console that evaluates input (e.g. `main`) (done)
-* [demo-002-lsp-infoview-in-demo](docs/tickets/demo-002-lsp-infoview-in-demo.md): new page `lsp.html` (copy of demo.html, which stays unchanged) with the real LSP server + live infoview on cursor move — filed, **implement after the self-* tickets are complete**
-* [info-001-infoview-epic](docs/tickets/info-001-infoview-epic.md): infoview equivalent (goals/messages/hover at a position; prefix mode and cursor mode) — **planned, do not start before the remaining self-* tickets are done**
-* [self-010-promise-drop-heuristic](docs/tickets/self-010-promise-drop-heuristic.md): investigate/confirm the "unresolved promise = dropped" scheduler heuristic (output of the self-hosted frontend may be wrong without error)
-* [self-001-compiler-to-js-epic](docs/tickets/self-001-compiler-to-js-epic.md): compile the Lean compiler itself to JS (all subtickets done or at the practical gate; optional: self-008 memory)
-  (epic; **milestone reached 2026-11-05**: the frontend elaborates and `#eval`s in JS; open: self-008 size/startup gate, type-checking kernel, browser UI)
+* [info-001-infoview-epic](docs/tickets/info-001-infoview-epic.md): infoview equivalent. Done: plain goals, term goals, messages, hover (identical to the real server on 15 oracle cases), sessions, a web page.
+  Blocked on a human decision: interactive goals ([info-006](docs/tickets/info-006-interactive-hover.md)).
+* [demo-002-lsp-infoview-in-demo](docs/tickets/demo-002-lsp-infoview-in-demo.md): `lsp.html` with an LSP server and a live infoview — blocked on a human decision (see above).
+* [self-001-compiler-to-js-epic](docs/tickets/self-001-compiler-to-js-epic.md): the Lean compiler in JS — done (kernel, loader, initializers, browser build); further memory work ([self-008](docs/tickets/self-008-bundle-startup-size.md), ≈ 2.6 GB) waits for a human decision.
+* [js-001-transpiler-epic](docs/tickets/js-001-transpiler-epic.md): Lean (IR) → JavaScript transpiler — done; the optional leftovers in [js-014](docs/tickets/js-014-cleanup-gaps.md) (`--bundle`, source maps) are not planned unless someone needs them.

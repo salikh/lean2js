@@ -2,7 +2,7 @@
 
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 
-Status: **mostly done** (2026-11-04): Nat/Int/UIntN/Float/String/Array/hash primitives needed by the 22 e2e programs exist. Open: ByteArray/FloatArray, remaining Float math, Char/String edge cases, a standalone `node --test` unit suite, more `Int` bit ops.
+Status: **done** (2026-11-05): all primitives needed by the 47 e2e programs, the self-hosted Lean frontend and the Lean kernel exist (ByteArray/FloatArray incl. amortized push, signed ints, Float32, Expr/Level, strings, hashes bit-exact). A standalone `node --test` unit suite was not written: the differential e2e tests are the test suite.
 
 ## Goal
 

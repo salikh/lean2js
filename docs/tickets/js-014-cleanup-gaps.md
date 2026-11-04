@@ -2,7 +2,7 @@
 
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 
-Status: open
+Status: **mostly done** (2026-11-05). Done: mono backend removed (1), missing primitives (2; the rest is unsupported on purpose), missing-primitive listing via `node tests/e2e/missing.mjs FILE.js` (3), ByteArray amortized push (5), cancellation. Optional and not planned unless needed: `--bundle`/source maps (4), `Task` panic message format (6), `inc`/`dec` profiling (7).
 
 Fresh-agent notes: read docs/design/js-transpiler-ir.md first. Runtime: `runtime/lean_rt.js` (IR backend, default),
 Generator: `Lean2js/CodegenIR.lean` (+ `JsUtil.lean`). The mono backend no longer exists (item 1).

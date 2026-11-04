@@ -2,7 +2,7 @@
 
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 
-Status: **partly done** (2026-11-04): stdout/stderr/stdin, ST.Ref, Thunk, eager Task, runMain with exit codes and uncaught-exception messages, worker thread with big stack. Open: file system, process, time/random/env APIs, Mutex/Condvar, browser stdin demo.
+Status: **done** (2026-11-05): stdout/stderr/stdin (incl. `read`), ST.Ref, Thunk, cooperative Tasks/Promises ([design/tasks.md](../design/tasks.md)), file system (Node `fs` / in-memory `vfs`), time/random/env, runMain with exit codes, big-stack worker; unsupported on purpose: processes, sockets, timers (error stubs).
 
 ## Goal
 

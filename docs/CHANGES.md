@@ -2,6 +2,8 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-05 — housekeeping: js-008…js-011 closed, js-014 mostly done (ByteArray amortized push, `tests/e2e/bytepush.lean`), TODO.md rewritten; open questions filed: info-006 (interactive goals), self-008 (more memory work?), demo-002 (LSP server).
+
 * 2026-11-05 — [info-006](tickets/info-006-interactive-hover.md): hover (`handleHover` logic) in `Lean2js.Info`, 15 oracle cases identical to the real server.
 
 * 2026-11-05 — [demo-002](tickets/demo-002-lsp-infoview-in-demo.md): experiment with the real FileWorker in JS (blocked, decision asked); scheduler: cancellation, polling progress, lazy dedicated tasks, watchdog.

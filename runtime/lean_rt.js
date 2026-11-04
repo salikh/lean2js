@@ -511,7 +511,19 @@ function defScalarArray(prefix, Ctor, mkEmpty, dflt) {
   P[`lean_${prefix}_data`] = (a) => { const r = mkArr(Array.from(a)); dec(a); return r; };
   P[`lean_${prefix}_size`] = (a) => BigInt(a.length);
   P[`lean_sarray_size`] = P[`lean_${prefix}_size`];
-  P[`lean_${prefix}_push`] = (a, v) => { const r = mk(new Ctor(a.length + 1)); r.set(a); r[a.length] = v; dec(a); return r; };
+  // push: amortized O(1) for an exclusive array — the typed array is a view of a larger buffer, which is doubled when full
+  P[`lean_${prefix}_push`] = (a, v) => {
+    const n = a.length, bytes = Ctor.BYTES_PER_ELEMENT;
+    let r;
+    if (a.rc === 1 && a.byteOffset === 0 && a.buffer.byteLength >= (n + 1) * bytes) r = new Ctor(a.buffer, 0, n + 1);
+    else {
+      r = new Ctor(new ArrayBuffer(Math.max(8, (n + 1) * 2) * bytes), 0, n + 1);
+      r.set(a);
+      if (a.rc !== 1) dec(a);
+    }
+    r.rc = 1; r[n] = v;
+    return r;
+  };
   P[`lean_${prefix}_get`] = (a, i) => (inb(a, i) ? a[Number(i)] : (oob(0), dflt));
   P[`lean_${prefix}_fget`] = (a, i) => a[Number(i)];
   P[`lean_${prefix}_uget`] = P[`lean_${prefix}_fget`];

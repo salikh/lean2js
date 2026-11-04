@@ -2,7 +2,7 @@
 
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 
-Status: **partly done** (2026-11-04): `lake exe lean2js FILE.lean|FILE.json --out F.js --run`. Browser demo done: `web/index.html` + `web/build.sh` (verified with headless Chrome). Open: `--bundle` single file, `--allow-missing`/transpile-time listing of missing primitives, source maps.
+Status: **done** (2026-11-05) for what was needed: `lake exe lean2js FILE.lean --run --out F.js`, `--init-all`, `--eval-all`, `--small`, browser pages (`web/`, `web/selfhost/`). Not done / not needed so far: `--bundle` (single file with inline runtime), source maps — see js-014.
 
 ## Goal
 

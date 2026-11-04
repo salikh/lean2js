@@ -69,3 +69,10 @@ Next ideas, by payoff: (1) lazy decoding of `.olean` regions (`.server` and `.ir
 per-region pool so the file images can be garbage collected. Measured (`--small`, sample.lean): external memory 737 → 439 MB, run time 14 → 11.7 s, RSS ≈ 2.6 GB (JS heap 1.5 GB is the decoded objects).
 The remaining big item is the decoded object graph itself (`.olean.private` is 258 MB of the 384 MB of `Init` files): lazy decoding of constants' bodies (shell objects with accessor fields, subtree sizes from a
 pre-pass) is the next idea; smaller objects (drop `n`/`rc`, merge `sbuf`/`soff`) another.
+
+## Question (human): is more memory/startup work wanted? — filed 2026-11-05
+
+Current state: 174 MB JS (~14 MB brotli), ~11 s Node run, ≈ 2.6 GB RSS, ~42 s in headless Chrome including a 160 MB library download. The browser demos work. Remaining ideas are costly:
+lazy decoding of `.olean` constants (shell objects with accessor fields, a pre-pass for subtree sizes; maybe −40% memory, risky for the generated code's field access), lazy loading of code chunks per module (needs an async/sync
+loader design), a post-initialization heap snapshot (big serializer). **Recommended: no further work now** — revisit when `import Lean` in the browser (≈ 1 GB of library files) or mobile devices matter.
+Please answer: stop here (recommended), or pick one of the ideas?

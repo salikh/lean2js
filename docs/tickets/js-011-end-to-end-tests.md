@@ -2,7 +2,7 @@
 
 Parent: [js-001-transpiler-epic](js-001-transpiler-epic.md)
 
-Status: **in progress** (2026-11-04): `tests/e2e/run.sh` (BACKEND=ir|mono), 30 programs pass on the IR backend (the mono backend passes the first 27). Open: more coverage (IO.FS, time/random, Unicode edge cases, ByteArray-heavy code).
+Status: **done** (2026-11-05): `test.sh` (`--quick`), `tests/e2e/run.sh` with 47 differential programs (`.args/.stdin/.flags/.env/.expected` conventions), demos, lcnf-dump goldens, infoview oracle tests, browser tests.
 
 ## Goal
 
