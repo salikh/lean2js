@@ -1,7 +1,7 @@
 # Investigate: unresolved promises are guessed to be "dropped"
 
 Parent: [self-001](self-001-compiler-to-js-epic.md) | design: [design/tasks.md](../design/tasks.md)
-Status: **mostly resolved** (2026-11-05): dropped promises are now detected by reference counting; the heuristic never fires on the test corpus. Remaining: widen the corpus (step 4) and decide whether to keep the fallback. Originally filed on a side-agent review note.
+Status: **resolved** (2026-11-05): dropped promises are detected by reference counting; the fallback never fired on a 38-file corpus (`tests/selfhost-corpus.sh`: demos, examples and the e2e programs elaborated by the JS frontend in strict mode, output identical to native, 0 guesses). The fallback stays as a safety net against hangs but now prints a one-time warning on stderr; reopen if the warning ever shows up. Originally filed on a side-agent review note.
 
 ## Concern
 
@@ -45,3 +45,7 @@ The firings are explained (each corresponds to a promise that native Lean drops 
   (`LEAN2JS_TIMING=1` prints both numbers) and `LEAN2JS_STRICT_TASKS=1` turns it into an error. The selfhost tests now run with `LEAN2JS_STRICT_TASKS=1` (`tests/e2e/selfhost*.env`).
 * Verified: `sample.lean`, `sample2.lean`, `sample3.lean` produce output identical to native with strict tasks.
 * Open: a larger corpus (step 4) — run the elaborator over many inputs in strict mode and see whether the fallback ever fires; if never, delete it.
+
+## Corpus result (2026-11-05)
+
+`tests/selfhost-corpus.sh` — 38 files, 0 differences from native, 0 dropped-promise guesses (strict tasks). Done criteria met; remove the fallback if no warning is ever reported over a longer period.

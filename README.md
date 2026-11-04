@@ -14,6 +14,7 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
+* Promise-drop investigation closed: 38-file corpus identical to native with 0 guesses ([self-010](docs/tickets/self-010-promise-drop-heuristic.md)).
 * **2026-11-05 (last) — infoview started; filed demo-002 (real LSP server + live infoview in the demo, after the self-* tickets).** `Lean2js/Info.lean` (goals / term goal / messages at a position, prefix and cursor mode) works, identical natively and in JS (`tests/e2e/info.lean`); not yet compared with the language server's responses. The olean loader now uses ~40% less external memory (RSS ≈ 2.6 GB, [self-008](docs/tickets/self-008-bundle-startup-size.md)) ([info-004](docs/tickets/info-004-infotree-goals.md)).
 
 * **2026-11-05 (late) — interactive demo.** `web/selfhost/demo.html`: a Lean script pane, a `data.json` pane (visible to the script as the file `data.json`) and a console that shows the script's

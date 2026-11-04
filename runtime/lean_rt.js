@@ -657,7 +657,7 @@ function waitFor(t) {
       const p = pendingPromises.shift();
       if (p.pend) {
         if (strictTasks) throw new Error("deadlock: an unresolved promise would be treated as dropped (LEAN2JS_STRICT_TASKS=1, see docs/tickets/self-010-promise-drop-heuristic.md)");
-        droppedGuesses++;
+        if (droppedGuesses++ === 0) console.error("lean2js warning: an unresolved promise was treated as dropped (reference leak?); output may be incomplete. See docs/tickets/self-010-promise-drop-heuristic.md");
         if (traceTasks) console.error("task: treating unresolved promise as dropped; created at:\n" + (p.site || "").split("\n").slice(2, 9).join("\n"));
         resolveTask(p, 0); dropped = true; break;
       }
