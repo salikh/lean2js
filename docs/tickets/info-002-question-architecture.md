@@ -19,3 +19,7 @@ Open sub-question: for B, run only the FileWorker (one file, no watchdog/file wa
 ## Answer
 
 Stick with A.
+
+## Update 2026-11-05
+
+The user later asked for the actual LSP server in the demo: [demo-002](demo-002-lsp-infoview-in-demo.md) revisits this decision for the demo (option B). Option A (`Lean2js/Info.lean`) stays as the programmer API / test oracle.

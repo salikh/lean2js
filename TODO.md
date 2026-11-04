@@ -14,6 +14,7 @@ links to detailed tickets.
 * [js-001-transpiler-epic](docs/tickets/js-001-transpiler-epic.md): Lean (IR) → JavaScript transpiler
   (epic; core done with the IR backend; mono backend removed; open: js-008…js-011, js-014, see ticket)
 * [demo-001-interactive-web-app](docs/tickets/demo-001-interactive-web-app.md): interactive demo — Lean script + data.json + console that evaluates input (e.g. `main`) (done)
+* [demo-002-lsp-infoview-in-demo](docs/tickets/demo-002-lsp-infoview-in-demo.md): embed the real LSP server in demo.html + live infoview on cursor move — filed, **implement after the self-* tickets are complete**
 * [info-001-infoview-epic](docs/tickets/info-001-infoview-epic.md): infoview equivalent (goals/messages/hover at a position; prefix mode and cursor mode) — **planned, do not start before the remaining self-* tickets are done**
 * [self-010-promise-drop-heuristic](docs/tickets/self-010-promise-drop-heuristic.md): investigate/confirm the "unresolved promise = dropped" scheduler heuristic (output of the self-hosted frontend may be wrong without error)
 * [self-001-compiler-to-js-epic](docs/tickets/self-001-compiler-to-js-epic.md): compile the Lean compiler itself to JS
