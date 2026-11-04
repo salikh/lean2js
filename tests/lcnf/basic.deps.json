@@ -13,6 +13,81 @@
     {"numParams": 0, "numFields": 0, "name": "Bool.true", "cidx": 1}]},
   {"numParams": 0,
    "numIndices": 0,
+   "name": "IO.Error",
+   "isRec": false,
+   "ctors":
+   [{"numParams": 0,
+     "numFields": 3,
+     "name": "IO.Error.alreadyExists",
+     "cidx": 0},
+    {"numParams": 0, "numFields": 2, "name": "IO.Error.otherError", "cidx": 1},
+    {"numParams": 0,
+     "numFields": 2,
+     "name": "IO.Error.resourceBusy",
+     "cidx": 2},
+    {"numParams": 0,
+     "numFields": 2,
+     "name": "IO.Error.resourceVanished",
+     "cidx": 3},
+    {"numParams": 0,
+     "numFields": 2,
+     "name": "IO.Error.unsupportedOperation",
+     "cidx": 4},
+    {"numParams": 0,
+     "numFields": 2,
+     "name": "IO.Error.hardwareFault",
+     "cidx": 5},
+    {"numParams": 0,
+     "numFields": 2,
+     "name": "IO.Error.unsatisfiedConstraints",
+     "cidx": 6},
+    {"numParams": 0,
+     "numFields": 2,
+     "name": "IO.Error.illegalOperation",
+     "cidx": 7},
+    {"numParams": 0,
+     "numFields": 2,
+     "name": "IO.Error.protocolError",
+     "cidx": 8},
+    {"numParams": 0, "numFields": 2, "name": "IO.Error.timeExpired", "cidx": 9},
+    {"numParams": 0,
+     "numFields": 3,
+     "name": "IO.Error.interrupted",
+     "cidx": 10},
+    {"numParams": 0,
+     "numFields": 3,
+     "name": "IO.Error.noFileOrDirectory",
+     "cidx": 11},
+    {"numParams": 0,
+     "numFields": 3,
+     "name": "IO.Error.invalidArgument",
+     "cidx": 12},
+    {"numParams": 0,
+     "numFields": 3,
+     "name": "IO.Error.permissionDenied",
+     "cidx": 13},
+    {"numParams": 0,
+     "numFields": 3,
+     "name": "IO.Error.resourceExhausted",
+     "cidx": 14},
+    {"numParams": 0,
+     "numFields": 3,
+     "name": "IO.Error.inappropriateType",
+     "cidx": 15},
+    {"numParams": 0,
+     "numFields": 3,
+     "name": "IO.Error.noSuchThing",
+     "cidx": 16},
+    {"numParams": 0,
+     "numFields": 0,
+     "name": "IO.Error.unexpectedEof",
+     "cidx": 17},
+    {"numParams": 0,
+     "numFields": 1,
+     "name": "IO.Error.userError",
+     "cidx": 18}]},
+  {"numParams": 0,
+   "numIndices": 0,
    "name": "IO.FS.Stream",
    "isRec": false,
    "ctors":
@@ -24,6 +99,19 @@
    "ctors":
    [{"numParams": 1, "numFields": 0, "name": "List.nil", "cidx": 0},
     {"numParams": 1, "numFields": 2, "name": "List.cons", "cidx": 1}]},
+  {"numParams": 1,
+   "numIndices": 0,
+   "name": "Option",
+   "isRec": false,
+   "ctors":
+   [{"numParams": 1, "numFields": 0, "name": "Option.none", "cidx": 0},
+    {"numParams": 1, "numFields": 1, "name": "Option.some", "cidx": 1}]},
+  {"numParams": 0,
+   "numIndices": 0,
+   "name": "PUnit",
+   "isRec": false,
+   "ctors":
+   [{"numParams": 0, "numFields": 0, "name": "PUnit.unit", "cidx": 0}]},
   {"numParams": 0,
    "numIndices": 0,
    "name": "Point",
@@ -38,6 +126,1611 @@
  "file": "tests/lcnf/basic.lean",
  "decls":
  [{"value":
+   {"kind": "extern",
+    "entries":
+    [{"kind": "standard", "fn": "lean_array_fget", "backend": "all"}]},
+   "type":
+   "forall {α : lcErased}, ([mdata borrowed:1 Array lcAny]) -> ([mdata borrowed:1 Nat]) -> lcErased -> lcAny",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "lcErased", "name": "α", "id": "_uniq.1", "borrow": false},
+    {"type": "[mdata borrowed:1 Array lcAny]",
+     "name": "a",
+     "id": "_uniq.2",
+     "borrow": true},
+    {"type": "[mdata borrowed:1 Nat]",
+     "name": "i",
+     "id": "_uniq.3",
+     "borrow": true},
+    {"type": "lcErased", "name": "h", "id": "_uniq.4", "borrow": false}],
+   "name": "Array.getInternal",
+   "module": "Init.Prelude",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries": [{"kind": "standard", "fn": "lean_array_mk", "backend": "all"}]},
+   "type": "forall {α : lcErased}, (List lcAny) -> (Array lcAny)",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "lcErased", "name": "α", "id": "_uniq.1", "borrow": false},
+    {"type": "List lcAny", "name": "toList", "id": "_uniq.2", "borrow": false}],
+   "name": "Array.mk",
+   "module": "Init.Prelude",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries":
+    [{"kind": "standard", "fn": "lean_array_get_size", "backend": "all"}]},
+   "type": "forall {α : lcErased}, ([mdata borrowed:1 Array lcAny]) -> Nat",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "lcErased", "name": "α", "id": "_uniq.1", "borrow": false},
+    {"type": "[mdata borrowed:1 Array lcAny]",
+     "name": "a",
+     "id": "_uniq.2",
+     "borrow": true}],
+   "name": "Array.size",
+   "module": "Init.Prelude",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"typeName": "Option",
+     "resultType": "String",
+     "kind": "cases",
+     "discr": "_uniq.4",
+     "alts":
+     [{"params": [],
+       "kind": "alt",
+       "ctor": "Option.none",
+       "body":
+       {"value":
+        {"name": "_private.Init.System.IOError.0.IO.Error.downCaseFirst",
+         "levels": [],
+         "kind": "const",
+         "args": [{"kind": "fvar", "id": "_uniq.1"}]},
+        "type": "String",
+        "name": "_x.2",
+        "kind": "let",
+        "id": "_uniq.5",
+        "body":
+        {"value":
+         {"lit": {"value": " (error code: ", "kind": "str"}, "kind": "lit"},
+         "type": "String",
+         "name": "_x.3",
+         "kind": "let",
+         "id": "_uniq.6",
+         "body":
+         {"value":
+          {"name": "String.append",
+           "levels": [],
+           "kind": "const",
+           "args":
+           [{"kind": "fvar", "id": "_uniq.5"},
+            {"kind": "fvar", "id": "_uniq.6"}]},
+          "type": "String",
+          "name": "_x.4",
+          "kind": "let",
+          "id": "_uniq.7",
+          "body":
+          {"value":
+           {"name": "UInt32.toNat",
+            "levels": [],
+            "kind": "const",
+            "args": [{"kind": "fvar", "id": "_uniq.3"}]},
+           "type": "Nat",
+           "name": "_x.5",
+           "kind": "let",
+           "id": "_uniq.8",
+           "body":
+           {"value":
+            {"name": "Nat.reprFast",
+             "levels": [],
+             "kind": "const",
+             "args": [{"kind": "fvar", "id": "_uniq.8"}]},
+            "type": "String",
+            "name": "_x.6",
+            "kind": "let",
+            "id": "_uniq.9",
+            "body":
+            {"value":
+             {"name": "String.append",
+              "levels": [],
+              "kind": "const",
+              "args":
+              [{"kind": "fvar", "id": "_uniq.7"},
+               {"kind": "fvar", "id": "_uniq.9"}]},
+             "type": "String",
+             "name": "_x.7",
+             "kind": "let",
+             "id": "_uniq.10",
+             "body":
+             {"value":
+              {"lit": {"value": ")\n  file: ", "kind": "str"}, "kind": "lit"},
+              "type": "String",
+              "name": "_x.8",
+              "kind": "let",
+              "id": "_uniq.11",
+              "body":
+              {"value":
+               {"name": "String.append",
+                "levels": [],
+                "kind": "const",
+                "args":
+                [{"kind": "fvar", "id": "_uniq.10"},
+                 {"kind": "fvar", "id": "_uniq.11"}]},
+               "type": "String",
+               "name": "_x.9",
+               "kind": "let",
+               "id": "_uniq.12",
+               "body":
+               {"value":
+                {"name": "String.append",
+                 "levels": [],
+                 "kind": "const",
+                 "args":
+                 [{"kind": "fvar", "id": "_uniq.12"},
+                  {"kind": "fvar", "id": "_uniq.2"}]},
+                "type": "String",
+                "name": "_x.10",
+                "kind": "let",
+                "id": "_uniq.13",
+                "body": {"var": "_uniq.13", "kind": "return"}}}}}}}}}}},
+      {"params":
+       [{"type": "String",
+         "name": "val.11",
+         "id": "_uniq.14",
+         "borrow": false}],
+       "kind": "alt",
+       "ctor": "Option.some",
+       "body":
+       {"value":
+        {"name": "_private.Init.System.IOError.0.IO.Error.downCaseFirst",
+         "levels": [],
+         "kind": "const",
+         "args": [{"kind": "fvar", "id": "_uniq.1"}]},
+        "type": "String",
+        "name": "_x.12",
+        "kind": "let",
+        "id": "_uniq.15",
+        "body":
+        {"value":
+         {"lit": {"value": " (error code: ", "kind": "str"}, "kind": "lit"},
+         "type": "String",
+         "name": "_x.13",
+         "kind": "let",
+         "id": "_uniq.16",
+         "body":
+         {"value":
+          {"name": "String.append",
+           "levels": [],
+           "kind": "const",
+           "args":
+           [{"kind": "fvar", "id": "_uniq.15"},
+            {"kind": "fvar", "id": "_uniq.16"}]},
+          "type": "String",
+          "name": "_x.14",
+          "kind": "let",
+          "id": "_uniq.17",
+          "body":
+          {"value":
+           {"name": "UInt32.toNat",
+            "levels": [],
+            "kind": "const",
+            "args": [{"kind": "fvar", "id": "_uniq.3"}]},
+           "type": "Nat",
+           "name": "_x.15",
+           "kind": "let",
+           "id": "_uniq.18",
+           "body":
+           {"value":
+            {"name": "Nat.reprFast",
+             "levels": [],
+             "kind": "const",
+             "args": [{"kind": "fvar", "id": "_uniq.18"}]},
+            "type": "String",
+            "name": "_x.16",
+            "kind": "let",
+            "id": "_uniq.19",
+            "body":
+            {"value":
+             {"name": "String.append",
+              "levels": [],
+              "kind": "const",
+              "args":
+              [{"kind": "fvar", "id": "_uniq.17"},
+               {"kind": "fvar", "id": "_uniq.19"}]},
+             "type": "String",
+             "name": "_x.17",
+             "kind": "let",
+             "id": "_uniq.20",
+             "body":
+             {"value": {"lit": {"value": ", ", "kind": "str"}, "kind": "lit"},
+              "type": "String",
+              "name": "_x.18",
+              "kind": "let",
+              "id": "_uniq.21",
+              "body":
+              {"value":
+               {"name": "String.append",
+                "levels": [],
+                "kind": "const",
+                "args":
+                [{"kind": "fvar", "id": "_uniq.20"},
+                 {"kind": "fvar", "id": "_uniq.21"}]},
+               "type": "String",
+               "name": "_x.19",
+               "kind": "let",
+               "id": "_uniq.22",
+               "body":
+               {"value":
+                {"name":
+                 "_private.Init.System.IOError.0.IO.Error.downCaseFirst",
+                 "levels": [],
+                 "kind": "const",
+                 "args": [{"kind": "fvar", "id": "_uniq.14"}]},
+                "type": "String",
+                "name": "_x.20",
+                "kind": "let",
+                "id": "_uniq.23",
+                "body":
+                {"value":
+                 {"name": "String.append",
+                  "levels": [],
+                  "kind": "const",
+                  "args":
+                  [{"kind": "fvar", "id": "_uniq.22"},
+                   {"kind": "fvar", "id": "_uniq.23"}]},
+                 "type": "String",
+                 "name": "_x.21",
+                 "kind": "let",
+                 "id": "_uniq.24",
+                 "body":
+                 {"value":
+                  {"lit": {"value": ")\n  file: ", "kind": "str"},
+                   "kind": "lit"},
+                  "type": "String",
+                  "name": "_x.22",
+                  "kind": "let",
+                  "id": "_uniq.25",
+                  "body":
+                  {"value":
+                   {"name": "String.append",
+                    "levels": [],
+                    "kind": "const",
+                    "args":
+                    [{"kind": "fvar", "id": "_uniq.24"},
+                     {"kind": "fvar", "id": "_uniq.25"}]},
+                   "type": "String",
+                   "name": "_x.23",
+                   "kind": "let",
+                   "id": "_uniq.26",
+                   "body":
+                   {"value":
+                    {"name": "String.append",
+                     "levels": [],
+                     "kind": "const",
+                     "args":
+                     [{"kind": "fvar", "id": "_uniq.26"},
+                      {"kind": "fvar", "id": "_uniq.2"}]},
+                    "type": "String",
+                    "name": "_x.24",
+                    "kind": "let",
+                    "id": "_uniq.27",
+                    "body":
+                    {"var": "_uniq.27", "kind": "return"}}}}}}}}}}}}}}}]}},
+   "type": "String -> String -> UInt32 -> (Option String) -> String",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "String", "name": "gist", "id": "_uniq.1", "borrow": false},
+    {"type": "String", "name": "fn", "id": "_uniq.2", "borrow": false},
+    {"type": "UInt32", "name": "code", "id": "_uniq.3", "borrow": false},
+    {"type": "Option String", "name": "x.1", "id": "_uniq.4", "borrow": false}],
+   "name": "IO.Error.fopenErrorToString",
+   "module": "Init.System.IOError",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"typeName": "Option",
+     "resultType": "String",
+     "kind": "cases",
+     "discr": "_uniq.3",
+     "alts":
+     [{"params": [],
+       "kind": "alt",
+       "ctor": "Option.none",
+       "body":
+       {"value":
+        {"name": "_private.Init.System.IOError.0.IO.Error.downCaseFirst",
+         "levels": [],
+         "kind": "const",
+         "args": [{"kind": "fvar", "id": "_uniq.1"}]},
+        "type": "String",
+        "name": "_x.2",
+        "kind": "let",
+        "id": "_uniq.4",
+        "body":
+        {"value":
+         {"lit": {"value": " (error code: ", "kind": "str"}, "kind": "lit"},
+         "type": "String",
+         "name": "_x.3",
+         "kind": "let",
+         "id": "_uniq.5",
+         "body":
+         {"value":
+          {"name": "String.append",
+           "levels": [],
+           "kind": "const",
+           "args":
+           [{"kind": "fvar", "id": "_uniq.4"},
+            {"kind": "fvar", "id": "_uniq.5"}]},
+          "type": "String",
+          "name": "_x.4",
+          "kind": "let",
+          "id": "_uniq.6",
+          "body":
+          {"value":
+           {"name": "UInt32.toNat",
+            "levels": [],
+            "kind": "const",
+            "args": [{"kind": "fvar", "id": "_uniq.2"}]},
+           "type": "Nat",
+           "name": "_x.5",
+           "kind": "let",
+           "id": "_uniq.7",
+           "body":
+           {"value":
+            {"name": "Nat.reprFast",
+             "levels": [],
+             "kind": "const",
+             "args": [{"kind": "fvar", "id": "_uniq.7"}]},
+            "type": "String",
+            "name": "_x.6",
+            "kind": "let",
+            "id": "_uniq.8",
+            "body":
+            {"value":
+             {"name": "String.append",
+              "levels": [],
+              "kind": "const",
+              "args":
+              [{"kind": "fvar", "id": "_uniq.6"},
+               {"kind": "fvar", "id": "_uniq.8"}]},
+             "type": "String",
+             "name": "_x.7",
+             "kind": "let",
+             "id": "_uniq.9",
+             "body":
+             {"value": {"lit": {"value": ")", "kind": "str"}, "kind": "lit"},
+              "type": "String",
+              "name": "_x.8",
+              "kind": "let",
+              "id": "_uniq.10",
+              "body":
+              {"value":
+               {"name": "String.append",
+                "levels": [],
+                "kind": "const",
+                "args":
+                [{"kind": "fvar", "id": "_uniq.9"},
+                 {"kind": "fvar", "id": "_uniq.10"}]},
+               "type": "String",
+               "name": "_x.9",
+               "kind": "let",
+               "id": "_uniq.11",
+               "body": {"var": "_uniq.11", "kind": "return"}}}}}}}}}},
+      {"params":
+       [{"type": "String",
+         "name": "val.10",
+         "id": "_uniq.12",
+         "borrow": false}],
+       "kind": "alt",
+       "ctor": "Option.some",
+       "body":
+       {"value":
+        {"name": "_private.Init.System.IOError.0.IO.Error.downCaseFirst",
+         "levels": [],
+         "kind": "const",
+         "args": [{"kind": "fvar", "id": "_uniq.1"}]},
+        "type": "String",
+        "name": "_x.11",
+        "kind": "let",
+        "id": "_uniq.13",
+        "body":
+        {"value":
+         {"lit": {"value": " (error code: ", "kind": "str"}, "kind": "lit"},
+         "type": "String",
+         "name": "_x.12",
+         "kind": "let",
+         "id": "_uniq.14",
+         "body":
+         {"value":
+          {"name": "String.append",
+           "levels": [],
+           "kind": "const",
+           "args":
+           [{"kind": "fvar", "id": "_uniq.13"},
+            {"kind": "fvar", "id": "_uniq.14"}]},
+          "type": "String",
+          "name": "_x.13",
+          "kind": "let",
+          "id": "_uniq.15",
+          "body":
+          {"value":
+           {"name": "UInt32.toNat",
+            "levels": [],
+            "kind": "const",
+            "args": [{"kind": "fvar", "id": "_uniq.2"}]},
+           "type": "Nat",
+           "name": "_x.14",
+           "kind": "let",
+           "id": "_uniq.16",
+           "body":
+           {"value":
+            {"name": "Nat.reprFast",
+             "levels": [],
+             "kind": "const",
+             "args": [{"kind": "fvar", "id": "_uniq.16"}]},
+            "type": "String",
+            "name": "_x.15",
+            "kind": "let",
+            "id": "_uniq.17",
+            "body":
+            {"value":
+             {"name": "String.append",
+              "levels": [],
+              "kind": "const",
+              "args":
+              [{"kind": "fvar", "id": "_uniq.15"},
+               {"kind": "fvar", "id": "_uniq.17"}]},
+             "type": "String",
+             "name": "_x.16",
+             "kind": "let",
+             "id": "_uniq.18",
+             "body":
+             {"value": {"lit": {"value": ", ", "kind": "str"}, "kind": "lit"},
+              "type": "String",
+              "name": "_x.17",
+              "kind": "let",
+              "id": "_uniq.19",
+              "body":
+              {"value":
+               {"name": "String.append",
+                "levels": [],
+                "kind": "const",
+                "args":
+                [{"kind": "fvar", "id": "_uniq.18"},
+                 {"kind": "fvar", "id": "_uniq.19"}]},
+               "type": "String",
+               "name": "_x.18",
+               "kind": "let",
+               "id": "_uniq.20",
+               "body":
+               {"value":
+                {"name":
+                 "_private.Init.System.IOError.0.IO.Error.downCaseFirst",
+                 "levels": [],
+                 "kind": "const",
+                 "args": [{"kind": "fvar", "id": "_uniq.12"}]},
+                "type": "String",
+                "name": "_x.19",
+                "kind": "let",
+                "id": "_uniq.21",
+                "body":
+                {"value":
+                 {"name": "String.append",
+                  "levels": [],
+                  "kind": "const",
+                  "args":
+                  [{"kind": "fvar", "id": "_uniq.20"},
+                   {"kind": "fvar", "id": "_uniq.21"}]},
+                 "type": "String",
+                 "name": "_x.20",
+                 "kind": "let",
+                 "id": "_uniq.22",
+                 "body":
+                 {"value":
+                  {"lit": {"value": ")", "kind": "str"}, "kind": "lit"},
+                  "type": "String",
+                  "name": "_x.21",
+                  "kind": "let",
+                  "id": "_uniq.23",
+                  "body":
+                  {"value":
+                   {"name": "String.append",
+                    "levels": [],
+                    "kind": "const",
+                    "args":
+                    [{"kind": "fvar", "id": "_uniq.22"},
+                     {"kind": "fvar", "id": "_uniq.23"}]},
+                   "type": "String",
+                   "name": "_x.22",
+                   "kind": "let",
+                   "id": "_uniq.24",
+                   "body":
+                   {"var": "_uniq.24", "kind": "return"}}}}}}}}}}}}}}]}},
+   "type": "String -> UInt32 -> (Option String) -> String",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "String", "name": "gist", "id": "_uniq.1", "borrow": false},
+    {"type": "UInt32", "name": "code", "id": "_uniq.2", "borrow": false},
+    {"type": "Option String", "name": "x.1", "id": "_uniq.3", "borrow": false}],
+   "name": "IO.Error.otherErrorToString",
+   "module": "Init.System.IOError",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"kind": "jp",
+     "decl":
+     {"type": "UInt32 -> String -> String",
+      "params":
+      [{"type": "UInt32", "name": "code", "id": "_uniq.2", "borrow": false},
+       {"type": "String", "name": "details", "id": "_uniq.3", "borrow": false}],
+      "name": "_jp.2",
+      "id": "_uniq.6",
+      "body":
+      {"value":
+       {"name": "Option.none",
+        "levels": [],
+        "kind": "const",
+        "args": [{"kind": "erased"}]},
+       "type": "Option String",
+       "name": "_x.3",
+       "kind": "let",
+       "id": "_uniq.4",
+       "body":
+       {"value":
+        {"name": "IO.Error.otherErrorToString",
+         "levels": [],
+         "kind": "const",
+         "args":
+         [{"kind": "fvar", "id": "_uniq.3"},
+          {"kind": "fvar", "id": "_uniq.2"},
+          {"kind": "fvar", "id": "_uniq.4"}]},
+        "type": "String",
+        "name": "_x.4",
+        "kind": "let",
+        "id": "_uniq.5",
+        "body": {"var": "_uniq.5", "kind": "return"}}}},
+     "body":
+     {"typeName": "IO.Error",
+      "resultType": "String",
+      "kind": "cases",
+      "discr": "_uniq.1",
+      "alts":
+      [{"params":
+        [{"type": "Option String",
+          "name": "filename.5",
+          "id": "_uniq.7",
+          "borrow": false},
+         {"type": "UInt32",
+          "name": "osCode.6",
+          "id": "_uniq.8",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.7",
+          "id": "_uniq.9",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.alreadyExists",
+        "body":
+        {"typeName": "Option",
+         "resultType": "String",
+         "kind": "cases",
+         "discr": "_uniq.7",
+         "alts":
+         [{"params": [],
+           "kind": "alt",
+           "ctor": "Option.none",
+           "body":
+           {"value":
+            {"lit": {"value": "already exists", "kind": "str"}, "kind": "lit"},
+            "type": "String",
+            "name": "_x.8",
+            "kind": "let",
+            "id": "_uniq.10",
+            "body":
+            {"value":
+             {"name": "Option.some",
+              "levels": [],
+              "kind": "const",
+              "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.9"}]},
+             "type": "Option String",
+             "name": "_x.9",
+             "kind": "let",
+             "id": "_uniq.11",
+             "body":
+             {"value":
+              {"name": "IO.Error.otherErrorToString",
+               "levels": [],
+               "kind": "const",
+               "args":
+               [{"kind": "fvar", "id": "_uniq.10"},
+                {"kind": "fvar", "id": "_uniq.8"},
+                {"kind": "fvar", "id": "_uniq.11"}]},
+              "type": "String",
+              "name": "_x.10",
+              "kind": "let",
+              "id": "_uniq.12",
+              "body": {"var": "_uniq.12", "kind": "return"}}}}},
+          {"params":
+           [{"type": "String",
+             "name": "val.11",
+             "id": "_uniq.13",
+             "borrow": false}],
+           "kind": "alt",
+           "ctor": "Option.some",
+           "body":
+           {"value":
+            {"lit": {"value": "already exists", "kind": "str"}, "kind": "lit"},
+            "type": "String",
+            "name": "_x.12",
+            "kind": "let",
+            "id": "_uniq.14",
+            "body":
+            {"value":
+             {"name": "Option.some",
+              "levels": [],
+              "kind": "const",
+              "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.9"}]},
+             "type": "Option String",
+             "name": "_x.13",
+             "kind": "let",
+             "id": "_uniq.15",
+             "body":
+             {"value":
+              {"name": "IO.Error.fopenErrorToString",
+               "levels": [],
+               "kind": "const",
+               "args":
+               [{"kind": "fvar", "id": "_uniq.14"},
+                {"kind": "fvar", "id": "_uniq.13"},
+                {"kind": "fvar", "id": "_uniq.8"},
+                {"kind": "fvar", "id": "_uniq.15"}]},
+              "type": "String",
+              "name": "_x.14",
+              "kind": "let",
+              "id": "_uniq.16",
+              "body": {"var": "_uniq.16", "kind": "return"}}}}}]}},
+       {"params":
+        [{"type": "UInt32",
+          "name": "osCode.15",
+          "id": "_uniq.17",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.16",
+          "id": "_uniq.18",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.otherError",
+        "body":
+        {"kind": "jmp",
+         "jp": "_uniq.6",
+         "args":
+         [{"kind": "fvar", "id": "_uniq.17"},
+          {"kind": "fvar", "id": "_uniq.18"}]}},
+       {"params":
+        [{"type": "UInt32",
+          "name": "osCode.17",
+          "id": "_uniq.19",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.18",
+          "id": "_uniq.20",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.resourceBusy",
+        "body":
+        {"value":
+         {"lit": {"value": "resource busy", "kind": "str"}, "kind": "lit"},
+         "type": "String",
+         "name": "_x.19",
+         "kind": "let",
+         "id": "_uniq.21",
+         "body":
+         {"value":
+          {"name": "Option.some",
+           "levels": [],
+           "kind": "const",
+           "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.20"}]},
+          "type": "Option String",
+          "name": "_x.20",
+          "kind": "let",
+          "id": "_uniq.22",
+          "body":
+          {"value":
+           {"name": "IO.Error.otherErrorToString",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.21"},
+             {"kind": "fvar", "id": "_uniq.19"},
+             {"kind": "fvar", "id": "_uniq.22"}]},
+           "type": "String",
+           "name": "_x.21",
+           "kind": "let",
+           "id": "_uniq.23",
+           "body": {"var": "_uniq.23", "kind": "return"}}}}},
+       {"params":
+        [{"type": "UInt32",
+          "name": "osCode.22",
+          "id": "_uniq.24",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.23",
+          "id": "_uniq.25",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.resourceVanished",
+        "body":
+        {"value":
+         {"lit": {"value": "resource vanished", "kind": "str"}, "kind": "lit"},
+         "type": "String",
+         "name": "_x.24",
+         "kind": "let",
+         "id": "_uniq.26",
+         "body":
+         {"value":
+          {"name": "Option.some",
+           "levels": [],
+           "kind": "const",
+           "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.25"}]},
+          "type": "Option String",
+          "name": "_x.25",
+          "kind": "let",
+          "id": "_uniq.27",
+          "body":
+          {"value":
+           {"name": "IO.Error.otherErrorToString",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.26"},
+             {"kind": "fvar", "id": "_uniq.24"},
+             {"kind": "fvar", "id": "_uniq.27"}]},
+           "type": "String",
+           "name": "_x.26",
+           "kind": "let",
+           "id": "_uniq.28",
+           "body": {"var": "_uniq.28", "kind": "return"}}}}},
+       {"params":
+        [{"type": "UInt32",
+          "name": "osCode.27",
+          "id": "_uniq.29",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.28",
+          "id": "_uniq.30",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.unsupportedOperation",
+        "body":
+        {"value":
+         {"lit": {"value": "unsupported operation", "kind": "str"},
+          "kind": "lit"},
+         "type": "String",
+         "name": "_x.29",
+         "kind": "let",
+         "id": "_uniq.31",
+         "body":
+         {"value":
+          {"name": "Option.some",
+           "levels": [],
+           "kind": "const",
+           "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.30"}]},
+          "type": "Option String",
+          "name": "_x.30",
+          "kind": "let",
+          "id": "_uniq.32",
+          "body":
+          {"value":
+           {"name": "IO.Error.otherErrorToString",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.31"},
+             {"kind": "fvar", "id": "_uniq.29"},
+             {"kind": "fvar", "id": "_uniq.32"}]},
+           "type": "String",
+           "name": "_x.31",
+           "kind": "let",
+           "id": "_uniq.33",
+           "body": {"var": "_uniq.33", "kind": "return"}}}}},
+       {"params":
+        [{"type": "UInt32",
+          "name": "osCode.32",
+          "id": "_uniq.34",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.33",
+          "id": "_uniq.35",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.hardwareFault",
+        "body":
+        {"value":
+         {"lit": {"value": "hardware fault", "kind": "str"}, "kind": "lit"},
+         "type": "String",
+         "name": "_x.34",
+         "kind": "let",
+         "id": "_uniq.36",
+         "body":
+         {"value":
+          {"name": "Option.none",
+           "levels": [],
+           "kind": "const",
+           "args": [{"kind": "erased"}]},
+          "type": "Option String",
+          "name": "_x.35",
+          "kind": "let",
+          "id": "_uniq.37",
+          "body":
+          {"value":
+           {"name": "IO.Error.otherErrorToString",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.36"},
+             {"kind": "fvar", "id": "_uniq.34"},
+             {"kind": "fvar", "id": "_uniq.37"}]},
+           "type": "String",
+           "name": "_x.36",
+           "kind": "let",
+           "id": "_uniq.38",
+           "body": {"var": "_uniq.38", "kind": "return"}}}}},
+       {"params":
+        [{"type": "UInt32",
+          "name": "osCode.37",
+          "id": "_uniq.39",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.38",
+          "id": "_uniq.40",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.unsatisfiedConstraints",
+        "body":
+        {"value":
+         {"lit": {"value": "directory not empty", "kind": "str"},
+          "kind": "lit"},
+         "type": "String",
+         "name": "_x.39",
+         "kind": "let",
+         "id": "_uniq.41",
+         "body":
+         {"value":
+          {"name": "Option.none",
+           "levels": [],
+           "kind": "const",
+           "args": [{"kind": "erased"}]},
+          "type": "Option String",
+          "name": "_x.40",
+          "kind": "let",
+          "id": "_uniq.42",
+          "body":
+          {"value":
+           {"name": "IO.Error.otherErrorToString",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.41"},
+             {"kind": "fvar", "id": "_uniq.39"},
+             {"kind": "fvar", "id": "_uniq.42"}]},
+           "type": "String",
+           "name": "_x.41",
+           "kind": "let",
+           "id": "_uniq.43",
+           "body": {"var": "_uniq.43", "kind": "return"}}}}},
+       {"params":
+        [{"type": "UInt32",
+          "name": "osCode.42",
+          "id": "_uniq.44",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.43",
+          "id": "_uniq.45",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.illegalOperation",
+        "body":
+        {"value":
+         {"lit": {"value": "illegal operation", "kind": "str"}, "kind": "lit"},
+         "type": "String",
+         "name": "_x.44",
+         "kind": "let",
+         "id": "_uniq.46",
+         "body":
+         {"value":
+          {"name": "Option.some",
+           "levels": [],
+           "kind": "const",
+           "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.45"}]},
+          "type": "Option String",
+          "name": "_x.45",
+          "kind": "let",
+          "id": "_uniq.47",
+          "body":
+          {"value":
+           {"name": "IO.Error.otherErrorToString",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.46"},
+             {"kind": "fvar", "id": "_uniq.44"},
+             {"kind": "fvar", "id": "_uniq.47"}]},
+           "type": "String",
+           "name": "_x.46",
+           "kind": "let",
+           "id": "_uniq.48",
+           "body": {"var": "_uniq.48", "kind": "return"}}}}},
+       {"params":
+        [{"type": "UInt32",
+          "name": "osCode.47",
+          "id": "_uniq.49",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.48",
+          "id": "_uniq.50",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.protocolError",
+        "body":
+        {"value":
+         {"lit": {"value": "protocol error", "kind": "str"}, "kind": "lit"},
+         "type": "String",
+         "name": "_x.49",
+         "kind": "let",
+         "id": "_uniq.51",
+         "body":
+         {"value":
+          {"name": "Option.some",
+           "levels": [],
+           "kind": "const",
+           "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.50"}]},
+          "type": "Option String",
+          "name": "_x.50",
+          "kind": "let",
+          "id": "_uniq.52",
+          "body":
+          {"value":
+           {"name": "IO.Error.otherErrorToString",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.51"},
+             {"kind": "fvar", "id": "_uniq.49"},
+             {"kind": "fvar", "id": "_uniq.52"}]},
+           "type": "String",
+           "name": "_x.51",
+           "kind": "let",
+           "id": "_uniq.53",
+           "body": {"var": "_uniq.53", "kind": "return"}}}}},
+       {"params":
+        [{"type": "UInt32",
+          "name": "osCode.52",
+          "id": "_uniq.54",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.53",
+          "id": "_uniq.55",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.timeExpired",
+        "body":
+        {"value":
+         {"lit": {"value": "time expired", "kind": "str"}, "kind": "lit"},
+         "type": "String",
+         "name": "_x.54",
+         "kind": "let",
+         "id": "_uniq.56",
+         "body":
+         {"value":
+          {"name": "Option.some",
+           "levels": [],
+           "kind": "const",
+           "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.55"}]},
+          "type": "Option String",
+          "name": "_x.55",
+          "kind": "let",
+          "id": "_uniq.57",
+          "body":
+          {"value":
+           {"name": "IO.Error.otherErrorToString",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.56"},
+             {"kind": "fvar", "id": "_uniq.54"},
+             {"kind": "fvar", "id": "_uniq.57"}]},
+           "type": "String",
+           "name": "_x.56",
+           "kind": "let",
+           "id": "_uniq.58",
+           "body": {"var": "_uniq.58", "kind": "return"}}}}},
+       {"params":
+        [{"type": "String",
+          "name": "filename.57",
+          "id": "_uniq.59",
+          "borrow": false},
+         {"type": "UInt32",
+          "name": "osCode.58",
+          "id": "_uniq.60",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.59",
+          "id": "_uniq.61",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.interrupted",
+        "body":
+        {"value":
+         {"lit": {"value": "interrupted system call", "kind": "str"},
+          "kind": "lit"},
+         "type": "String",
+         "name": "_x.60",
+         "kind": "let",
+         "id": "_uniq.62",
+         "body":
+         {"value":
+          {"name": "Option.some",
+           "levels": [],
+           "kind": "const",
+           "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.61"}]},
+          "type": "Option String",
+          "name": "_x.61",
+          "kind": "let",
+          "id": "_uniq.63",
+          "body":
+          {"value":
+           {"name": "IO.Error.fopenErrorToString",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.62"},
+             {"kind": "fvar", "id": "_uniq.59"},
+             {"kind": "fvar", "id": "_uniq.60"},
+             {"kind": "fvar", "id": "_uniq.63"}]},
+           "type": "String",
+           "name": "_x.62",
+           "kind": "let",
+           "id": "_uniq.64",
+           "body": {"var": "_uniq.64", "kind": "return"}}}}},
+       {"params":
+        [{"type": "String",
+          "name": "filename.63",
+          "id": "_uniq.65",
+          "borrow": false},
+         {"type": "UInt32",
+          "name": "osCode.64",
+          "id": "_uniq.66",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.65",
+          "id": "_uniq.67",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.noFileOrDirectory",
+        "body":
+        {"value":
+         {"lit": {"value": "no such file or directory", "kind": "str"},
+          "kind": "lit"},
+         "type": "String",
+         "name": "_x.66",
+         "kind": "let",
+         "id": "_uniq.68",
+         "body":
+         {"value":
+          {"name": "Option.none",
+           "levels": [],
+           "kind": "const",
+           "args": [{"kind": "erased"}]},
+          "type": "Option String",
+          "name": "_x.67",
+          "kind": "let",
+          "id": "_uniq.69",
+          "body":
+          {"value":
+           {"name": "IO.Error.fopenErrorToString",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.68"},
+             {"kind": "fvar", "id": "_uniq.65"},
+             {"kind": "fvar", "id": "_uniq.66"},
+             {"kind": "fvar", "id": "_uniq.69"}]},
+           "type": "String",
+           "name": "_x.68",
+           "kind": "let",
+           "id": "_uniq.70",
+           "body": {"var": "_uniq.70", "kind": "return"}}}}},
+       {"params":
+        [{"type": "Option String",
+          "name": "filename.69",
+          "id": "_uniq.71",
+          "borrow": false},
+         {"type": "UInt32",
+          "name": "osCode.70",
+          "id": "_uniq.72",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.71",
+          "id": "_uniq.73",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.invalidArgument",
+        "body":
+        {"typeName": "Option",
+         "resultType": "String",
+         "kind": "cases",
+         "discr": "_uniq.71",
+         "alts":
+         [{"params": [],
+           "kind": "alt",
+           "ctor": "Option.none",
+           "body":
+           {"value":
+            {"lit": {"value": "invalid argument", "kind": "str"},
+             "kind": "lit"},
+            "type": "String",
+            "name": "_x.72",
+            "kind": "let",
+            "id": "_uniq.74",
+            "body":
+            {"value":
+             {"name": "Option.some",
+              "levels": [],
+              "kind": "const",
+              "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.73"}]},
+             "type": "Option String",
+             "name": "_x.73",
+             "kind": "let",
+             "id": "_uniq.75",
+             "body":
+             {"value":
+              {"name": "IO.Error.otherErrorToString",
+               "levels": [],
+               "kind": "const",
+               "args":
+               [{"kind": "fvar", "id": "_uniq.74"},
+                {"kind": "fvar", "id": "_uniq.72"},
+                {"kind": "fvar", "id": "_uniq.75"}]},
+              "type": "String",
+              "name": "_x.74",
+              "kind": "let",
+              "id": "_uniq.76",
+              "body": {"var": "_uniq.76", "kind": "return"}}}}},
+          {"params":
+           [{"type": "String",
+             "name": "val.75",
+             "id": "_uniq.77",
+             "borrow": false}],
+           "kind": "alt",
+           "ctor": "Option.some",
+           "body":
+           {"value":
+            {"lit": {"value": "invalid argument", "kind": "str"},
+             "kind": "lit"},
+            "type": "String",
+            "name": "_x.76",
+            "kind": "let",
+            "id": "_uniq.78",
+            "body":
+            {"value":
+             {"name": "Option.some",
+              "levels": [],
+              "kind": "const",
+              "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.73"}]},
+             "type": "Option String",
+             "name": "_x.77",
+             "kind": "let",
+             "id": "_uniq.79",
+             "body":
+             {"value":
+              {"name": "IO.Error.fopenErrorToString",
+               "levels": [],
+               "kind": "const",
+               "args":
+               [{"kind": "fvar", "id": "_uniq.78"},
+                {"kind": "fvar", "id": "_uniq.77"},
+                {"kind": "fvar", "id": "_uniq.72"},
+                {"kind": "fvar", "id": "_uniq.79"}]},
+              "type": "String",
+              "name": "_x.78",
+              "kind": "let",
+              "id": "_uniq.80",
+              "body": {"var": "_uniq.80", "kind": "return"}}}}}]}},
+       {"params":
+        [{"type": "Option String",
+          "name": "filename.79",
+          "id": "_uniq.81",
+          "borrow": false},
+         {"type": "UInt32",
+          "name": "osCode.80",
+          "id": "_uniq.82",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.81",
+          "id": "_uniq.83",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.permissionDenied",
+        "body":
+        {"typeName": "Option",
+         "resultType": "String",
+         "kind": "cases",
+         "discr": "_uniq.81",
+         "alts":
+         [{"params": [],
+           "kind": "alt",
+           "ctor": "Option.none",
+           "body":
+           {"kind": "jmp",
+            "jp": "_uniq.6",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.82"},
+             {"kind": "fvar", "id": "_uniq.83"}]}},
+          {"params":
+           [{"type": "String",
+             "name": "val.82",
+             "id": "_uniq.84",
+             "borrow": false}],
+           "kind": "alt",
+           "ctor": "Option.some",
+           "body":
+           {"value":
+            {"name": "Option.none",
+             "levels": [],
+             "kind": "const",
+             "args": [{"kind": "erased"}]},
+            "type": "Option String",
+            "name": "_x.83",
+            "kind": "let",
+            "id": "_uniq.85",
+            "body":
+            {"value":
+             {"name": "IO.Error.fopenErrorToString",
+              "levels": [],
+              "kind": "const",
+              "args":
+              [{"kind": "fvar", "id": "_uniq.83"},
+               {"kind": "fvar", "id": "_uniq.84"},
+               {"kind": "fvar", "id": "_uniq.82"},
+               {"kind": "fvar", "id": "_uniq.85"}]},
+             "type": "String",
+             "name": "_x.84",
+             "kind": "let",
+             "id": "_uniq.86",
+             "body": {"var": "_uniq.86", "kind": "return"}}}}]}},
+       {"params":
+        [{"type": "Option String",
+          "name": "filename.85",
+          "id": "_uniq.87",
+          "borrow": false},
+         {"type": "UInt32",
+          "name": "osCode.86",
+          "id": "_uniq.88",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.87",
+          "id": "_uniq.89",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.resourceExhausted",
+        "body":
+        {"typeName": "Option",
+         "resultType": "String",
+         "kind": "cases",
+         "discr": "_uniq.87",
+         "alts":
+         [{"params": [],
+           "kind": "alt",
+           "ctor": "Option.none",
+           "body":
+           {"value":
+            {"lit": {"value": "resource exhausted", "kind": "str"},
+             "kind": "lit"},
+            "type": "String",
+            "name": "_x.88",
+            "kind": "let",
+            "id": "_uniq.90",
+            "body":
+            {"value":
+             {"name": "Option.some",
+              "levels": [],
+              "kind": "const",
+              "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.89"}]},
+             "type": "Option String",
+             "name": "_x.89",
+             "kind": "let",
+             "id": "_uniq.91",
+             "body":
+             {"value":
+              {"name": "IO.Error.otherErrorToString",
+               "levels": [],
+               "kind": "const",
+               "args":
+               [{"kind": "fvar", "id": "_uniq.90"},
+                {"kind": "fvar", "id": "_uniq.88"},
+                {"kind": "fvar", "id": "_uniq.91"}]},
+              "type": "String",
+              "name": "_x.90",
+              "kind": "let",
+              "id": "_uniq.92",
+              "body": {"var": "_uniq.92", "kind": "return"}}}}},
+          {"params":
+           [{"type": "String",
+             "name": "val.91",
+             "id": "_uniq.93",
+             "borrow": false}],
+           "kind": "alt",
+           "ctor": "Option.some",
+           "body":
+           {"value":
+            {"lit": {"value": "resource exhausted", "kind": "str"},
+             "kind": "lit"},
+            "type": "String",
+            "name": "_x.92",
+            "kind": "let",
+            "id": "_uniq.94",
+            "body":
+            {"value":
+             {"name": "Option.some",
+              "levels": [],
+              "kind": "const",
+              "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.89"}]},
+             "type": "Option String",
+             "name": "_x.93",
+             "kind": "let",
+             "id": "_uniq.95",
+             "body":
+             {"value":
+              {"name": "IO.Error.fopenErrorToString",
+               "levels": [],
+               "kind": "const",
+               "args":
+               [{"kind": "fvar", "id": "_uniq.94"},
+                {"kind": "fvar", "id": "_uniq.93"},
+                {"kind": "fvar", "id": "_uniq.88"},
+                {"kind": "fvar", "id": "_uniq.95"}]},
+              "type": "String",
+              "name": "_x.94",
+              "kind": "let",
+              "id": "_uniq.96",
+              "body": {"var": "_uniq.96", "kind": "return"}}}}}]}},
+       {"params":
+        [{"type": "Option String",
+          "name": "filename.95",
+          "id": "_uniq.97",
+          "borrow": false},
+         {"type": "UInt32",
+          "name": "osCode.96",
+          "id": "_uniq.98",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.97",
+          "id": "_uniq.99",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.inappropriateType",
+        "body":
+        {"typeName": "Option",
+         "resultType": "String",
+         "kind": "cases",
+         "discr": "_uniq.97",
+         "alts":
+         [{"params": [],
+           "kind": "alt",
+           "ctor": "Option.none",
+           "body":
+           {"value":
+            {"lit": {"value": "inappropriate type", "kind": "str"},
+             "kind": "lit"},
+            "type": "String",
+            "name": "_x.98",
+            "kind": "let",
+            "id": "_uniq.100",
+            "body":
+            {"value":
+             {"name": "Option.some",
+              "levels": [],
+              "kind": "const",
+              "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.99"}]},
+             "type": "Option String",
+             "name": "_x.99",
+             "kind": "let",
+             "id": "_uniq.101",
+             "body":
+             {"value":
+              {"name": "IO.Error.otherErrorToString",
+               "levels": [],
+               "kind": "const",
+               "args":
+               [{"kind": "fvar", "id": "_uniq.100"},
+                {"kind": "fvar", "id": "_uniq.98"},
+                {"kind": "fvar", "id": "_uniq.101"}]},
+              "type": "String",
+              "name": "_x.100",
+              "kind": "let",
+              "id": "_uniq.102",
+              "body": {"var": "_uniq.102", "kind": "return"}}}}},
+          {"params":
+           [{"type": "String",
+             "name": "val.101",
+             "id": "_uniq.103",
+             "borrow": false}],
+           "kind": "alt",
+           "ctor": "Option.some",
+           "body":
+           {"value":
+            {"lit": {"value": "inappropriate type", "kind": "str"},
+             "kind": "lit"},
+            "type": "String",
+            "name": "_x.102",
+            "kind": "let",
+            "id": "_uniq.104",
+            "body":
+            {"value":
+             {"name": "Option.some",
+              "levels": [],
+              "kind": "const",
+              "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.99"}]},
+             "type": "Option String",
+             "name": "_x.103",
+             "kind": "let",
+             "id": "_uniq.105",
+             "body":
+             {"value":
+              {"name": "IO.Error.fopenErrorToString",
+               "levels": [],
+               "kind": "const",
+               "args":
+               [{"kind": "fvar", "id": "_uniq.104"},
+                {"kind": "fvar", "id": "_uniq.103"},
+                {"kind": "fvar", "id": "_uniq.98"},
+                {"kind": "fvar", "id": "_uniq.105"}]},
+              "type": "String",
+              "name": "_x.104",
+              "kind": "let",
+              "id": "_uniq.106",
+              "body": {"var": "_uniq.106", "kind": "return"}}}}}]}},
+       {"params":
+        [{"type": "Option String",
+          "name": "filename.105",
+          "id": "_uniq.107",
+          "borrow": false},
+         {"type": "UInt32",
+          "name": "osCode.106",
+          "id": "_uniq.108",
+          "borrow": false},
+         {"type": "String",
+          "name": "details.107",
+          "id": "_uniq.109",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.noSuchThing",
+        "body":
+        {"typeName": "Option",
+         "resultType": "String",
+         "kind": "cases",
+         "discr": "_uniq.107",
+         "alts":
+         [{"params": [],
+           "kind": "alt",
+           "ctor": "Option.none",
+           "body":
+           {"value":
+            {"lit": {"value": "no such thing", "kind": "str"}, "kind": "lit"},
+            "type": "String",
+            "name": "_x.108",
+            "kind": "let",
+            "id": "_uniq.110",
+            "body":
+            {"value":
+             {"name": "Option.some",
+              "levels": [],
+              "kind": "const",
+              "args":
+              [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.109"}]},
+             "type": "Option String",
+             "name": "_x.109",
+             "kind": "let",
+             "id": "_uniq.111",
+             "body":
+             {"value":
+              {"name": "IO.Error.otherErrorToString",
+               "levels": [],
+               "kind": "const",
+               "args":
+               [{"kind": "fvar", "id": "_uniq.110"},
+                {"kind": "fvar", "id": "_uniq.108"},
+                {"kind": "fvar", "id": "_uniq.111"}]},
+              "type": "String",
+              "name": "_x.110",
+              "kind": "let",
+              "id": "_uniq.112",
+              "body": {"var": "_uniq.112", "kind": "return"}}}}},
+          {"params":
+           [{"type": "String",
+             "name": "val.111",
+             "id": "_uniq.113",
+             "borrow": false}],
+           "kind": "alt",
+           "ctor": "Option.some",
+           "body":
+           {"value":
+            {"lit": {"value": "no such thing", "kind": "str"}, "kind": "lit"},
+            "type": "String",
+            "name": "_x.112",
+            "kind": "let",
+            "id": "_uniq.114",
+            "body":
+            {"value":
+             {"name": "Option.some",
+              "levels": [],
+              "kind": "const",
+              "args":
+              [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.109"}]},
+             "type": "Option String",
+             "name": "_x.113",
+             "kind": "let",
+             "id": "_uniq.115",
+             "body":
+             {"value":
+              {"name": "IO.Error.fopenErrorToString",
+               "levels": [],
+               "kind": "const",
+               "args":
+               [{"kind": "fvar", "id": "_uniq.114"},
+                {"kind": "fvar", "id": "_uniq.113"},
+                {"kind": "fvar", "id": "_uniq.108"},
+                {"kind": "fvar", "id": "_uniq.115"}]},
+              "type": "String",
+              "name": "_x.114",
+              "kind": "let",
+              "id": "_uniq.116",
+              "body": {"var": "_uniq.116", "kind": "return"}}}}}]}},
+       {"params": [],
+        "kind": "alt",
+        "ctor": "IO.Error.unexpectedEof",
+        "body":
+        {"value":
+         {"lit": {"value": "end of file", "kind": "str"}, "kind": "lit"},
+         "type": "String",
+         "name": "_x.115",
+         "kind": "let",
+         "id": "_uniq.117",
+         "body": {"var": "_uniq.117", "kind": "return"}}},
+       {"params":
+        [{"type": "String",
+          "name": "msg.116",
+          "id": "_uniq.118",
+          "borrow": false}],
+        "kind": "alt",
+        "ctor": "IO.Error.userError",
+        "body": {"var": "_uniq.118", "kind": "return"}}]}}},
+   "type": "IO.Error -> String",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "IO.Error", "name": "x.1", "id": "_uniq.1", "borrow": false}],
+   "name": "IO.Error.toString",
+   "module": "Init.System.IOError",
+   "levelParams": [],
+   "inline": null,
+   "export": "lean_io_error_to_string"},
+  {"value":
    {"kind": "extern",
     "entries":
     [{"kind": "standard", "fn": "lean_get_stdout", "backend": "all"}]},
@@ -234,6 +1927,301 @@
    "levelParams": [],
    "inline": null},
   {"value":
+   {"kind": "code",
+    "body":
+    {"typeName": "List",
+     "resultType": "List String",
+     "kind": "cases",
+     "discr": "_uniq.1",
+     "alts":
+     [{"params": [],
+       "kind": "alt",
+       "ctor": "List.nil",
+       "body":
+       {"value":
+        {"name": "List.reverse._redArg",
+         "levels": [],
+         "kind": "const",
+         "args": [{"kind": "fvar", "id": "_uniq.2"}]},
+        "type": "List lcAny",
+        "name": "_x.3",
+        "kind": "let",
+        "id": "_uniq.3",
+        "body": {"var": "_uniq.3", "kind": "return"}}},
+      {"params":
+       [{"type": "Nat", "name": "head.4", "id": "_uniq.4", "borrow": false},
+        {"type": "List Nat",
+         "name": "tail.5",
+         "id": "_uniq.5",
+         "borrow": false}],
+       "kind": "alt",
+       "ctor": "List.cons",
+       "body":
+       {"value":
+        {"name": "USize.ofNat",
+         "levels": [],
+         "kind": "const",
+         "args": [{"kind": "fvar", "id": "_uniq.4"}]},
+        "type": "USize",
+        "name": "_x.6",
+        "kind": "let",
+        "id": "_uniq.6",
+        "body":
+        {"value":
+         {"name": "USize.repr",
+          "levels": [],
+          "kind": "const",
+          "args": [{"kind": "fvar", "id": "_uniq.6"}]},
+         "type": "String",
+         "name": "_x.7",
+         "kind": "let",
+         "id": "_uniq.7",
+         "body":
+         {"value":
+          {"name": "List.cons",
+           "levels": [],
+           "kind": "const",
+           "args":
+           [{"kind": "erased"},
+            {"kind": "fvar", "id": "_uniq.7"},
+            {"kind": "fvar", "id": "_uniq.2"}]},
+          "type": "List String",
+          "name": "_x.8",
+          "kind": "let",
+          "id": "_uniq.8",
+          "body":
+          {"value":
+           {"name":
+            "List.mapTR.loop._at_._private.Init.Data.Repr.0.Nat.reprArray.spec_0",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.5"},
+             {"kind": "fvar", "id": "_uniq.8"}]},
+           "type": "List String",
+           "name": "_x.9",
+           "kind": "let",
+           "id": "_uniq.9",
+           "body": {"var": "_uniq.9", "kind": "return"}}}}}}]}},
+   "type": "(List Nat) -> (List String) -> (List String)",
+   "safe": true,
+   "recursive": true,
+   "params":
+   [{"type": "List Nat", "name": "a.1", "id": "_uniq.1", "borrow": false},
+    {"type": "List String", "name": "a.2", "id": "_uniq.2", "borrow": false}],
+   "name":
+   "List.mapTR.loop._at_._private.Init.Data.Repr.0.Nat.reprArray.spec_0",
+   "module": "Init.Data.Repr",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value":
+     {"name": "List.nil",
+      "levels": [],
+      "kind": "const",
+      "args": [{"kind": "erased"}]},
+     "type": "List Nat",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.2",
+     "body":
+     {"value":
+      {"name": "List.range.loop",
+       "levels": [],
+       "kind": "const",
+       "args":
+       [{"kind": "fvar", "id": "_uniq.1"}, {"kind": "fvar", "id": "_uniq.2"}]},
+      "type": "List Nat",
+      "name": "_x.2",
+      "kind": "let",
+      "id": "_uniq.3",
+      "body": {"var": "_uniq.3", "kind": "return"}}}},
+   "type": "Nat -> (List Nat)",
+   "safe": true,
+   "recursive": false,
+   "params": [{"type": "Nat", "name": "n", "id": "_uniq.1", "borrow": false}],
+   "name": "List.range",
+   "module": "Init.Data.List.Basic",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value": {"lit": {"value": 0, "kind": "nat"}, "kind": "lit"},
+     "type": "Nat",
+     "name": "zero",
+     "kind": "let",
+     "id": "_uniq.3",
+     "body":
+     {"value":
+      {"name": "Nat.decEq",
+       "levels": [],
+       "kind": "const",
+       "args":
+       [{"kind": "fvar", "id": "_uniq.1"}, {"kind": "fvar", "id": "_uniq.3"}]},
+      "type": "Bool",
+      "name": "isZero",
+      "kind": "let",
+      "id": "_uniq.4",
+      "body":
+      {"typeName": "Bool",
+       "resultType": "List Nat",
+       "kind": "cases",
+       "discr": "_uniq.4",
+       "alts":
+       [{"params": [],
+         "kind": "alt",
+         "ctor": "Bool.true",
+         "body": {"var": "_uniq.2", "kind": "return"}},
+        {"params": [],
+         "kind": "alt",
+         "ctor": "Bool.false",
+         "body":
+         {"value": {"lit": {"value": 1, "kind": "nat"}, "kind": "lit"},
+          "type": "Nat",
+          "name": "one",
+          "kind": "let",
+          "id": "_uniq.5",
+          "body":
+          {"value":
+           {"name": "Nat.sub",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.1"},
+             {"kind": "fvar", "id": "_uniq.5"}]},
+           "type": "Nat",
+           "name": "n.3",
+           "kind": "let",
+           "id": "_uniq.6",
+           "body":
+           {"value":
+            {"name": "List.cons",
+             "levels": [],
+             "kind": "const",
+             "args":
+             [{"kind": "erased"},
+              {"kind": "fvar", "id": "_uniq.6"},
+              {"kind": "fvar", "id": "_uniq.2"}]},
+            "type": "List Nat",
+            "name": "_x.4",
+            "kind": "let",
+            "id": "_uniq.7",
+            "body":
+            {"value":
+             {"name": "List.range.loop",
+              "levels": [],
+              "kind": "const",
+              "args":
+              [{"kind": "fvar", "id": "_uniq.6"},
+               {"kind": "fvar", "id": "_uniq.7"}]},
+             "type": "List Nat",
+             "name": "_x.5",
+             "kind": "let",
+             "id": "_uniq.8",
+             "body": {"var": "_uniq.8", "kind": "return"}}}}}}]}}}},
+   "type": "Nat -> (List Nat) -> (List Nat)",
+   "safe": true,
+   "recursive": true,
+   "params":
+   [{"type": "Nat", "name": "a.1", "id": "_uniq.1", "borrow": false},
+    {"type": "List Nat", "name": "a.2", "id": "_uniq.2", "borrow": false}],
+   "name": "List.range.loop",
+   "module": "Init.Data.List.Basic",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value":
+     {"name": "List.nil",
+      "levels": [],
+      "kind": "const",
+      "args": [{"kind": "erased"}]},
+     "type": "List lcAny",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.2",
+     "body":
+     {"value":
+      {"name": "List.reverseAux._redArg",
+       "levels": [],
+       "kind": "const",
+       "args":
+       [{"kind": "fvar", "id": "_uniq.1"}, {"kind": "fvar", "id": "_uniq.2"}]},
+      "type": "List lcAny",
+      "name": "_x.2",
+      "kind": "let",
+      "id": "_uniq.3",
+      "body": {"var": "_uniq.3", "kind": "return"}}}},
+   "type": "(List lcAny) -> (List lcAny)",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "List lcAny", "name": "as", "id": "_uniq.1", "borrow": false}],
+   "name": "List.reverse._redArg",
+   "module": "Init.Data.List.Basic",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"typeName": "List",
+     "resultType": "List lcAny",
+     "kind": "cases",
+     "discr": "_uniq.1",
+     "alts":
+     [{"params": [],
+       "kind": "alt",
+       "ctor": "List.nil",
+       "body": {"var": "_uniq.2", "kind": "return"}},
+      {"params":
+       [{"type": "lcAny", "name": "head.3", "id": "_uniq.3", "borrow": false},
+        {"type": "List lcAny",
+         "name": "tail.4",
+         "id": "_uniq.4",
+         "borrow": false}],
+       "kind": "alt",
+       "ctor": "List.cons",
+       "body":
+       {"value":
+        {"name": "List.cons",
+         "levels": [],
+         "kind": "const",
+         "args":
+         [{"kind": "erased"},
+          {"kind": "fvar", "id": "_uniq.3"},
+          {"kind": "fvar", "id": "_uniq.2"}]},
+        "type": "List lcAny",
+        "name": "_x.5",
+        "kind": "let",
+        "id": "_uniq.5",
+        "body":
+        {"value":
+         {"name": "List.reverseAux._redArg",
+          "levels": [],
+          "kind": "const",
+          "args":
+          [{"kind": "fvar", "id": "_uniq.4"},
+           {"kind": "fvar", "id": "_uniq.5"}]},
+         "type": "List lcAny",
+         "name": "_x.6",
+         "kind": "let",
+         "id": "_uniq.6",
+         "body": {"var": "_uniq.6", "kind": "return"}}}}]}},
+   "type": "(List lcAny) -> (List lcAny) -> (List lcAny)",
+   "safe": true,
+   "recursive": true,
+   "params":
+   [{"type": "List lcAny", "name": "x.1", "id": "_uniq.1", "borrow": false},
+    {"type": "List lcAny", "name": "x.2", "id": "_uniq.2", "borrow": false}],
+   "name": "List.reverseAux._redArg",
+   "module": "Init.Data.List.Basic",
+   "levelParams": [],
+   "inline": null},
+  {"value":
    {"kind": "extern",
     "entries": [{"kind": "standard", "fn": "lean_nat_add", "backend": "all"}]},
    "type": "([mdata borrowed:1 Nat]) -> ([mdata borrowed:1 Nat]) -> Nat",
@@ -293,6 +2281,947 @@
    "levelParams": [],
    "inline": null},
   {"value":
+   {"kind": "code",
+    "body":
+    {"value": {"lit": {"value": 0, "kind": "nat"}, "kind": "lit"},
+     "type": "Nat",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.2",
+     "body":
+     {"value":
+      {"name": "Nat.decEq",
+       "levels": [],
+       "kind": "const",
+       "args":
+       [{"kind": "fvar", "id": "_uniq.1"}, {"kind": "fvar", "id": "_uniq.2"}]},
+      "type": "Bool",
+      "name": "_x.2",
+      "kind": "let",
+      "id": "_uniq.3",
+      "body":
+      {"typeName": "Bool",
+       "resultType": "UInt32",
+       "kind": "cases",
+       "discr": "_uniq.3",
+       "alts":
+       [{"params": [],
+         "kind": "alt",
+         "ctor": "Bool.false",
+         "body":
+         {"value": {"lit": {"value": 1, "kind": "nat"}, "kind": "lit"},
+          "type": "Nat",
+          "name": "_x.3",
+          "kind": "let",
+          "id": "_uniq.4",
+          "body":
+          {"value":
+           {"name": "Nat.decEq",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "fvar", "id": "_uniq.1"},
+             {"kind": "fvar", "id": "_uniq.4"}]},
+           "type": "Bool",
+           "name": "_x.4",
+           "kind": "let",
+           "id": "_uniq.5",
+           "body":
+           {"typeName": "Bool",
+            "resultType": "UInt32",
+            "kind": "cases",
+            "discr": "_uniq.5",
+            "alts":
+            [{"params": [],
+              "kind": "alt",
+              "ctor": "Bool.false",
+              "body":
+              {"value": {"lit": {"value": 2, "kind": "nat"}, "kind": "lit"},
+               "type": "Nat",
+               "name": "_x.5",
+               "kind": "let",
+               "id": "_uniq.6",
+               "body":
+               {"value":
+                {"name": "Nat.decEq",
+                 "levels": [],
+                 "kind": "const",
+                 "args":
+                 [{"kind": "fvar", "id": "_uniq.1"},
+                  {"kind": "fvar", "id": "_uniq.6"}]},
+                "type": "Bool",
+                "name": "_x.6",
+                "kind": "let",
+                "id": "_uniq.7",
+                "body":
+                {"typeName": "Bool",
+                 "resultType": "UInt32",
+                 "kind": "cases",
+                 "discr": "_uniq.7",
+                 "alts":
+                 [{"params": [],
+                   "kind": "alt",
+                   "ctor": "Bool.false",
+                   "body":
+                   {"value":
+                    {"lit": {"value": 3, "kind": "nat"}, "kind": "lit"},
+                    "type": "Nat",
+                    "name": "_x.7",
+                    "kind": "let",
+                    "id": "_uniq.8",
+                    "body":
+                    {"value":
+                     {"name": "Nat.decEq",
+                      "levels": [],
+                      "kind": "const",
+                      "args":
+                      [{"kind": "fvar", "id": "_uniq.1"},
+                       {"kind": "fvar", "id": "_uniq.8"}]},
+                     "type": "Bool",
+                     "name": "_x.8",
+                     "kind": "let",
+                     "id": "_uniq.9",
+                     "body":
+                     {"typeName": "Bool",
+                      "resultType": "UInt32",
+                      "kind": "cases",
+                      "discr": "_uniq.9",
+                      "alts":
+                      [{"params": [],
+                        "kind": "alt",
+                        "ctor": "Bool.false",
+                        "body":
+                        {"value":
+                         {"lit": {"value": 4, "kind": "nat"}, "kind": "lit"},
+                         "type": "Nat",
+                         "name": "_x.9",
+                         "kind": "let",
+                         "id": "_uniq.10",
+                         "body":
+                         {"value":
+                          {"name": "Nat.decEq",
+                           "levels": [],
+                           "kind": "const",
+                           "args":
+                           [{"kind": "fvar", "id": "_uniq.1"},
+                            {"kind": "fvar", "id": "_uniq.10"}]},
+                          "type": "Bool",
+                          "name": "_x.10",
+                          "kind": "let",
+                          "id": "_uniq.11",
+                          "body":
+                          {"typeName": "Bool",
+                           "resultType": "UInt32",
+                           "kind": "cases",
+                           "discr": "_uniq.11",
+                           "alts":
+                           [{"params": [],
+                             "kind": "alt",
+                             "ctor": "Bool.false",
+                             "body":
+                             {"value":
+                              {"lit": {"value": 5, "kind": "nat"},
+                               "kind": "lit"},
+                              "type": "Nat",
+                              "name": "_x.11",
+                              "kind": "let",
+                              "id": "_uniq.12",
+                              "body":
+                              {"value":
+                               {"name": "Nat.decEq",
+                                "levels": [],
+                                "kind": "const",
+                                "args":
+                                [{"kind": "fvar", "id": "_uniq.1"},
+                                 {"kind": "fvar", "id": "_uniq.12"}]},
+                               "type": "Bool",
+                               "name": "_x.12",
+                               "kind": "let",
+                               "id": "_uniq.13",
+                               "body":
+                               {"typeName": "Bool",
+                                "resultType": "UInt32",
+                                "kind": "cases",
+                                "discr": "_uniq.13",
+                                "alts":
+                                [{"params": [],
+                                  "kind": "alt",
+                                  "ctor": "Bool.false",
+                                  "body":
+                                  {"value":
+                                   {"lit": {"value": 6, "kind": "nat"},
+                                    "kind": "lit"},
+                                   "type": "Nat",
+                                   "name": "_x.13",
+                                   "kind": "let",
+                                   "id": "_uniq.14",
+                                   "body":
+                                   {"value":
+                                    {"name": "Nat.decEq",
+                                     "levels": [],
+                                     "kind": "const",
+                                     "args":
+                                     [{"kind": "fvar", "id": "_uniq.1"},
+                                      {"kind": "fvar", "id": "_uniq.14"}]},
+                                    "type": "Bool",
+                                    "name": "_x.14",
+                                    "kind": "let",
+                                    "id": "_uniq.15",
+                                    "body":
+                                    {"typeName": "Bool",
+                                     "resultType": "UInt32",
+                                     "kind": "cases",
+                                     "discr": "_uniq.15",
+                                     "alts":
+                                     [{"params": [],
+                                       "kind": "alt",
+                                       "ctor": "Bool.false",
+                                       "body":
+                                       {"value":
+                                        {"lit": {"value": 7, "kind": "nat"},
+                                         "kind": "lit"},
+                                        "type": "Nat",
+                                        "name": "_x.15",
+                                        "kind": "let",
+                                        "id": "_uniq.16",
+                                        "body":
+                                        {"value":
+                                         {"name": "Nat.decEq",
+                                          "levels": [],
+                                          "kind": "const",
+                                          "args":
+                                          [{"kind": "fvar", "id": "_uniq.1"},
+                                           {"kind": "fvar", "id": "_uniq.16"}]},
+                                         "type": "Bool",
+                                         "name": "_x.16",
+                                         "kind": "let",
+                                         "id": "_uniq.17",
+                                         "body":
+                                         {"typeName": "Bool",
+                                          "resultType": "UInt32",
+                                          "kind": "cases",
+                                          "discr": "_uniq.17",
+                                          "alts":
+                                          [{"params": [],
+                                            "kind": "alt",
+                                            "ctor": "Bool.false",
+                                            "body":
+                                            {"value":
+                                             {"lit":
+                                              {"value": 8, "kind": "nat"},
+                                              "kind": "lit"},
+                                             "type": "Nat",
+                                             "name": "_x.17",
+                                             "kind": "let",
+                                             "id": "_uniq.18",
+                                             "body":
+                                             {"value":
+                                              {"name": "Nat.decEq",
+                                               "levels": [],
+                                               "kind": "const",
+                                               "args":
+                                               [{"kind": "fvar",
+                                                 "id": "_uniq.1"},
+                                                {"kind": "fvar",
+                                                 "id": "_uniq.18"}]},
+                                              "type": "Bool",
+                                              "name": "_x.18",
+                                              "kind": "let",
+                                              "id": "_uniq.19",
+                                              "body":
+                                              {"typeName": "Bool",
+                                               "resultType": "UInt32",
+                                               "kind": "cases",
+                                               "discr": "_uniq.19",
+                                               "alts":
+                                               [{"params": [],
+                                                 "kind": "alt",
+                                                 "ctor": "Bool.false",
+                                                 "body":
+                                                 {"value":
+                                                  {"lit":
+                                                   {"value": 9, "kind": "nat"},
+                                                   "kind": "lit"},
+                                                  "type": "Nat",
+                                                  "name": "_x.19",
+                                                  "kind": "let",
+                                                  "id": "_uniq.20",
+                                                  "body":
+                                                  {"value":
+                                                   {"name": "Nat.decEq",
+                                                    "levels": [],
+                                                    "kind": "const",
+                                                    "args":
+                                                    [{"kind": "fvar",
+                                                      "id": "_uniq.1"},
+                                                     {"kind": "fvar",
+                                                      "id": "_uniq.20"}]},
+                                                   "type": "Bool",
+                                                   "name": "_x.20",
+                                                   "kind": "let",
+                                                   "id": "_uniq.21",
+                                                   "body":
+                                                   {"typeName": "Bool",
+                                                    "resultType": "UInt32",
+                                                    "kind": "cases",
+                                                    "discr": "_uniq.21",
+                                                    "alts":
+                                                    [{"params": [],
+                                                      "kind": "alt",
+                                                      "ctor": "Bool.false",
+                                                      "body":
+                                                      {"value":
+                                                       {"lit":
+                                                        {"value": 10,
+                                                         "kind": "nat"},
+                                                        "kind": "lit"},
+                                                       "type": "Nat",
+                                                       "name": "_x.21",
+                                                       "kind": "let",
+                                                       "id": "_uniq.22",
+                                                       "body":
+                                                       {"value":
+                                                        {"name": "Nat.decEq",
+                                                         "levels": [],
+                                                         "kind": "const",
+                                                         "args":
+                                                         [{"kind": "fvar",
+                                                           "id": "_uniq.1"},
+                                                          {"kind": "fvar",
+                                                           "id": "_uniq.22"}]},
+                                                        "type": "Bool",
+                                                        "name": "_x.22",
+                                                        "kind": "let",
+                                                        "id": "_uniq.23",
+                                                        "body":
+                                                        {"typeName": "Bool",
+                                                         "resultType": "UInt32",
+                                                         "kind": "cases",
+                                                         "discr": "_uniq.23",
+                                                         "alts":
+                                                         [{"params": [],
+                                                           "kind": "alt",
+                                                           "ctor": "Bool.false",
+                                                           "body":
+                                                           {"value":
+                                                            {"lit":
+                                                             {"value": 11,
+                                                              "kind": "nat"},
+                                                             "kind": "lit"},
+                                                            "type": "Nat",
+                                                            "name": "_x.23",
+                                                            "kind": "let",
+                                                            "id": "_uniq.24",
+                                                            "body":
+                                                            {"value":
+                                                             {"name":
+                                                              "Nat.decEq",
+                                                              "levels": [],
+                                                              "kind": "const",
+                                                              "args":
+                                                              [{"kind": "fvar",
+                                                                "id":
+                                                                "_uniq.1"},
+                                                               {"kind": "fvar",
+                                                                "id":
+                                                                "_uniq.24"}]},
+                                                             "type": "Bool",
+                                                             "name": "_x.24",
+                                                             "kind": "let",
+                                                             "id": "_uniq.25",
+                                                             "body":
+                                                             {"typeName":
+                                                              "Bool",
+                                                              "resultType":
+                                                              "UInt32",
+                                                              "kind": "cases",
+                                                              "discr":
+                                                              "_uniq.25",
+                                                              "alts":
+                                                              [{"params": [],
+                                                                "kind": "alt",
+                                                                "ctor":
+                                                                "Bool.false",
+                                                                "body":
+                                                                {"value":
+                                                                 {"lit":
+                                                                  {"value": 12,
+                                                                   "kind":
+                                                                   "nat"},
+                                                                  "kind":
+                                                                  "lit"},
+                                                                 "type": "Nat",
+                                                                 "name":
+                                                                 "_x.25",
+                                                                 "kind": "let",
+                                                                 "id":
+                                                                 "_uniq.26",
+                                                                 "body":
+                                                                 {"value":
+                                                                  {"name":
+                                                                   "Nat.decEq",
+                                                                   "levels": [],
+                                                                   "kind":
+                                                                   "const",
+                                                                   "args":
+                                                                   [{"kind":
+                                                                     "fvar",
+                                                                     "id":
+                                                                     "_uniq.1"},
+                                                                    {"kind":
+                                                                     "fvar",
+                                                                     "id":
+                                                                     "_uniq.26"}]},
+                                                                  "type":
+                                                                  "Bool",
+                                                                  "name":
+                                                                  "_x.26",
+                                                                  "kind": "let",
+                                                                  "id":
+                                                                  "_uniq.27",
+                                                                  "body":
+                                                                  {"typeName":
+                                                                   "Bool",
+                                                                   "resultType":
+                                                                   "UInt32",
+                                                                   "kind":
+                                                                   "cases",
+                                                                   "discr":
+                                                                   "_uniq.27",
+                                                                   "alts":
+                                                                   [{"params":
+                                                                     [],
+                                                                     "kind":
+                                                                     "alt",
+                                                                     "ctor":
+                                                                     "Bool.false",
+                                                                     "body":
+                                                                     {"value":
+                                                                      {"lit":
+                                                                       {"value":
+                                                                        13,
+                                                                        "kind":
+                                                                        "nat"},
+                                                                       "kind":
+                                                                       "lit"},
+                                                                      "type":
+                                                                      "Nat",
+                                                                      "name":
+                                                                      "_x.27",
+                                                                      "kind":
+                                                                      "let",
+                                                                      "id":
+                                                                      "_uniq.28",
+                                                                      "body":
+                                                                      {"value":
+                                                                       {"name":
+                                                                        "Nat.decEq",
+                                                                        "levels":
+                                                                        [],
+                                                                        "kind":
+                                                                        "const",
+                                                                        "args":
+                                                                        [{"kind":
+                                                                          "fvar",
+                                                                          "id":
+                                                                          "_uniq.1"},
+                                                                         {"kind":
+                                                                          "fvar",
+                                                                          "id":
+                                                                          "_uniq.28"}]},
+                                                                       "type":
+                                                                       "Bool",
+                                                                       "name":
+                                                                       "_x.28",
+                                                                       "kind":
+                                                                       "let",
+                                                                       "id":
+                                                                       "_uniq.29",
+                                                                       "body":
+                                                                       {"typeName":
+                                                                        "Bool",
+                                                                        "resultType":
+                                                                        "UInt32",
+                                                                        "kind":
+                                                                        "cases",
+                                                                        "discr":
+                                                                        "_uniq.29",
+                                                                        "alts":
+                                                                        [{"params":
+                                                                          [],
+                                                                          "kind":
+                                                                          "alt",
+                                                                          "ctor":
+                                                                          "Bool.false",
+                                                                          "body":
+                                                                          {"value":
+                                                                           {"lit":
+                                                                            {"value":
+                                                                             14,
+                                                                             "kind":
+                                                                             "nat"},
+                                                                            "kind":
+                                                                            "lit"},
+                                                                           "type":
+                                                                           "Nat",
+                                                                           "name":
+                                                                           "_x.29",
+                                                                           "kind":
+                                                                           "let",
+                                                                           "id":
+                                                                           "_uniq.30",
+                                                                           "body":
+                                                                           {"value":
+                                                                            {"name":
+                                                                             "Nat.decEq",
+                                                                             "levels":
+                                                                             [],
+                                                                             "kind":
+                                                                             "const",
+                                                                             "args":
+                                                                             [{"kind":
+                                                                               "fvar",
+                                                                               "id":
+                                                                               "_uniq.1"},
+                                                                              {"kind":
+                                                                               "fvar",
+                                                                               "id":
+                                                                               "_uniq.30"}]},
+                                                                            "type":
+                                                                            "Bool",
+                                                                            "name":
+                                                                            "_x.30",
+                                                                            "kind":
+                                                                            "let",
+                                                                            "id":
+                                                                            "_uniq.31",
+                                                                            "body":
+                                                                            {"typeName":
+                                                                             "Bool",
+                                                                             "resultType":
+                                                                             "UInt32",
+                                                                             "kind":
+                                                                             "cases",
+                                                                             "discr":
+                                                                             "_uniq.31",
+                                                                             "alts":
+                                                                             [{"params":
+                                                                               [],
+                                                                               "kind":
+                                                                               "alt",
+                                                                               "ctor":
+                                                                               "Bool.false",
+                                                                               "body":
+                                                                               {"value":
+                                                                                {"lit":
+                                                                                 {"value":
+                                                                                  15,
+                                                                                  "kind":
+                                                                                  "nat"},
+                                                                                 "kind":
+                                                                                 "lit"},
+                                                                                "type":
+                                                                                "Nat",
+                                                                                "name":
+                                                                                "_x.31",
+                                                                                "kind":
+                                                                                "let",
+                                                                                "id":
+                                                                                "_uniq.32",
+                                                                                "body":
+                                                                                {"value":
+                                                                                 {"name":
+                                                                                  "Nat.decEq",
+                                                                                  "levels":
+                                                                                  [],
+                                                                                  "kind":
+                                                                                  "const",
+                                                                                  "args":
+                                                                                  [{"kind":
+                                                                                    "fvar",
+                                                                                    "id":
+                                                                                    "_uniq.1"},
+                                                                                   {"kind":
+                                                                                    "fvar",
+                                                                                    "id":
+                                                                                    "_uniq.32"}]},
+                                                                                 "type":
+                                                                                 "Bool",
+                                                                                 "name":
+                                                                                 "_x.32",
+                                                                                 "kind":
+                                                                                 "let",
+                                                                                 "id":
+                                                                                 "_uniq.33",
+                                                                                 "body":
+                                                                                 {"typeName":
+                                                                                  "Bool",
+                                                                                  "resultType":
+                                                                                  "UInt32",
+                                                                                  "kind":
+                                                                                  "cases",
+                                                                                  "discr":
+                                                                                  "_uniq.33",
+                                                                                  "alts":
+                                                                                  [{"params":
+                                                                                    [],
+                                                                                    "kind":
+                                                                                    "alt",
+                                                                                    "ctor":
+                                                                                    "Bool.false",
+                                                                                    "body":
+                                                                                    {"value":
+                                                                                     {"lit":
+                                                                                      {"value":
+                                                                                       42,
+                                                                                       "kind":
+                                                                                       "uint32"},
+                                                                                      "kind":
+                                                                                      "lit"},
+                                                                                     "type":
+                                                                                     "UInt32",
+                                                                                     "name":
+                                                                                     "_x.33",
+                                                                                     "kind":
+                                                                                     "let",
+                                                                                     "id":
+                                                                                     "_uniq.34",
+                                                                                     "body":
+                                                                                     {"var":
+                                                                                      "_uniq.34",
+                                                                                      "kind":
+                                                                                      "return"}}},
+                                                                                   {"params":
+                                                                                    [],
+                                                                                    "kind":
+                                                                                    "alt",
+                                                                                    "ctor":
+                                                                                    "Bool.true",
+                                                                                    "body":
+                                                                                    {"value":
+                                                                                     {"lit":
+                                                                                      {"value":
+                                                                                       102,
+                                                                                       "kind":
+                                                                                       "uint32"},
+                                                                                      "kind":
+                                                                                      "lit"},
+                                                                                     "type":
+                                                                                     "UInt32",
+                                                                                     "name":
+                                                                                     "_x.34",
+                                                                                     "kind":
+                                                                                     "let",
+                                                                                     "id":
+                                                                                     "_uniq.35",
+                                                                                     "body":
+                                                                                     {"var":
+                                                                                      "_uniq.35",
+                                                                                      "kind":
+                                                                                      "return"}}}]}}}},
+                                                                              {"params":
+                                                                               [],
+                                                                               "kind":
+                                                                               "alt",
+                                                                               "ctor":
+                                                                               "Bool.true",
+                                                                               "body":
+                                                                               {"value":
+                                                                                {"lit":
+                                                                                 {"value":
+                                                                                  101,
+                                                                                  "kind":
+                                                                                  "uint32"},
+                                                                                 "kind":
+                                                                                 "lit"},
+                                                                                "type":
+                                                                                "UInt32",
+                                                                                "name":
+                                                                                "_x.35",
+                                                                                "kind":
+                                                                                "let",
+                                                                                "id":
+                                                                                "_uniq.36",
+                                                                                "body":
+                                                                                {"var":
+                                                                                 "_uniq.36",
+                                                                                 "kind":
+                                                                                 "return"}}}]}}}},
+                                                                         {"params":
+                                                                          [],
+                                                                          "kind":
+                                                                          "alt",
+                                                                          "ctor":
+                                                                          "Bool.true",
+                                                                          "body":
+                                                                          {"value":
+                                                                           {"lit":
+                                                                            {"value":
+                                                                             100,
+                                                                             "kind":
+                                                                             "uint32"},
+                                                                            "kind":
+                                                                            "lit"},
+                                                                           "type":
+                                                                           "UInt32",
+                                                                           "name":
+                                                                           "_x.36",
+                                                                           "kind":
+                                                                           "let",
+                                                                           "id":
+                                                                           "_uniq.37",
+                                                                           "body":
+                                                                           {"var":
+                                                                            "_uniq.37",
+                                                                            "kind":
+                                                                            "return"}}}]}}}},
+                                                                    {"params":
+                                                                     [],
+                                                                     "kind":
+                                                                     "alt",
+                                                                     "ctor":
+                                                                     "Bool.true",
+                                                                     "body":
+                                                                     {"value":
+                                                                      {"lit":
+                                                                       {"value":
+                                                                        99,
+                                                                        "kind":
+                                                                        "uint32"},
+                                                                       "kind":
+                                                                       "lit"},
+                                                                      "type":
+                                                                      "UInt32",
+                                                                      "name":
+                                                                      "_x.37",
+                                                                      "kind":
+                                                                      "let",
+                                                                      "id":
+                                                                      "_uniq.38",
+                                                                      "body":
+                                                                      {"var":
+                                                                       "_uniq.38",
+                                                                       "kind":
+                                                                       "return"}}}]}}}},
+                                                               {"params": [],
+                                                                "kind": "alt",
+                                                                "ctor":
+                                                                "Bool.true",
+                                                                "body":
+                                                                {"value":
+                                                                 {"lit":
+                                                                  {"value": 98,
+                                                                   "kind":
+                                                                   "uint32"},
+                                                                  "kind":
+                                                                  "lit"},
+                                                                 "type":
+                                                                 "UInt32",
+                                                                 "name":
+                                                                 "_x.38",
+                                                                 "kind": "let",
+                                                                 "id":
+                                                                 "_uniq.39",
+                                                                 "body":
+                                                                 {"var":
+                                                                  "_uniq.39",
+                                                                  "kind":
+                                                                  "return"}}}]}}}},
+                                                          {"params": [],
+                                                           "kind": "alt",
+                                                           "ctor": "Bool.true",
+                                                           "body":
+                                                           {"value":
+                                                            {"lit":
+                                                             {"value": 97,
+                                                              "kind": "uint32"},
+                                                             "kind": "lit"},
+                                                            "type": "UInt32",
+                                                            "name": "_x.39",
+                                                            "kind": "let",
+                                                            "id": "_uniq.40",
+                                                            "body":
+                                                            {"var": "_uniq.40",
+                                                             "kind":
+                                                             "return"}}}]}}}},
+                                                     {"params": [],
+                                                      "kind": "alt",
+                                                      "ctor": "Bool.true",
+                                                      "body":
+                                                      {"value":
+                                                       {"lit":
+                                                        {"value": 57,
+                                                         "kind": "uint32"},
+                                                        "kind": "lit"},
+                                                       "type": "UInt32",
+                                                       "name": "_x.40",
+                                                       "kind": "let",
+                                                       "id": "_uniq.41",
+                                                       "body":
+                                                       {"var": "_uniq.41",
+                                                        "kind":
+                                                        "return"}}}]}}}},
+                                                {"params": [],
+                                                 "kind": "alt",
+                                                 "ctor": "Bool.true",
+                                                 "body":
+                                                 {"value":
+                                                  {"lit":
+                                                   {"value": 56,
+                                                    "kind": "uint32"},
+                                                   "kind": "lit"},
+                                                  "type": "UInt32",
+                                                  "name": "_x.41",
+                                                  "kind": "let",
+                                                  "id": "_uniq.42",
+                                                  "body":
+                                                  {"var": "_uniq.42",
+                                                   "kind": "return"}}}]}}}},
+                                           {"params": [],
+                                            "kind": "alt",
+                                            "ctor": "Bool.true",
+                                            "body":
+                                            {"value":
+                                             {"lit":
+                                              {"value": 55, "kind": "uint32"},
+                                              "kind": "lit"},
+                                             "type": "UInt32",
+                                             "name": "_x.42",
+                                             "kind": "let",
+                                             "id": "_uniq.43",
+                                             "body":
+                                             {"var": "_uniq.43",
+                                              "kind": "return"}}}]}}}},
+                                      {"params": [],
+                                       "kind": "alt",
+                                       "ctor": "Bool.true",
+                                       "body":
+                                       {"value":
+                                        {"lit": {"value": 54, "kind": "uint32"},
+                                         "kind": "lit"},
+                                        "type": "UInt32",
+                                        "name": "_x.43",
+                                        "kind": "let",
+                                        "id": "_uniq.44",
+                                        "body":
+                                        {"var": "_uniq.44",
+                                         "kind": "return"}}}]}}}},
+                                 {"params": [],
+                                  "kind": "alt",
+                                  "ctor": "Bool.true",
+                                  "body":
+                                  {"value":
+                                   {"lit": {"value": 53, "kind": "uint32"},
+                                    "kind": "lit"},
+                                   "type": "UInt32",
+                                   "name": "_x.44",
+                                   "kind": "let",
+                                   "id": "_uniq.45",
+                                   "body":
+                                   {"var": "_uniq.45", "kind": "return"}}}]}}}},
+                            {"params": [],
+                             "kind": "alt",
+                             "ctor": "Bool.true",
+                             "body":
+                             {"value":
+                              {"lit": {"value": 52, "kind": "uint32"},
+                               "kind": "lit"},
+                              "type": "UInt32",
+                              "name": "_x.45",
+                              "kind": "let",
+                              "id": "_uniq.46",
+                              "body":
+                              {"var": "_uniq.46", "kind": "return"}}}]}}}},
+                       {"params": [],
+                        "kind": "alt",
+                        "ctor": "Bool.true",
+                        "body":
+                        {"value":
+                         {"lit": {"value": 51, "kind": "uint32"},
+                          "kind": "lit"},
+                         "type": "UInt32",
+                         "name": "_x.46",
+                         "kind": "let",
+                         "id": "_uniq.47",
+                         "body": {"var": "_uniq.47", "kind": "return"}}}]}}}},
+                  {"params": [],
+                   "kind": "alt",
+                   "ctor": "Bool.true",
+                   "body":
+                   {"value":
+                    {"lit": {"value": 50, "kind": "uint32"}, "kind": "lit"},
+                    "type": "UInt32",
+                    "name": "_x.47",
+                    "kind": "let",
+                    "id": "_uniq.48",
+                    "body": {"var": "_uniq.48", "kind": "return"}}}]}}}},
+             {"params": [],
+              "kind": "alt",
+              "ctor": "Bool.true",
+              "body":
+              {"value": {"lit": {"value": 49, "kind": "uint32"}, "kind": "lit"},
+               "type": "UInt32",
+               "name": "_x.48",
+               "kind": "let",
+               "id": "_uniq.49",
+               "body": {"var": "_uniq.49", "kind": "return"}}}]}}}},
+        {"params": [],
+         "kind": "alt",
+         "ctor": "Bool.true",
+         "body":
+         {"value": {"lit": {"value": 48, "kind": "uint32"}, "kind": "lit"},
+          "type": "UInt32",
+          "name": "_x.49",
+          "kind": "let",
+          "id": "_uniq.50",
+          "body": {"var": "_uniq.50", "kind": "return"}}}]}}}},
+   "type": "Nat -> UInt32",
+   "safe": true,
+   "recursive": false,
+   "params": [{"type": "Nat", "name": "n", "id": "_uniq.1", "borrow": false}],
+   "name": "Nat.digitChar",
+   "module": "Init.Data.Repr",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries": [{"kind": "standard", "fn": "lean_nat_div", "backend": "all"}]},
+   "type": "([mdata borrowed:1 Nat]) -> ([mdata borrowed:1 Nat]) -> Nat",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "[mdata borrowed:1 Nat]",
+     "name": "x",
+     "id": "_uniq.1",
+     "borrow": true},
+    {"type": "[mdata borrowed:1 Nat]",
+     "name": "y",
+     "id": "_uniq.2",
+     "borrow": true}],
+   "name": "Nat.div",
+   "module": "Init.Prelude",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries": [{"kind": "standard", "fn": "lean_nat_mod", "backend": "all"}]},
+   "type": "([mdata borrowed:1 Nat]) -> ([mdata borrowed:1 Nat]) -> Nat",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "[mdata borrowed:1 Nat]",
+     "name": "a._@._internal._hyg.1",
+     "id": "_uniq.1",
+     "borrow": true},
+    {"type": "[mdata borrowed:1 Nat]",
+     "name": "a._@._internal._hyg.2",
+     "id": "_uniq.2",
+     "borrow": true}],
+   "name": "Nat.mod",
+   "module": "Init.Prelude",
+   "levelParams": [],
+   "inline": null},
+  {"value":
    {"kind": "extern",
     "entries": [{"kind": "standard", "fn": "lean_nat_mul", "backend": "all"}]},
    "type": "([mdata borrowed:1 Nat]) -> ([mdata borrowed:1 Nat]) -> Nat",
@@ -313,6 +3242,196 @@
    "inline": null},
   {"value":
    {"kind": "extern",
+    "entries": [{"kind": "standard", "fn": "lean_nat_pow", "backend": "all"}]},
+   "type": "([mdata borrowed:1 Nat]) -> ([mdata borrowed:1 Nat]) -> Nat",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "[mdata borrowed:1 Nat]",
+     "name": "m",
+     "id": "_uniq.1",
+     "borrow": true},
+    {"type": "[mdata borrowed:1 Nat]",
+     "name": "a._@._internal._hyg.1",
+     "id": "_uniq.2",
+     "borrow": true}],
+   "name": "Nat.pow",
+   "module": "Init.Prelude",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value":
+     {"name": "_private.Init.Data.Repr.0.Nat.reprArray",
+      "levels": [],
+      "kind": "const",
+      "args": []},
+     "type": "Array String",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.2",
+     "body":
+     {"value":
+      {"name": "Array.size",
+       "levels": [],
+       "kind": "const",
+       "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.2"}]},
+      "type": "Nat",
+      "name": "_x.2",
+      "kind": "let",
+      "id": "_uniq.3",
+      "body":
+      {"value":
+       {"name": "Nat.decLt",
+        "levels": [],
+        "kind": "const",
+        "args":
+        [{"kind": "fvar", "id": "_uniq.1"}, {"kind": "fvar", "id": "_uniq.3"}]},
+       "type": "Bool",
+       "name": "_x.3",
+       "kind": "let",
+       "id": "_uniq.4",
+       "body":
+       {"typeName": "Bool",
+        "resultType": "String",
+        "kind": "cases",
+        "discr": "_uniq.4",
+        "alts":
+        [{"params": [],
+          "kind": "alt",
+          "ctor": "Bool.false",
+          "body":
+          {"value": {"lit": {"value": 2, "kind": "nat"}, "kind": "lit"},
+           "type": "Nat",
+           "name": "_x.4",
+           "kind": "let",
+           "id": "_uniq.5",
+           "body":
+           {"value":
+            {"name": "System.Platform.numBits",
+             "levels": [],
+             "kind": "const",
+             "args": []},
+            "type": "Nat",
+            "name": "_x.5",
+            "kind": "let",
+            "id": "_uniq.6",
+            "body":
+            {"value":
+             {"name": "Nat.pow",
+              "levels": [],
+              "kind": "const",
+              "args":
+              [{"kind": "fvar", "id": "_uniq.5"},
+               {"kind": "fvar", "id": "_uniq.6"}]},
+             "type": "Nat",
+             "name": "_x.6",
+             "kind": "let",
+             "id": "_uniq.7",
+             "body":
+             {"value":
+              {"name": "Nat.decLt",
+               "levels": [],
+               "kind": "const",
+               "args":
+               [{"kind": "fvar", "id": "_uniq.1"},
+                {"kind": "fvar", "id": "_uniq.7"}]},
+              "type": "Bool",
+              "name": "_x.7",
+              "kind": "let",
+              "id": "_uniq.8",
+              "body":
+              {"typeName": "Bool",
+               "resultType": "String",
+               "kind": "cases",
+               "discr": "_uniq.8",
+               "alts":
+               [{"params": [],
+                 "kind": "alt",
+                 "ctor": "Bool.false",
+                 "body":
+                 {"value": {"lit": {"value": 10, "kind": "nat"}, "kind": "lit"},
+                  "type": "Nat",
+                  "name": "_x.8",
+                  "kind": "let",
+                  "id": "_uniq.9",
+                  "body":
+                  {"value":
+                   {"name": "Nat.toDigits",
+                    "levels": [],
+                    "kind": "const",
+                    "args":
+                    [{"kind": "fvar", "id": "_uniq.9"},
+                     {"kind": "fvar", "id": "_uniq.1"}]},
+                   "type": "List UInt32",
+                   "name": "_x.9",
+                   "kind": "let",
+                   "id": "_uniq.10",
+                   "body":
+                   {"value":
+                    {"name": "String.ofList",
+                     "levels": [],
+                     "kind": "const",
+                     "args": [{"kind": "fvar", "id": "_uniq.10"}]},
+                    "type": "String",
+                    "name": "_x.10",
+                    "kind": "let",
+                    "id": "_uniq.11",
+                    "body": {"var": "_uniq.11", "kind": "return"}}}}},
+                {"params": [],
+                 "kind": "alt",
+                 "ctor": "Bool.true",
+                 "body":
+                 {"value":
+                  {"name": "USize.ofNatLT",
+                   "levels": [],
+                   "kind": "const",
+                   "args":
+                   [{"kind": "fvar", "id": "_uniq.1"}, {"kind": "erased"}]},
+                  "type": "USize",
+                  "name": "_x.11",
+                  "kind": "let",
+                  "id": "_uniq.12",
+                  "body":
+                  {"value":
+                   {"name": "USize.repr",
+                    "levels": [],
+                    "kind": "const",
+                    "args": [{"kind": "fvar", "id": "_uniq.12"}]},
+                   "type": "String",
+                   "name": "_x.12",
+                   "kind": "let",
+                   "id": "_uniq.13",
+                   "body": {"var": "_uniq.13", "kind": "return"}}}}]}}}}}},
+         {"params": [],
+          "kind": "alt",
+          "ctor": "Bool.true",
+          "body":
+          {"value":
+           {"name": "Array.getInternal",
+            "levels": [],
+            "kind": "const",
+            "args":
+            [{"kind": "erased"},
+             {"kind": "fvar", "id": "_uniq.2"},
+             {"kind": "fvar", "id": "_uniq.1"},
+             {"kind": "erased"}]},
+           "type": "String",
+           "name": "_x.13",
+           "kind": "let",
+           "id": "_uniq.14",
+           "body": {"var": "_uniq.14", "kind": "return"}}}]}}}}},
+   "type": "Nat -> String",
+   "safe": true,
+   "recursive": false,
+   "params": [{"type": "Nat", "name": "n", "id": "_uniq.1", "borrow": false}],
+   "name": "Nat.reprFast",
+   "module": "Init.Data.Repr",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
     "entries": [{"kind": "standard", "fn": "lean_nat_sub", "backend": "all"}]},
    "type": "([mdata borrowed:1 Nat]) -> ([mdata borrowed:1 Nat]) -> Nat",
    "safe": true,
@@ -328,6 +3447,222 @@
      "borrow": true}],
    "name": "Nat.sub",
    "module": "Init.Prelude",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value": {"lit": {"value": 1, "kind": "nat"}, "kind": "lit"},
+     "type": "Nat",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.3",
+     "body":
+     {"value":
+      {"name": "Nat.add",
+       "levels": [],
+       "kind": "const",
+       "args":
+       [{"kind": "fvar", "id": "_uniq.2"}, {"kind": "fvar", "id": "_uniq.3"}]},
+      "type": "Nat",
+      "name": "_x.2",
+      "kind": "let",
+      "id": "_uniq.4",
+      "body":
+      {"value":
+       {"name": "List.nil",
+        "levels": [],
+        "kind": "const",
+        "args": [{"kind": "erased"}]},
+       "type": "List UInt32",
+       "name": "_x.3",
+       "kind": "let",
+       "id": "_uniq.5",
+       "body":
+       {"value":
+        {"name": "Nat.toDigitsCore",
+         "levels": [],
+         "kind": "const",
+         "args":
+         [{"kind": "fvar", "id": "_uniq.1"},
+          {"kind": "fvar", "id": "_uniq.4"},
+          {"kind": "fvar", "id": "_uniq.2"},
+          {"kind": "fvar", "id": "_uniq.5"}]},
+        "type": "List UInt32",
+        "name": "_x.4",
+        "kind": "let",
+        "id": "_uniq.6",
+        "body": {"var": "_uniq.6", "kind": "return"}}}}}},
+   "type": "Nat -> Nat -> (List UInt32)",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "Nat", "name": "base", "id": "_uniq.1", "borrow": false},
+    {"type": "Nat", "name": "n", "id": "_uniq.2", "borrow": false}],
+   "name": "Nat.toDigits",
+   "module": "Init.Data.Repr",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value": {"lit": {"value": 0, "kind": "nat"}, "kind": "lit"},
+     "type": "Nat",
+     "name": "zero",
+     "kind": "let",
+     "id": "_uniq.5",
+     "body":
+     {"value":
+      {"name": "Nat.decEq",
+       "levels": [],
+       "kind": "const",
+       "args":
+       [{"kind": "fvar", "id": "_uniq.2"}, {"kind": "fvar", "id": "_uniq.5"}]},
+      "type": "Bool",
+      "name": "isZero",
+      "kind": "let",
+      "id": "_uniq.6",
+      "body":
+      {"typeName": "Bool",
+       "resultType": "List UInt32",
+       "kind": "cases",
+       "discr": "_uniq.6",
+       "alts":
+       [{"params": [],
+         "kind": "alt",
+         "ctor": "Bool.true",
+         "body": {"var": "_uniq.4", "kind": "return"}},
+        {"params": [],
+         "kind": "alt",
+         "ctor": "Bool.false",
+         "body":
+         {"value":
+          {"name": "Nat.mod",
+           "levels": [],
+           "kind": "const",
+           "args":
+           [{"kind": "fvar", "id": "_uniq.3"},
+            {"kind": "fvar", "id": "_uniq.1"}]},
+          "type": "Nat",
+          "name": "_x.4",
+          "kind": "let",
+          "id": "_uniq.7",
+          "body":
+          {"value":
+           {"name": "Nat.digitChar",
+            "levels": [],
+            "kind": "const",
+            "args": [{"kind": "fvar", "id": "_uniq.7"}]},
+           "type": "UInt32",
+           "name": "d",
+           "kind": "let",
+           "id": "_uniq.8",
+           "body":
+           {"value":
+            {"name": "Nat.div",
+             "levels": [],
+             "kind": "const",
+             "args":
+             [{"kind": "fvar", "id": "_uniq.3"},
+              {"kind": "fvar", "id": "_uniq.1"}]},
+            "type": "Nat",
+            "name": "n'",
+            "kind": "let",
+            "id": "_uniq.9",
+            "body":
+            {"value":
+             {"name": "Nat.decEq",
+              "levels": [],
+              "kind": "const",
+              "args":
+              [{"kind": "fvar", "id": "_uniq.9"},
+               {"kind": "fvar", "id": "_uniq.5"}]},
+             "type": "Bool",
+             "name": "_x.5",
+             "kind": "let",
+             "id": "_uniq.10",
+             "body":
+             {"typeName": "Bool",
+              "resultType": "List UInt32",
+              "kind": "cases",
+              "discr": "_uniq.10",
+              "alts":
+              [{"params": [],
+                "kind": "alt",
+                "ctor": "Bool.false",
+                "body":
+                {"value": {"lit": {"value": 1, "kind": "nat"}, "kind": "lit"},
+                 "type": "Nat",
+                 "name": "one",
+                 "kind": "let",
+                 "id": "_uniq.11",
+                 "body":
+                 {"value":
+                  {"name": "Nat.sub",
+                   "levels": [],
+                   "kind": "const",
+                   "args":
+                   [{"kind": "fvar", "id": "_uniq.2"},
+                    {"kind": "fvar", "id": "_uniq.11"}]},
+                  "type": "Nat",
+                  "name": "n.6",
+                  "kind": "let",
+                  "id": "_uniq.12",
+                  "body":
+                  {"value":
+                   {"name": "List.cons",
+                    "levels": [],
+                    "kind": "const",
+                    "args":
+                    [{"kind": "erased"},
+                     {"kind": "fvar", "id": "_uniq.8"},
+                     {"kind": "fvar", "id": "_uniq.4"}]},
+                   "type": "List UInt32",
+                   "name": "_x.7",
+                   "kind": "let",
+                   "id": "_uniq.13",
+                   "body":
+                   {"value":
+                    {"name": "Nat.toDigitsCore",
+                     "levels": [],
+                     "kind": "const",
+                     "args":
+                     [{"kind": "fvar", "id": "_uniq.1"},
+                      {"kind": "fvar", "id": "_uniq.12"},
+                      {"kind": "fvar", "id": "_uniq.9"},
+                      {"kind": "fvar", "id": "_uniq.13"}]},
+                    "type": "List UInt32",
+                    "name": "_x.8",
+                    "kind": "let",
+                    "id": "_uniq.14",
+                    "body": {"var": "_uniq.14", "kind": "return"}}}}}},
+               {"params": [],
+                "kind": "alt",
+                "ctor": "Bool.true",
+                "body":
+                {"value":
+                 {"name": "List.cons",
+                  "levels": [],
+                  "kind": "const",
+                  "args":
+                  [{"kind": "erased"},
+                   {"kind": "fvar", "id": "_uniq.8"},
+                   {"kind": "fvar", "id": "_uniq.4"}]},
+                 "type": "List UInt32",
+                 "name": "_x.9",
+                 "kind": "let",
+                 "id": "_uniq.15",
+                 "body": {"var": "_uniq.15", "kind": "return"}}}]}}}}}}]}}}},
+   "type": "Nat -> Nat -> Nat -> (List UInt32) -> (List UInt32)",
+   "safe": true,
+   "recursive": true,
+   "params":
+   [{"type": "Nat", "name": "base", "id": "_uniq.1", "borrow": false},
+    {"type": "Nat", "name": "x.1", "id": "_uniq.2", "borrow": false},
+    {"type": "Nat", "name": "x.2", "id": "_uniq.3", "borrow": false},
+    {"type": "List UInt32", "name": "x.3", "id": "_uniq.4", "borrow": false}],
+   "name": "Nat.toDigitsCore",
+   "module": "Init.Data.Repr",
    "levelParams": [],
    "inline": null},
   {"value":
@@ -367,6 +3702,50 @@
   {"value":
    {"kind": "extern",
     "entries":
+    [{"kind": "standard", "fn": "lean_string_utf8_get", "backend": "all"}]},
+   "type": "([mdata borrowed:1 String]) -> ([mdata borrowed:1 Nat]) -> UInt32",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "[mdata borrowed:1 String]",
+     "name": "s",
+     "id": "_uniq.1",
+     "borrow": true},
+    {"type": "[mdata borrowed:1 Nat]",
+     "name": "p",
+     "id": "_uniq.2",
+     "borrow": true}],
+   "name": "String.Pos.Raw.get",
+   "module": "Init.Data.String.Basic",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries":
+    [{"kind": "standard", "fn": "lean_string_utf8_set", "backend": "all"}]},
+   "type": "String -> ([mdata borrowed:1 Nat]) -> UInt32 -> String",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "String",
+     "name": "a._@._internal._hyg.1",
+     "id": "_uniq.1",
+     "borrow": false},
+    {"type": "[mdata borrowed:1 Nat]",
+     "name": "a._@._internal._hyg.2",
+     "id": "_uniq.2",
+     "borrow": true},
+    {"type": "UInt32",
+     "name": "a._@._internal._hyg.3",
+     "id": "_uniq.3",
+     "borrow": false}],
+   "name": "String.Pos.Raw.set",
+   "module": "Init.Data.String.Modify",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries":
     [{"kind": "standard", "fn": "lean_string_append", "backend": "all"}]},
    "type": "String -> ([mdata borrowed:1 String]) -> String",
    "safe": true,
@@ -379,6 +3758,19 @@
      "borrow": true}],
    "name": "String.append",
    "module": "Init.Data.String.Defs",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries":
+    [{"kind": "standard", "fn": "lean_string_mk", "backend": "all"}]},
+   "type": "(List UInt32) -> String",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "List UInt32", "name": "data", "id": "_uniq.1", "borrow": false}],
+   "name": "String.ofList",
+   "module": "Init.Prelude",
    "levelParams": [],
    "inline": null},
   {"value":
@@ -399,6 +3791,347 @@
      "borrow": false}],
    "name": "String.push",
    "module": "Init.Data.String.Bootstrap",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries":
+    [{"kind": "standard",
+      "fn": "lean_system_platform_nbits",
+      "backend": "all"}]},
+   "type": "PUnit -> Nat",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "PUnit",
+     "name": "a._@._internal._hyg.1",
+     "id": "_uniq.1",
+     "borrow": false}],
+   "name": "System.Platform.getNumBits",
+   "module": "Init.Prelude",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value": {"name": "PUnit.unit", "levels": [], "kind": "const", "args": []},
+     "type": "PUnit",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.1",
+     "body":
+     {"value":
+      {"name": "System.Platform.getNumBits",
+       "levels": [],
+       "kind": "const",
+       "args": [{"kind": "fvar", "id": "_uniq.1"}]},
+      "type": "Nat",
+      "name": "_x.2",
+      "kind": "let",
+      "id": "_uniq.2",
+      "body": {"var": "_uniq.2", "kind": "return"}}}},
+   "type": "Nat",
+   "safe": true,
+   "recursive": false,
+   "params": [],
+   "name": "System.Platform.numBits",
+   "module": "Init.Prelude",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries":
+    [{"kind": "standard", "fn": "lean_uint32_add", "backend": "all"}]},
+   "type": "UInt32 -> UInt32 -> UInt32",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "UInt32", "name": "a", "id": "_uniq.1", "borrow": false},
+    {"type": "UInt32", "name": "b", "id": "_uniq.2", "borrow": false}],
+   "name": "UInt32.add",
+   "module": "Init.Data.UInt.BasicAux",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries":
+    [{"kind": "standard", "fn": "lean_uint32_dec_le", "backend": "all"}]},
+   "type": "UInt32 -> UInt32 -> Bool",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "UInt32", "name": "a", "id": "_uniq.1", "borrow": false},
+    {"type": "UInt32", "name": "b", "id": "_uniq.2", "borrow": false}],
+   "name": "UInt32.decLe",
+   "module": "Init.Prelude",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries":
+    [{"kind": "standard", "fn": "lean_uint32_to_nat", "backend": "all"}]},
+   "type": "UInt32 -> Nat",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "UInt32", "name": "n", "id": "_uniq.1", "borrow": false}],
+   "name": "UInt32.toNat",
+   "module": "Init.Prelude",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries":
+    [{"kind": "standard", "fn": "lean_usize_of_nat", "backend": "all"}]},
+   "type": "([mdata borrowed:1 Nat]) -> USize",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "[mdata borrowed:1 Nat]",
+     "name": "n",
+     "id": "_uniq.1",
+     "borrow": true}],
+   "name": "USize.ofNat",
+   "module": "Init.Data.UInt.BasicAux",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries":
+    [{"kind": "standard", "fn": "lean_usize_of_nat", "backend": "all"}]},
+   "type": "([mdata borrowed:1 Nat]) -> lcErased -> USize",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "[mdata borrowed:1 Nat]",
+     "name": "n",
+     "id": "_uniq.1",
+     "borrow": true},
+    {"type": "lcErased", "name": "h", "id": "_uniq.2", "borrow": false}],
+   "name": "USize.ofNatLT",
+   "module": "Init.Prelude",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "extern",
+    "entries":
+    [{"kind": "standard", "fn": "lean_string_of_usize", "backend": "all"}]},
+   "type": "USize -> String",
+   "safe": true,
+   "recursive": false,
+   "params": [{"type": "USize", "name": "n", "id": "_uniq.1", "borrow": false}],
+   "name": "USize.repr",
+   "module": "Init.Data.Repr",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value": {"lit": {"value": 128, "kind": "nat"}, "kind": "lit"},
+     "type": "Nat",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.1",
+     "body":
+     {"value":
+      {"name": "List.range",
+       "levels": [],
+       "kind": "const",
+       "args": [{"kind": "fvar", "id": "_uniq.1"}]},
+      "type": "List Nat",
+      "name": "_x.2",
+      "kind": "let",
+      "id": "_uniq.2",
+      "body":
+      {"value":
+       {"name": "List.nil",
+        "levels": [],
+        "kind": "const",
+        "args": [{"kind": "erased"}]},
+       "type": "List String",
+       "name": "_x.3",
+       "kind": "let",
+       "id": "_uniq.3",
+       "body":
+       {"value":
+        {"name":
+         "List.mapTR.loop._at_._private.Init.Data.Repr.0.Nat.reprArray.spec_0",
+         "levels": [],
+         "kind": "const",
+         "args":
+         [{"kind": "fvar", "id": "_uniq.2"},
+          {"kind": "fvar", "id": "_uniq.3"}]},
+        "type": "List String",
+        "name": "_x.4",
+        "kind": "let",
+        "id": "_uniq.4",
+        "body":
+        {"value":
+         {"name": "Array.mk",
+          "levels": [],
+          "kind": "const",
+          "args": [{"kind": "erased"}, {"kind": "fvar", "id": "_uniq.4"}]},
+         "type": "Array String",
+         "name": "_x.5",
+         "kind": "let",
+         "id": "_uniq.5",
+         "body": {"var": "_uniq.5", "kind": "return"}}}}}}},
+   "type": "Array String",
+   "safe": true,
+   "recursive": false,
+   "params": [],
+   "name": "_private.Init.Data.Repr.0.Nat.reprArray",
+   "module": "Init.Data.Repr",
+   "levelParams": [],
+   "inline": null},
+  {"value":
+   {"kind": "code",
+    "body":
+    {"value": {"lit": {"value": 0, "kind": "nat"}, "kind": "lit"},
+     "type": "Nat",
+     "name": "_x.1",
+     "kind": "let",
+     "id": "_uniq.2",
+     "body":
+     {"value":
+      {"name": "String.Pos.Raw.get",
+       "levels": [],
+       "kind": "const",
+       "args":
+       [{"kind": "fvar", "id": "_uniq.1"}, {"kind": "fvar", "id": "_uniq.2"}]},
+      "type": "UInt32",
+      "name": "_x.2",
+      "kind": "let",
+      "id": "_uniq.3",
+      "body":
+      {"value": {"lit": {"value": 65, "kind": "uint32"}, "kind": "lit"},
+       "type": "UInt32",
+       "name": "_x.3",
+       "kind": "let",
+       "id": "_uniq.4",
+       "body":
+       {"value":
+        {"name": "UInt32.decLe",
+         "levels": [],
+         "kind": "const",
+         "args":
+         [{"kind": "fvar", "id": "_uniq.4"},
+          {"kind": "fvar", "id": "_uniq.3"}]},
+        "type": "Bool",
+        "name": "_x.4",
+        "kind": "let",
+        "id": "_uniq.5",
+        "body":
+        {"typeName": "Bool",
+         "resultType": "String",
+         "kind": "cases",
+         "discr": "_uniq.5",
+         "alts":
+         [{"params": [],
+           "kind": "alt",
+           "ctor": "Bool.false",
+           "body":
+           {"value":
+            {"name": "String.Pos.Raw.set",
+             "levels": [],
+             "kind": "const",
+             "args":
+             [{"kind": "fvar", "id": "_uniq.1"},
+              {"kind": "fvar", "id": "_uniq.2"},
+              {"kind": "fvar", "id": "_uniq.3"}]},
+            "type": "String",
+            "name": "_x.5",
+            "kind": "let",
+            "id": "_uniq.6",
+            "body": {"var": "_uniq.6", "kind": "return"}}},
+          {"params": [],
+           "kind": "alt",
+           "ctor": "Bool.true",
+           "body":
+           {"value": {"lit": {"value": 90, "kind": "uint32"}, "kind": "lit"},
+            "type": "UInt32",
+            "name": "_x.6",
+            "kind": "let",
+            "id": "_uniq.7",
+            "body":
+            {"value":
+             {"name": "UInt32.decLe",
+              "levels": [],
+              "kind": "const",
+              "args":
+              [{"kind": "fvar", "id": "_uniq.3"},
+               {"kind": "fvar", "id": "_uniq.7"}]},
+             "type": "Bool",
+             "name": "_x.7",
+             "kind": "let",
+             "id": "_uniq.8",
+             "body":
+             {"typeName": "Bool",
+              "resultType": "String",
+              "kind": "cases",
+              "discr": "_uniq.8",
+              "alts":
+              [{"params": [],
+                "kind": "alt",
+                "ctor": "Bool.false",
+                "body":
+                {"value":
+                 {"name": "String.Pos.Raw.set",
+                  "levels": [],
+                  "kind": "const",
+                  "args":
+                  [{"kind": "fvar", "id": "_uniq.1"},
+                   {"kind": "fvar", "id": "_uniq.2"},
+                   {"kind": "fvar", "id": "_uniq.3"}]},
+                 "type": "String",
+                 "name": "_x.8",
+                 "kind": "let",
+                 "id": "_uniq.9",
+                 "body": {"var": "_uniq.9", "kind": "return"}}},
+               {"params": [],
+                "kind": "alt",
+                "ctor": "Bool.true",
+                "body":
+                {"value":
+                 {"lit": {"value": 32, "kind": "uint32"}, "kind": "lit"},
+                 "type": "UInt32",
+                 "name": "_x.9",
+                 "kind": "let",
+                 "id": "_uniq.10",
+                 "body":
+                 {"value":
+                  {"name": "UInt32.add",
+                   "levels": [],
+                   "kind": "const",
+                   "args":
+                   [{"kind": "fvar", "id": "_uniq.3"},
+                    {"kind": "fvar", "id": "_uniq.10"}]},
+                  "type": "UInt32",
+                  "name": "_x.10",
+                  "kind": "let",
+                  "id": "_uniq.11",
+                  "body":
+                  {"value":
+                   {"name": "String.Pos.Raw.set",
+                    "levels": [],
+                    "kind": "const",
+                    "args":
+                    [{"kind": "fvar", "id": "_uniq.1"},
+                     {"kind": "fvar", "id": "_uniq.2"},
+                     {"kind": "fvar", "id": "_uniq.11"}]},
+                   "type": "String",
+                   "name": "_x.11",
+                   "kind": "let",
+                   "id": "_uniq.12",
+                   "body":
+                   {"var": "_uniq.12", "kind": "return"}}}}}]}}}}]}}}}}},
+   "type": "String -> String",
+   "safe": true,
+   "recursive": false,
+   "params":
+   [{"type": "String", "name": "s", "id": "_uniq.1", "borrow": false}],
+   "name": "_private.Init.System.IOError.0.IO.Error.downCaseFirst",
+   "module": "Init.System.IOError",
    "levelParams": [],
    "inline": null},
   {"value":
