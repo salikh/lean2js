@@ -2,7 +2,7 @@
 
 Parent ticket: [lcnf-001-json-dump](lcnf-001-json-dump.md)
 
-Status: **provisionally decided and implemented** (revise if you disagree)
+Status: **decided (2026-11-04)**: the recommended answer was accepted. Reopen by moving this ticket to "TODO for humans" in TODO.md.
 
 ## Question
 
@@ -11,6 +11,10 @@ LCNF has `base` (typed, pre-monomorphization), `mono` (monomorphized, closest to
 ## Recommended answer (currently implemented)
 
 Default `mono`; `--phase base|mono|impure` selects another one. Mono is the final pure form and the simplest input for an interpreter / JS transpiler.
+
+## Decision
+
+Proceed with `mono` stage (lean2js may assume the input from the mono stage, the dump should still work with any of the stages).
 
 ## Alternatives
 
