@@ -16,4 +16,13 @@ A. **Trusting kernel (recommended first)**: JS `lean_add_decl` that adds the dec
 B. Full kernel port (type checker in Lean or JS): large (~10k lines C++), later, for soundness.
 C. Reuse a Lean-in-Lean kernel (e.g. lean4lean) transpiled by our tool — attractive since our pipeline compiles Lean; needs checking it targets 4.35.
 
-Recommendation: A now (milestone self-009), then C if lean4lean is usable.
+D. **Compile the C++ kernel to wasm (emscripten)** (suggested by user 2026-11-04). The kernel works on `lean_object*` in wasm linear
+   memory, while our JS backend uses JS objects, so every `addDecl` would need to marshal the declaration and (lazily) the
+   environment constants across the boundary and convert results back (recursors, new Environment). Needs the C runtime (`lean.h`,
+   object/alloc/mpz) built for wasm too. Feasible, but the marshalling layer is the real work; and the full C++ sources of 4.35 must be vendored.
+   Related prior art found (verify before relying on it): xeus-lean (Verilean/xeus-lean) compiles the *whole* Lean runtime + Init to wasm
+   with emscripten Memory64 (JupyterLite, no server) — i.e. the alternative where the compiler is NOT transpiled by us; `lasm`
+   (Millillion/lasm) AOT-compiles Lean 4.35 programs to wasm; lean2wasm (T-Brick). Old Zulip threads mention an emscripten server build of Lean.
+   lean4lean (digama0/lean4lean, kim-em mirror): complete typechecker in Lean, ~50% slower than C++, only `reduceBool` unsupported — transpilable by our pipeline, so one object representation.
+
+Recommendation: A now (milestone self-009), then C (lean4lean) for checking; keep D as fallback if C is too slow/unbuildable. Action: investigate lean4lean version compatibility with 4.35 and xeus-lean's build recipe.
