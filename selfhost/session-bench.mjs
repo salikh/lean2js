@@ -1,8 +1,8 @@
-// Times session/info requests of the JS-hosted frontend in Node (needs web/selfhost/elab.js, built by web/selfhost/build.sh).
+// Times session/info requests of the JS-hosted frontend in Node (needs web/elab.js, built by web/build.sh selfhost).
 // Usage: LEAN_SYSROOT=$(lean --print-prefix) node --stack-size=60000 selfhost/session-bench.mjs
-import * as rt from "../web/selfhost/lean_rt.js";
+import * as rt from "../web/lean_rt.js";
 const t0 = performance.now();
-const program = await import("../web/selfhost/elab.js");
+const program = await import("../web/elab.js");
 console.log(`load ${(performance.now() - t0).toFixed(0)} ms`);
 rt.runInitializers();
 console.log(`init ${(performance.now() - t0).toFixed(0)} ms`);

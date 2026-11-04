@@ -12,7 +12,8 @@
 </style>
 </head>
 <body>
-<h1>Lean in the browser</h1>
+<p><a href="./">← all demos</a></p>
+<h1>Lean in the browser: elaborator</h1>
 <p>The Lean 4 parser, elaborator, compiler and kernel, transpiled to JavaScript by <code>lean2js</code>, running on the page's main thread (browsers give Web Workers too little stack for the compiler's deep recursion; <code>?worker=1</code> uses a worker).
 The first run downloads the standard library (<code>.olean</code> files, see <code>files.json</code>) and the compiler (<code>elab.js</code>).</p>
 <textarea id="src">def fib : Nat → Nat

@@ -1,6 +1,6 @@
 # Epic: compile the Lean compiler itself to JavaScript
 
-Status: **milestones reached** (2026-11-05): the frontend elaborates, `#eval`s and type checks in JS, also in the browser (`web/selfhost/`). Open: self-007 remainder, self-008 (memory/startup), self-010 (promise heuristic). Follow-on epic: [info-001](info-001-infoview-epic.md).
+Status: **milestones reached** (2026-11-05): the frontend elaborates, `#eval`s and type checks in JS, also in the browser (`web/`). Open: self-007 remainder, self-008 (memory/startup), self-010 (promise heuristic). Follow-on epic: [info-001](info-001-infoview-epic.md).
 
 ## Goal
 

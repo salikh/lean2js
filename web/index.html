@@ -3,44 +3,57 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lean in the browser</title>
+<title>Lean in the browser — demos</title>
 <style>
-  body { font: 15px/1.4 system-ui, sans-serif; margin: 1rem auto; max-width: 52rem; padding: 0 1rem; }
-  pre { background: #f4f4f4; padding: .75rem; min-height: 6rem; overflow-x: auto; white-space: pre-wrap; }
-  textarea { width: 100%; height: 12rem; font-family: monospace; }
-  @media (prefers-color-scheme: dark) { body { background: #1b1b1b; color: #ddd; } pre { background: #2a2a2a; } textarea { background: #222; color: #ddd; } }
+  :root { --bg: #fff; --fg: #1b1b1b; --card: #f4f4f4; --accent: #2a6; --muted: #666; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1b1b1b; --fg: #ddd; --card: #262626; --muted: #999; } }
+  body { font: 16px/1.5 system-ui, sans-serif; margin: 0 auto; max-width: 52rem; padding: 1rem; background: var(--bg); color: var(--fg); }
+  h1 { margin-bottom: .2rem; }
+  .sub { color: var(--muted); margin-top: 0; }
+  .demo { background: var(--card); border-radius: 8px; padding: .8rem 1rem; margin: .8rem 0; }
+  .demo h2 { margin: 0 0 .2rem; font-size: 1.1rem; }
+  .demo a { color: var(--accent); text-decoration: none; }
+  .demo a:hover { text-decoration: underline; }
+  .need { font-size: .85rem; color: var(--muted); }
+  .planned { opacity: .7; }
+  code { font-size: .9em; }
 </style>
 </head>
 <body>
 <h1>Lean in the browser</h1>
-<p>Runs <code>prog.js</code>, a Lean program transpiled by <code>lean2js</code> (see <code>web/build.sh</code>).</p>
-<label for="stdin">stdin</label>
-<textarea id="stdin"></textarea>
-<details><summary>Lean source</summary><pre id="src"></pre></details>
-<p><button id="run">Run</button> <span id="status"></span></p>
-<pre id="out" aria-live="polite"></pre>
-<script type="module">
-  import * as rt from "./lean_rt.js";
-  import { main, mainArity } from "./prog.js";
-  const out = document.getElementById("out");
-  const status = document.getElementById("status");
-  function run() {
-    out.textContent = "";
-    const lines = document.getElementById("stdin").value.split("\n").map((l) => l + "\n");
-    if (lines.at(-1) === "\n") lines.pop();
-    rt.setStdout((s) => { out.textContent += s; });
-    rt.setStderr((s) => { out.textContent += s; });
-    rt.setStdinLine(() => lines.shift() ?? "");
-    const code = rt.runMain(main, mainArity, []);
-    status.textContent = `exit code ${code}`;
-  }
-  async function load(name, el, prop) {
-    try { const r = await fetch(name); if (r.ok) el[prop] = await r.text(); } catch (_) { /* optional */ }
-  }
-  await load("prog.lean", document.getElementById("src"), "textContent");
-  await load("prog.stdin", document.getElementById("stdin"), "value");
-  document.getElementById("run").addEventListener("click", run);
-  run();
-</script>
+<p class="sub">Lean 4 programs and the Lean compiler itself, transpiled to JavaScript by <code>lean2js</code> and running in this page.</p>
+
+<div class="demo">
+  <h2><a href="calc.html">Calculator</a></h2>
+  A compiled Lean program (a big-number calculator reading stdin). The small, fast one: the program is transpiled ahead of time and only the runtime runs in the page.
+  <div class="need">needs <code>web/build.sh calc</code></div>
+</div>
+
+<div class="demo">
+  <h2><a href="elab.html">Elaborator</a></h2>
+  The Lean frontend (parser, elaborator, compiler, kernel) runs in the page: type Lean source, press <em>Elaborate</em> and get <code>#eval</code> results, <code>#check</code> output and errors.
+  <div class="need">needs <code>web/build.sh selfhost</code> (170 MB of JavaScript + 160 MB of library files; first load takes about 40 s)</div>
+</div>
+
+<div class="demo">
+  <h2><a href="demo.html">Script + data + console</a></h2>
+  A Lean script that reads <code>data.json</code> (statistics over a list of numbers), a JSON pane, and a console that evaluates what you type — <code>main</code>, terms, <code>def</code>s, any IO action.
+  <div class="need">needs <code>web/build.sh selfhost</code></div>
+</div>
+
+<div class="demo">
+  <h2><a href="infoview.html">Infoview</a></h2>
+  An editor with the proof goals, expected type and messages at the cursor (like the VS Code infoview), also for a proof you are still writing (prefix mode).
+  <div class="need">needs <code>web/build.sh selfhost</code></div>
+</div>
+
+<div class="demo planned">
+  <h2>lsp.html — language server <small>(planned)</small></h2>
+  The same with a language-server protocol layer and a live infoview; waiting for a design decision
+  (<code>docs/tickets/demo-002-lsp-infoview-in-demo.md</code>).
+</div>
+
+<p class="need">Serve this directory with <code>node web/serve.mjs 8000</code> (or <code>python3 -m http.server -d web 8000</code>) and open <code>http://localhost:8000/</code>.
+Headless-browser tests: <code>web/test-browser.sh</code>.</p>
 </body>
 </html>

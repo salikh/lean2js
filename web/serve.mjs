@@ -1,5 +1,5 @@
-// Static file server for web/selfhost (python's http.server works too); `POST /report` appends the page's result to report.json
-// (used by the headless-browser test). Usage: node web/selfhost/serve.mjs [port]
+// Static file server for web (python's http.server works too); `POST /report` appends the page's result to report.json
+// (used by the headless-browser test). Usage: node web/serve.mjs [port]
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";

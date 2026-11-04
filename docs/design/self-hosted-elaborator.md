@@ -28,7 +28,7 @@ structures with `deriving Repr`, inductive types (kernel: vendored lean4lean), `
 Identifiers: `nameId` encodes a `Name` by components (`l_` + components joined by `$$`, special characters `$u<hex>_`, numeric components
 `$n<k>`), instead of `Name.toString`, which is ambiguous.
 
-## In the browser (`web/selfhost/`)
+## In the browser (`web/`)
 
 `build.sh` transpiles `selfhost/Elab.lean` without `--run` (`elab.js`), copies the runtime and the library files of `Init` (`lib/…`, listed in `files.json`). `driver.js` fills the
 runtime's in-memory file system (`rt.vfs`, paths `/lean/lib/lean/…`; a 12-connection fetch pool), sets `LEAN2JS_ENV = {LEAN_SYSROOT: "/lean"}`, hooks stdin/stdout and calls `rt.runMain`.

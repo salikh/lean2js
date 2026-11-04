@@ -2,25 +2,27 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-05 — web/ reorganized: everything directly under `web/` (calc.html, elab.html, demo.html, infoview.html, index.html as an index, driver.js, serve.mjs, build.sh [calc|selfhost], test-browser.sh); generated files git-ignored individually (driver.js/worker.js were accidentally ignored before). Paths `web/selfhost/` in older entries and tickets were rewritten to `web/`.
+
 * 2026-11-05 — housekeeping: js-008…js-011 closed, js-014 mostly done (ByteArray amortized push, `tests/e2e/bytepush.lean`), TODO.md rewritten; open questions filed: info-006 (interactive goals), self-008 (more memory work?), demo-002 (LSP server).
 
 * 2026-11-05 — [info-006](tickets/info-006-interactive-hover.md): hover (`handleHover` logic) in `Lean2js.Info`, 15 oracle cases identical to the real server.
 
 * 2026-11-05 — [demo-002](tickets/demo-002-lsp-infoview-in-demo.md): experiment with the real FileWorker in JS (blocked, decision asked); scheduler: cancellation, polling progress, lazy dedicated tasks, watchdog.
 
-* 2026-11-05 — [info-007-web-ui](tickets/info-007-web-ui.md) first version `web/selfhost/infoview.html`; [info-005](tickets/info-005-session-caching.md) measured (65 ms/request); driver `sessionInfo/sessionInfoEnd`; `selfhost/session-bench.mjs`.
+* 2026-11-05 — [info-007-web-ui](tickets/info-007-web-ui.md) first version `web/infoview.html`; [info-005](tickets/info-005-session-caching.md) measured (65 ms/request); driver `sessionInfo/sessionInfoEnd`; `selfhost/session-bench.mjs`.
 
 * 2026-11-05 — [info-008-tests](tickets/info-008-tests.md): oracle against native `lean --server` (`tests/info/`), 9 cases identical; `Lean2js.Info` uses the server's snapshot-tree goal selection; `tests/e2e/infocases.lean`.
 
 * 2026-11-05 — [demo-002-lsp-infoview-in-demo](tickets/demo-002-lsp-infoview-in-demo.md) filed (real LSP server + live infoview in demo.html; after the self-* tickets).
 
-* 2026-11-05 — [demo-001-interactive-web-app](tickets/demo-001-interactive-web-app.md): `Lean2js/Session.lean` (persistent elaboration session API), `web/selfhost/demo.html` (script + data.json + evaluating console), `rt.runInitializers()`, `rt.errorMessage`, browser test for both pages.
+* 2026-11-05 — [demo-001-interactive-web-app](tickets/demo-001-interactive-web-app.md): `Lean2js/Session.lean` (persistent elaboration session API), `web/demo.html` (script + data.json + evaluating console), `rt.runInitializers()`, `rt.errorMessage`, browser test for both pages.
 
 * 2026-11-05 — [self-010-promise-drop-heuristic](tickets/self-010-promise-drop-heuristic.md): dropped promises detected by reference counting (`dropPromise` in `free`), fallback counted/strict; `.env` files in tests/e2e; info-002 decided (thin layer).
 
-* 2026-11-05 — browser version of the self-hosted frontend: `web/selfhost/` (driver, worker option, `build.sh`, `serve.mjs`, `test-browser.sh`); `LEAN2JS_ENV` for `IO.getEnv` outside Node; fetch pool; stack-size finding documented.
+* 2026-11-05 — browser version of the self-hosted frontend: `web/` (driver, worker option, `build.sh`, `serve.mjs`, `test-browser.sh`); `LEAN2JS_ENV` for `IO.getEnv` outside Node; fetch pool; stack-size finding documented.
 
-* 2026-11-05 — [info-001-infoview-epic](tickets/info-001-infoview-epic.md): plan for an infoview equivalent (tickets info-002 … info-008); no code. Browser build of the self-hosted frontend (`web/selfhost/`, verified in headless Chrome).
+* 2026-11-05 — [info-001-infoview-epic](tickets/info-001-infoview-epic.md): plan for an infoview equivalent (tickets info-002 … info-008); no code. Browser build of the self-hosted frontend (`web/`, verified in headless Chrome).
 
 * 2026-11-05 — [self-010-promise-drop-heuristic](tickets/self-010-promise-drop-heuristic.md) filed: the scheduler's "oldest unresolved promise is dropped" guess needs confirmation.
 

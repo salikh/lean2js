@@ -8,7 +8,7 @@ export LEAN_SYSROOT=$(lake env lean --print-prefix)
 [ -f out/selfhost_small.js ] || { echo "build out/selfhost_small.js first (see header)"; exit 2; }
 files="$*"
 if [ -z "$files" ]; then
-  files=$(ls demo/*.lean web/selfhost/examples/*.lean; grep -L "^import" tests/e2e/*.lean)
+  files=$(ls demo/*.lean web/examples/*.lean; grep -L "^import" tests/e2e/*.lean)
 fi
 fail=0; n=0
 for f in $files; do

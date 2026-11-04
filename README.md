@@ -14,6 +14,9 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
+* **web/ reorganized.** All demos now live directly in `web/` (previously `web/` and `web/selfhost/`), with a real index page `web/index.html` linking `calc.html`, `elab.html`, `demo.html`, `infoview.html` (and the planned `lsp.html`);
+  one `web/build.sh [calc|selfhost]`. Older entries below mention `web/selfhost/`: that is now `web/`.
+
 * **2026-11-05 (final for now) — all open tickets wait for a human decision.** Done: the transpiler, the self-hosted Lean frontend (kernel, `.olean` loader, browser build), three web demos, an infoview that agrees with the real language server
   (goals, term goals, hover, messages; 15 oracle cases). Questions in [TODO.md](TODO.md): interactive goals representation (info-006), LSP server for `lsp.html` (demo-002), further memory work (self-008).
 
@@ -22,22 +25,22 @@ Enable execution of Lean4 code in modern web browser, through one or combination
   elaboration: it relies on concurrent threads and the runtime has no coroutines. Scheduler improvements that came out of it: real cancellation, polling that makes progress, lazy dedicated tasks, `LEAN2JS_WATCHDOG`.
   Decision needed (recommended: an in-memory LSP *protocol adapter* over `Lean2js.Info`, already verified against the real server): [demo-002](docs/tickets/demo-002-lsp-infoview-in-demo.md).
 
-* **2026-11-05 (night 2) — a browser infoview.** `web/selfhost/infoview.html`: an editor and a panel with the goals, the expected type and the messages at the cursor (or, in prefix mode, for the text
+* **2026-11-05 (night 2) — a browser infoview.** `web/infoview.html`: an editor and a panel with the goals, the expected type and the messages at the cursor (or, in prefix mode, for the text
   before the cursor), computed by the Lean frontend running in the page (`Lean2js/Info.lean`, ~65 ms per request after the one-time `Init` import). The answers are identical to the real language server's
   `$/lean/plainGoal` / `$/lean/plainTermGoal` on the test cases (`tests/info/run.sh`) and the page is checked in headless Chrome ([info-007](docs/tickets/info-007-web-ui.md)).
 
 * Promise-drop investigation closed: 38-file corpus identical to native with 0 guesses ([self-010](docs/tickets/self-010-promise-drop-heuristic.md)).
 * **2026-11-05 (last) — infoview started; filed demo-002 (real LSP server + live infoview in the demo, after the self-* tickets).** `Lean2js/Info.lean` (goals / term goal / messages at a position, prefix and cursor mode) works, identical natively and in JS, and identical to the real language server's `$/lean/plainGoal` / `$/lean/plainTermGoal` on 9 test cases (`tests/info/run.sh`, part of `test.sh`). The olean loader now uses ~40% less external memory (RSS ≈ 2.6 GB, [self-008](docs/tickets/self-008-bundle-startup-size.md)) ([info-004](docs/tickets/info-004-infotree-goals.md)).
 
-* **2026-11-05 (late) — interactive demo.** `web/selfhost/demo.html`: a Lean script pane, a `data.json` pane (visible to the script as the file `data.json`) and a console that shows the script's
+* **2026-11-05 (late) — interactive demo.** `web/demo.html`: a Lean script pane, a `data.json` pane (visible to the script as the file `data.json`) and a console that shows the script's
   output and **evaluates what you type** — `main`, `mean #[1.0, 2.0, 6.0]`, `def …`, any `IO` action — in a persistent Lean session (`Lean2js/Session.lean`). The default example computes count/mean/min/max/stdev of the
-  numbers in the JSON. Checked in headless Chrome by `web/selfhost/test-browser.sh` ([demo-001](docs/tickets/demo-001-interactive-web-app.md)).
+  numbers in the JSON. Checked in headless Chrome by `web/test-browser.sh` ([demo-001](docs/tickets/demo-001-interactive-web-app.md)).
 
 * **2026-11-05 (night) — promise drops are exact.** The cooperative scheduler resolves a promise with `none` when its last reference disappears (reference counting), as native Lean does; the
   "guess" fallback fired 36× per sample before and never now ([self-010](docs/tickets/self-010-promise-drop-heuristic.md), strict mode in the selfhost tests). Infoview design decision recorded:
   thin layer over the `InfoTree` ([info-002](docs/tickets/info-002-question-architecture.md)); work on it starts after the remaining `self-*` tickets.
-* **2026-11-05 (evening) — the Lean frontend runs in the browser.** `web/selfhost/build.sh` builds `elab.js` (174 MB) and the `Init` library files; `python3 -m http.server -d web/selfhost 8000`
-  (or `node web/selfhost/serve.mjs`) serves a page with an editor and an "Elaborate" button; `web/selfhost/test-browser.sh` checks it in headless Chrome (output identical to native, ~40 s
+* **2026-11-05 (evening) — the Lean frontend runs in the browser.** `web/build.sh selfhost` builds `elab.js` (174 MB) and the `Init` library files; `python3 -m http.server -d web 8000`
+  (or `node web/serve.mjs`) serves a page with an editor and an "Elaborate" button; `web/test-browser.sh` checks it in headless Chrome (output identical to native, ~40 s
   including the 160 MB download from localhost). It runs on the page's main thread because Chrome gives Web Workers only ~40% of the stack, which the compiler's recursion exceeds.
   Planned next (after the remaining `self-*` tickets): an infoview equivalent, [info-001](docs/tickets/info-001-infoview-epic.md).
 
@@ -72,10 +75,10 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 * `./test.sh [--quick]` — all tests: lcnf-dump goldens (`tests/run.sh`), demo programs and the e2e differential tests (`tests/e2e/run.sh`).
 * `lake exe lean2js FILE.lean --run --out F.js` — transpile a Lean program (with all its dependencies) to
   JavaScript via Lean's reference-counted IR; run with `node F.js` (needs `runtime/lean_rt.js` next to it).
-  See [docs/design/js-transpiler-ir.md](docs/design/js-transpiler-ir.md). Browser demo: `web/` — `web/build.sh web/examples/calc.lean && python3 -m http.server -d web 8000`
+  See [docs/design/js-transpiler-ir.md](docs/design/js-transpiler-ir.md). Browser demos: `web/` — `web/build.sh && node web/serve.mjs 8000`, then open `http://localhost:8000/` (an index of the demos)
   (a big-number calculator reading stdin; the page shows the Lean source and prefilled sample input).
 * `lean2js --init-all` runs the initializers of all imported modules ([docs/design/module-initializers.md](docs/design/module-initializers.md)).
 * `runtime/lean_expr.js` — JS versions of the C++ `Expr`/`Level` primitives (see [docs/design/lean-expr-prims.md](docs/design/lean-expr-prims.md)).
 * `Lean2js/Kernel.lean`, `Lean2js/KernelCasesOn.lean`, `vendor/lean4lean` — the kernel entry points for the self-hosted compiler ([docs/tickets/self-005-question-kernel-strategy.md](docs/tickets/self-005-question-kernel-strategy.md)).
-* `web/selfhost/` — the Lean frontend in the browser: `index.html` (editor → messages) and `demo.html` (script + data + console, see Status); `selfhost/Elab.lean` is the program (stdin → messages).
+* `web/` — all browser demos in one directory: `index.html` (index), `calc.html` (compiled program), `elab.html` (editor → messages), `demo.html` (script + data + console), `infoview.html`; shared `driver.js`, `serve.mjs`, `build.sh [calc|selfhost]`, `test-browser.sh`. `selfhost/Elab.lean` is the program that runs in the page.
 * `tests/e2e/run.sh` — differential tests: native `lean --run` vs. transpiled JS under Node.

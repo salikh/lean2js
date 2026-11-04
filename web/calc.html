@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lean in the browser</title>
+<style>
+  body { font: 15px/1.4 system-ui, sans-serif; margin: 1rem auto; max-width: 52rem; padding: 0 1rem; }
+  pre { background: #f4f4f4; padding: .75rem; min-height: 6rem; overflow-x: auto; white-space: pre-wrap; }
+  textarea { width: 100%; height: 12rem; font-family: monospace; }
+  @media (prefers-color-scheme: dark) { body { background: #1b1b1b; color: #ddd; } pre { background: #2a2a2a; } textarea { background: #222; color: #ddd; } }
+</style>
+</head>
+<body>
+<p><a href="./">← all demos</a></p>
+<h1>Lean in the browser: calculator</h1>
+<p>Runs <code>prog.js</code>, a Lean program transpiled by <code>lean2js</code> (see <code>web/build.sh</code>).</p>
+<label for="stdin">stdin</label>
+<textarea id="stdin"></textarea>
+<details><summary>Lean source</summary><pre id="src"></pre></details>
+<p><button id="run">Run</button> <span id="status"></span></p>
+<pre id="out" aria-live="polite"></pre>
+<script type="module">
+  import * as rt from "./lean_rt.js";
+  import { main, mainArity } from "./prog.js";
+  const out = document.getElementById("out");
+  const status = document.getElementById("status");
+  function run() {
+    out.textContent = "";
+    const lines = document.getElementById("stdin").value.split("\n").map((l) => l + "\n");
+    if (lines.at(-1) === "\n") lines.pop();
+    rt.setStdout((s) => { out.textContent += s; });
+    rt.setStderr((s) => { out.textContent += s; });
+    rt.setStdinLine(() => lines.shift() ?? "");
+    const code = rt.runMain(main, mainArity, []);
+    status.textContent = `exit code ${code}`;
+  }
+  async function load(name, el, prop) {
+    try { const r = await fetch(name); if (r.ok) el[prop] = await r.text(); } catch (_) { /* optional */ }
+  }
+  await load("prog.lean", document.getElementById("src"), "textContent");
+  await load("prog.stdin", document.getElementById("stdin"), "value");
+  document.getElementById("run").addEventListener("click", run);
+  run();
+</script>
+</body>
+</html>

@@ -4,8 +4,8 @@ open Lean
 
 /-- The session API used by the interactive demo (demo-001): script, console lines (commands and `#eval`ed terms/IO actions), changing the data file between runs. -/
 unsafe def main : IO Unit := do
-  IO.FS.writeFile "data.json" (← IO.FS.readFile "web/selfhost/examples/stats.json")
-  let script ← IO.FS.readFile "web/selfhost/examples/stats.lean"
+  IO.FS.writeFile "data.json" (← IO.FS.readFile "web/examples/stats.json")
+  let script ← IO.FS.readFile "web/examples/stats.lean"
   let s ← Session.new ()
   let (s, out) ← s.run script "<script>"
   IO.println s!"[script] {out}"
