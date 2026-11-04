@@ -2,6 +2,9 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-04 — Web demo: example `web/examples/calc.lean` (parser + evaluator, big numbers, HashMap), `web/build.sh` copies source and
+  sample stdin, page shows both; output verified identical to native `lean --run`.
+
 * 2026-11-04 — [js-014-cleanup-gaps](tickets/js-014-cleanup-gaps.md) item 1: removed the mono-LCNF backend (Codegen, Ast, lean_runtime.js,
   `--backend`, JSON input, docs/design/js-transpiler.md); shared helpers in `Lean2js/JsUtil.lean`. `lcnf-dump` stays.
 

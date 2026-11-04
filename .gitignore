@@ -4,3 +4,5 @@
 /web/lean_rt.js
 /web/lean_runtime.js
 /web/prog.js
+web/prog.lean
+web/prog.stdin
