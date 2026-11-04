@@ -19,4 +19,5 @@ Enable execution of Lean4 code in modern web browser, through one or combination
   JavaScript via Lean's reference-counted IR; run with `node F.js` (needs `runtime/lean_rt.js` next to it).
   See [docs/design/js-transpiler-ir.md](docs/design/js-transpiler-ir.md). Browser demo: `web/` — `web/build.sh web/examples/calc.lean && python3 -m http.server -d web 8000`
   (a big-number calculator reading stdin; the page shows the Lean source and prefilled sample input).
+* `runtime/lean_expr.js` — JS versions of the C++ `Expr`/`Level` primitives (see [docs/design/lean-expr-prims.md](docs/design/lean-expr-prims.md)).
 * `tests/e2e/run.sh` — differential tests: native `lean --run` vs. transpiled JS under Node.

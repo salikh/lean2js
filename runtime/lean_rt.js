@@ -14,6 +14,8 @@
 // Primitives are named like the C functions of the Lean runtime (lean.h) and live in `prims`.
 // Erased and `void` (state token) arguments are not passed to primitives, as in the C ABI.
 
+import { install as installExpr } from "./lean_expr.js";
+
 export const erased = 0;
 
 const isNode = !!(globalThis.process && globalThis.process.versions && globalThis.process.versions.node);
@@ -135,6 +137,8 @@ const errR = (e) => ({ t: 1, rc: 1, n: 1, a0: e });
 /* ---------- primitives ---------- */
 
 export const prims = {};
+/** Compiled Lean functions registered by the generated program under their `@[export]` symbol (e.g. `lean_expr_mk_app`). */
+export const exports = {};
 const P = prims;
 
 let stdoutSink, stderrSink;
@@ -402,7 +406,7 @@ function hash64(bytes, seed) {
 }
 P.lean_uint64_mix_hash = (h, k) => {
   const M = 0xc6a4a7935bd1e995n, R = 47n, MASK = (1n << 64n) - 1n;
-  k = (k * M) & MASK; k ^= k >> R; k = (k * M) & MASK;
+  k = (k * M) & MASK; k ^= k >> R; k ^= M;   // as lean.h (`k ^= m`, not a second multiply)
   h ^= k; h = (h * M) & MASK;
   return h;
 };
@@ -671,6 +675,8 @@ for (const bits of [64]) {   // narrower signed widths are stored as unsigned bi
   P[`lean_${n}_shift_left`] = (a, b) => out(w(inn(a) << (inn(b) & BigInt(bits - 1))));
   P[`lean_${n}_shift_right`] = (a, b) => out(w(inn(a) >> (inn(b) & BigInt(bits - 1))));
 }
+
+installExpr(P, { inc, dec, ap, some, exports, mixHash: P.lean_uint64_mix_hash });
 
 /* ---------- IO ---------- */
 

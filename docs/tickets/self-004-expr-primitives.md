@@ -1,7 +1,7 @@
 # Expr/Level/Name native primitives in JS
 
 Parent: [self-001](self-001-compiler-to-js-epic.md)
-Status: open
+Status: **mostly done** (2026-11-04) — see [design/lean-expr-prims.md](../design/lean-expr-prims.md). Open: `lean_instantiate_expr_mvars`/`lean_instantiate_level_mvars` (port of `instantiate_mvars.cpp`, needs `@[export lean_get_mvar_assignment]`-style callbacks via `rt.exports`), exact `quick_lt`, `dbg_to_string`.
 
 Implement in `runtime/lean_rt.js` (or a new `runtime/lean_expr.js`) the C++ helpers: `lean_expr_instantiate{,1,_rev,_range,_rev_range}`,
 `lean_expr_abstract{,_range}`, `lean_expr_lift/lower_loose_bvars`, `lean_expr_has_loose_bvar`, `lean_expr_quick_lt`,

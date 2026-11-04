@@ -228,13 +228,20 @@ private partial def bodyRefs (b : FnBody) (acc : Array Name) : Array Name :=
   | .case _ _ _ alts => alts.foldl (init := acc) fun acc a => bodyRefs a.body acc
   | b => if b.isTerminal then acc else bodyRefs b.body acc
 
-/-- IR declarations reachable from `roots` (names), following `fap`/`pap` and `@[export]` implementations of
-extern primitives. -/
-def collect (env : Environment) (roots : Array Name) : Collected := Id.run do
-  let exportIndex : HashMap String Name := env.constants.fold (init := {}) fun m n _ =>
+/-- `@[export sym]` symbol ↦ implementing declaration, for all constants of `env`. -/
+def mkExportIndex (env : Environment) : HashMap String Name :=
+  env.constants.fold (init := {}) fun m n _ =>
     match getExportNameFor? env n with
     | some e => m.insert e.toString n
     | none => m
+
+/-- Exported Lean functions that the JS runtime calls itself (constructors of `Expr`/`Level`/`Name`, which the native
+runtime's C++ code calls through their `@[export]` symbols); registered as `rt.exports[symbol]`. -/
+def runtimeExportPrefixes : Array String := #["lean_expr_mk_", "lean_level_mk_", "lean_name_mk_"]
+
+/-- IR declarations reachable from `roots` (names), following `fap`/`pap` and `@[export]` implementations of
+extern primitives. -/
+def collect (env : Environment) (roots : Array Name) (exportIndex : HashMap String Name) : Collected := Id.run do
   let mut work := roots
   let mut seen : HashSet Name := {}
   let mut decls : Array Decl := #[]
@@ -264,7 +271,9 @@ def genProgram (env : Environment) (fileName : String) (opts : Options) : M (Str
   let localDecls := (getDecls env).toArray.map (·.name)
   let roots :=
     if opts.all || (findEnvDecl env `main).isNone then localDecls else #[`main]
-  let c := collect env (roots.push `IO.Error.toString)
+  let exportIndex := mkExportIndex env
+  let rtExports := exportIndex.toArray.filter fun (sym, _) => runtimeExportPrefixes.any (sym.startsWith ·)
+  let c := collect env ((roots.push `IO.Error.toString) ++ rtExports.map (·.2)) exportIndex
   let decls : HashMap Name Decl := c.decls.foldl (fun m d => m.insert d.name d) {}
   let ctx : Ctx := { decls }
   let groups := tailGroups decls c.decls
@@ -293,9 +302,11 @@ def genProgram (env : Environment) (fileName : String) (opts : Options) : M (Str
     | some d => s!"export \{ {declId "main"} as main };\nexport const mainArity = {d.params.size};\n"
     | none => ""
   let errHook := if decls.contains `IO.Error.toString then s!"rt.setErrorToString({declId "IO.Error.toString"});\n" else ""
+  let rtExportReg := String.join <| (rtExports.qsort (fun a b => a.1 < b.1)).toList.filterMap fun (sym, n) =>
+    if decls.contains n then some s!"rt.exports[{jsString sym}] = {declId n.toString};\n" else none
   let run := match mainDecl with
     | some d => if opts.run then s!"rt.runMain({declId "main"}, {d.params.size});\n" else ""
     | none => ""
-  return (header ++ bindStr ++ "\n" ++ externCode ++ body ++ "\n" ++ exports ++ errHook ++ run, c.decls)
+  return (header ++ bindStr ++ "\n" ++ externCode ++ body ++ "\n" ++ exports ++ errHook ++ rtExportReg ++ run, c.decls)
 
 end Lean2js.CodegenIR

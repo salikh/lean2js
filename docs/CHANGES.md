@@ -2,6 +2,9 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-04 — [self-004-expr-primitives](tickets/self-004-expr-primitives.md) (mostly): `runtime/lean_expr.js` with Expr/Level/Name primitives, `rt.exports`
+  registry for calling compiled Lean constructors, `tests/e2e/expr.lean`; fixed `lean_uint64_mix_hash` (now bit-identical hashes). Design: [design/lean-expr-prims.md](design/lean-expr-prims.md).
+
 * 2026-11-04 — Web demo: example `web/examples/calc.lean` (parser + evaluator, big numbers, HashMap), `web/build.sh` copies source and
   sample stdin, page shows both; output verified identical to native `lean --run`.
 

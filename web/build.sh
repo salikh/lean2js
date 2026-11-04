@@ -6,6 +6,6 @@
 cd "$(dirname "$0")/.." || exit 1
 src="$1"
 lake exe lean2js "$src" --out web/prog.js || exit 1
-cp runtime/lean_rt.js web/
+cp runtime/lean_rt.js runtime/lean_expr.js web/
 cp "$src" web/prog.lean
 if [ -f "${src%.lean}.stdin" ]; then cp "${src%.lean}.stdin" web/prog.stdin; else : > web/prog.stdin; fi
