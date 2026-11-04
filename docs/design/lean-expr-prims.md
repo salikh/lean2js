@@ -14,8 +14,11 @@ File: `runtime/lean_expr.js` (installed into `prims` by `runtime/lean_rt.js`). D
 * **Rewriting.** `replace` is the kernel's `replace_rec_fn` (offset-aware, cache for shared subterms keyed by (object, offset)),
   used by instantiate (all variants), abstract, lift/lower loose bvars, and `Expr.replace`. `find`/`replace` call the Lean closure
   with `ap`.
-* **Known approximations.** `lean_expr_quick_lt` compares hash, then constructor tag only (C++ continues structurally);
-  `lean_expr_dbg_to_string` returns `<expr>` (so `toString e` is not the native text — use `repr`/`ppExpr`); `abstract` also matches
-  metavariables by name. `instantiate_expr_mvars`/`instantiate_level_mvars` are still missing (self-004 follow-up).
+* **Ordering.** `lean_expr_lt`/`quick_lt` follow the C++ `is_lt` (kind, [hash], structure; names by `Name.cmp`-like order).
+* **Known approximations.** `lean_expr_dbg_to_string` returns `<expr>` (so `toString e` is not the native text — use `repr`/`ppExpr`); `abstract` also matches
+  metavariables by name.
+* **instantiateMVars** (`makeInstantiator`): port of `instantiate_mvars.cpp` — assignments are read/updated through the compiled Lean
+  `@[export lean_get_mvar_assignment / lean_assign_mvar / lean_get_delayed_mvar_assignment / …]` functions (registered in `rt.exports`);
+  head-beta with `useZeta`, delayed assignments, and the simplifying `mk_max`/`mk_imax` of level.cpp.
 * **Bug fixed on the way:** `lean_uint64_mix_hash` had a second multiplication where `lean.h` has `k ^= m`, so every derived hash
   (`Hashable` instances, `Name.hash`, `Expr.hash`) differed from native. The string hash itself was already right.

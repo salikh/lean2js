@@ -20,3 +20,13 @@ Also done: `runtime/lean_fs.js` — file handles (Node `fs`; in-memory `vfs` Map
 std stream redirection (`setStdout` etc.), `Std.Time` now, error stubs for process spawn / sockets / timers / dynlib / `evalConst`. Test: `tests/e2e/fs.lean`.
 Still open: file handles/metadata/realpath/process, uv sockets/timers stubs, dynlib/`eval_const`/`run_init` (see self-003), compacted region (self-006),
 Condvar, real scheduler for tasks if the elaborator needs to block on promises.
+
+## Browser file system: OPFS (user hint, 2026-11-04)
+
+Checked: Node 24.21 has `navigator` but **no `navigator.storage` / OPFS**, so Node keeps using `fs`. In the browser OPFS
+(`navigator.storage.getDirectory()`) is available; its *synchronous* API (`FileSystemSyncAccessHandle` via `createSyncAccessHandle()`:
+`read/write/truncate/flush/getSize` at offsets) exists only in dedicated Web Workers — which matches our execution model (run the Lean
+program in a Worker; the runtime is synchronous). Plan: make the backend in `runtime/lean_fs.js` pluggable (`node:fs` | OPFS sync handles in
+a Worker | in-memory `vfs` fallback on the main thread). Needs the directory tree walk (`getDirectoryHandle`) to be async, so preload/mount step:
+before `main` runs, the host (async) opens the needed handles or mirrors OPFS into `vfs` and flushes back on `close`/`flush`. Not implemented yet.
+Useful for: persisting `.olean` caches (self-006) and user files across page reloads.

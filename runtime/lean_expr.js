@@ -251,15 +251,73 @@ export function install(P, h) {
   }
   P.lean_expr_eqv = (a, b) => bool(exprEq(a, b, false));
   P.lean_expr_equal = (a, b) => bool(exprEq(a, b, true));
-  // Approximation of the C++ total order: by hash first, then by constructor; ties between different structures are broken
-  // arbitrarily but consistently (hash collisions are rare). See self-004.
-  P.lean_expr_quick_lt = (a, b) => {
-    if (a === b) return 0;
-    const ha = hashOf(a), hb = hashOf(b);
-    if (ha !== hb) return bool(ha < hb);
-    if (a.t !== b.t) return bool(a.t < b.t);
-    return 0;
+  /* Port of the C++ `is_lt` (expr_lt.cpp): constructor kind first, then (quick variant only) the hash, then structure. */
+  const nameCmp = (a, b) => {                       // from the root; numerals < strings; strings by code unit order
+    const pa = [], pb = [];
+    for (; typeof a !== "number"; a = a.a0) pa.push(a);
+    for (; typeof b !== "number"; b = b.a0) pb.push(b);
+    pa.reverse(); pb.reverse();
+    for (let i = 0; i < Math.min(pa.length, pb.length); i++) {
+      const x = pa[i], y = pb[i];
+      if (x.t !== y.t) return x.t === 1 ? 1 : -1;  // str (tag 1) > num (tag 2)
+      if (x.a1 !== y.a1) return x.a1 < y.a1 ? -1 : 1;
+    }
+    return pa.length === pb.length ? 0 : pa.length < pb.length ? -1 : 1;
   };
+  const levelDepth = (l) => (typeof l === "number" ? 0 : Number(dataOf(l) >> 40n));
+  const levelKind = (l) => (typeof l === "number" ? 0 : l.t);
+  function levelLt(a, b, useHash) {
+    if (a === b) return false;
+    const da = levelDepth(a), db = levelDepth(b);
+    if (da !== db) return da < db;
+    const ka = levelKind(a), kb = levelKind(b);
+    if (ka !== kb) return ka < kb;
+    if (useHash) { const ha = dataOf(a) & MASK32, hb = dataOf(b) & MASK32; if (ha !== hb) return ha < hb; }
+    if (levelEq(a, b)) return false;
+    switch (ka) {
+      case 4: case 5: return nameCmp(a.a0, b.a0) < 0;
+      case 2: case 3: return !levelEq(a.a0, b.a0) ? levelLt(a.a0, b.a0, useHash) : levelLt(a.a1, b.a1, useHash);
+      case 1: return levelLt(a.a0, b.a0, useHash);
+      default: return false;
+    }
+  }
+  function levelsLt(a, b, useHash) {
+    for (;;) {
+      if (typeof a === "number") return typeof b !== "number";
+      if (typeof b === "number") return false;
+      if (!levelEq(a.a0, b.a0)) return levelLt(a.a0, b.a0, useHash);
+      a = a.a1; b = b.a1;
+    }
+  }
+  function exprLt(a, b, useHash) {
+    if (a === b) return false;
+    if (a.t !== b.t) return a.t < b.t;
+    if (useHash) { const ha = hashOf(a), hb = hashOf(b); if (ha !== hb) return ha < hb; }
+    if (exprEq(a, b, false)) return false;
+    switch (a.t) {
+      case T.bvar: return a.a0 < b.a0;
+      case T.lit: return a.a0.t !== b.a0.t ? a.a0.t < b.a0.t : a.a0.a0 < b.a0.a0;
+      case T.mdata: return exprLt(a.a1, b.a1, useHash);
+      case T.proj:
+        if (!exprEq(a.a2, b.a2, false)) return exprLt(a.a2, b.a2, useHash);
+        if (!nameEq(a.a0, b.a0)) return nameCmp(a.a0, b.a0) < 0;
+        return a.a1 < b.a1;
+      case T.const:
+        if (!nameEq(a.a0, b.a0)) return nameCmp(a.a0, b.a0) < 0;
+        return levelsLt(a.a1, b.a1, useHash);
+      case T.app: return !exprEq(a.a0, b.a0, false) ? exprLt(a.a0, b.a0, useHash) : exprLt(a.a1, b.a1, useHash);
+      case T.lam: case T.forallE: return !exprEq(a.a1, b.a1, false) ? exprLt(a.a1, b.a1, useHash) : exprLt(a.a2, b.a2, useHash);
+      case T.letE:
+        if (!exprEq(a.a1, b.a1, false)) return exprLt(a.a1, b.a1, useHash);
+        if (!exprEq(a.a2, b.a2, false)) return exprLt(a.a2, b.a2, useHash);
+        return exprLt(a.a3, b.a3, useHash);
+      case T.sort: return levelLt(a.a0, b.a0, useHash);
+      case T.fvar: case T.mvar: return nameCmp(a.a0, b.a0) < 0;
+      default: return false;
+    }
+  }
+  P.lean_expr_quick_lt = (a, b) => bool(exprLt(a, b, true));
+  P.lean_expr_lt = (a, b) => bool(exprLt(a, b, false));
   P.lean_expr_dbg_to_string = (_e) => "<expr>";
 
   /* ---- find / replace with Lean callbacks ---- */
@@ -279,6 +337,23 @@ export function install(P, h) {
       if (m.rc !== 1) { if (seen.has(m)) return null; seen.add(m); }
       inc(p); inc(m);
       if (ap(p, [m])) return m;
+      for (const c of children(m)) { const r = go(c); if (r !== null) return r; }
+      return null;
+    }
+    const r = go(e);
+    if (r === null) return 0;
+    inc(r);
+    return some(r);
+  };
+  // FindStep: found = 0, visit = 1, done = 2
+  P.lean_find_ext_expr = (p, e) => {
+    const seen = new Set();
+    function go(m) {
+      if (m.rc !== 1) { if (seen.has(m)) return null; seen.add(m); }
+      inc(p); inc(m);
+      const st = ap(p, [m]);
+      if (st === 0) return m;
+      if (st === 2) return null;
       for (const c of children(m)) { const r = go(c); if (r !== null) return r; }
       return null;
     }
@@ -322,6 +397,32 @@ export function install(P, h) {
     }
   }
 
+  // The C++ `mk_max`/`mk_imax` (level.cpp) simplify; the exported `lean_level_mk_max/imax` are the raw constructors.
+  const lvlZero = (l) => typeof l === "number";
+  const offset = (l) => { let k = 0; while (!lvlZero(l) && l.t === 1) { l = l.a0; k++; } return [l, k]; };
+  const isExplicit = (l) => lvlZero(offset(l)[0]);
+  const isNotZero = (l) => {
+    if (lvlZero(l)) return false;
+    switch (l.t) { case 1: return true; case 2: return isNotZero(l.a0) || isNotZero(l.a1); case 3: return isNotZero(l.a1); default: return false; }
+  };
+  function mkMax(a, b) {                                    // consumes a, b
+    if (isExplicit(a) && isExplicit(b)) { const keepA = levelDepth(a) >= levelDepth(b); dec(keepA ? b : a); return keepA ? a : b; }
+    if (levelEq(a, b)) { dec(b); return a; }
+    if (lvlZero(a)) return b;
+    if (lvlZero(b)) return a;
+    if (b.t === 2 && (levelEq(b.a0, a) || levelEq(b.a1, a))) { dec(a); return b; }
+    const [pa, ka] = offset(a), [pb, kb] = offset(b);
+    if (levelEq(pa, pb)) { if (ka > kb) { dec(b); return a; } dec(a); return b; }
+    return X.lean_level_mk_max(a, b);
+  }
+  function mkIMax(a, b) {
+    if (isNotZero(b)) return mkMax(a, b);
+    if (lvlZero(b)) { dec(a); return b; }
+    if (lvlZero(a)) return b;
+    if (levelEq(a, b)) { dec(b); return a; }
+    return X.lean_level_mk_imax(a, b);
+  }
+
   function makeInstantiator(mctxIn) {
     let mctx = mctxIn;                                  // owned; threaded through assignments
     const call = (fn, ...args) => { inc(mctx); for (const a of args) inc(a); return fn(mctx, ...args); };
@@ -334,7 +435,7 @@ export function install(P, h) {
         case 2: case 3: {
           const a = lvl(l.a0), b = lvl(l.a1);
           if (a === l.a0 && b === l.a1) { dec(a); dec(b); return keep(l); }
-          return (l.t === 2 ? X.lean_level_mk_max : X.lean_level_mk_imax)(a, b);
+          return l.t === 2 ? mkMax(a, b) : mkIMax(a, b);
         }
         case 5: {
           const o = call(X.lean_get_lmvar_assignment, l.a0);
@@ -409,4 +510,10 @@ export function install(P, h) {
   }
   P.lean_instantiate_level_mvars = (mctx, l) => { const I = makeInstantiator(mctx); const r = I.lvl(l); return mkPair(I.mctx(), r); };
   P.lean_instantiate_expr_mvars = (mctx, e) => { const I = makeInstantiator(mctx); const r = I.visit(e); return mkPair(I.mctx(), r); };
+
+  /* ---- kernel entry points: not available yet (self-005) ---- */
+  const kernelMissing = (what) => () => { throw new Error(`kernel function '${what}' is not implemented in the JS runtime yet (docs/tickets/self-005-question-kernel-strategy.md)`); };
+  for (const n of ["lean_add_decl", "lean_add_decl_without_checking", "lean_elab_add_decl", "lean_elab_add_decl_without_checking",
+    "lean_kernel_check", "lean_kernel_whnf", "lean_kernel_is_def_eq", "lean_mk_cases_on", "lean_mk_rec_on", "lean_mk_no_confusion_type",
+    "lean_mk_no_confusion", "lean_mk_below", "lean_mk_brec_on", "lean_mk_binduction_on"]) if (!P[n]) P[n] = kernelMissing(n);
 }

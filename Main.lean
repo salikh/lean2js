@@ -4,10 +4,11 @@ import Lean2js.LcnfDump
 open Lean Lean2js
 
 def usage : String :=
-  "usage: lean2js FILE.lean [--out OUT.js] [--runtime PATH] [--run] [--all] [--dump-ir]\n" ++
+  "usage: lean2js FILE.lean [--out OUT.js] [--runtime PATH] [--run] [--all] [--init-all] [--dump-ir]\n" ++
   "  Translates the final (reference-counted) IR of FILE.lean and everything it reaches to JavaScript.\n" ++
   "  --run      the generated file runs `main` when loaded\n" ++
   "  --all      also emit declarations not reachable from `main`\n" ++
+  "  --init-all run the initializers of all imported modules at startup (default: main module only, others lazily)\n" ++
   "  --runtime  import path of the runtime (default ./lean_rt.js)\n" ++
   "  --dump-ir  print the IR declarations instead of JavaScript"
 
@@ -23,6 +24,7 @@ partial def parseArgs (a : Args) : List String → Except String Args
   | "--runtime" :: r :: rest => parseArgs { a with opts := { a.opts with runtime := r } } rest
   | "--dump-ir" :: rest => parseArgs { a with dumpIr := true } rest
   | "--run" :: rest => parseArgs { a with opts := { a.opts with run := true } } rest
+  | "--init-all" :: rest => parseArgs { a with opts := { a.opts with initAll := true } } rest
   | "--all" :: rest => parseArgs { a with opts := { a.opts with all := true } } rest
   | f :: rest =>
     if f.startsWith "--" then .error s!"unknown option '{f}'"

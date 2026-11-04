@@ -16,6 +16,8 @@
 
 import { install as installExpr } from "./lean_expr.js";
 import { install as installFs } from "./lean_fs.js";
+import { install as installNum } from "./lean_num.js";
+import { install as installSys } from "./lean_sys.js";
 
 export const erased = 0;
 
@@ -651,32 +653,8 @@ P.lean_ptr_addr = (a) => {
   if (typeof a === "object" && a !== null) { let i = objIds.get(a); if (i === undefined) { i = nextId; nextId += 8n; objIds.set(a, i); } return i; }
   return BigInt(a) * 2n + 1n;
 };
-// Int64 (BigInt in [-2^63, 2^63)); other signed widths follow the same scheme
-for (const bits of [64]) {   // narrower signed widths are stored as unsigned bit patterns: not done yet
-  const w = (x) => BigInt.asIntN(bits, x);
-  const n = `int${bits}`;
-  const big = bits === 64;
-  const out = big ? (x) => x : (x) => Number(x);
-  const inn = big ? (x) => x : (x) => BigInt(x);
-  P[`lean_${n}_neg`] = (a) => out(w(-inn(a)));
-  P[`lean_${n}_dec_eq`] = (a, b) => bool(a === b);
-  P[`lean_${n}_dec_lt`] = (a, b) => bool(a < b);
-  P[`lean_${n}_dec_le`] = (a, b) => bool(a <= b);
-  P[`lean_${n}_of_nat`] = (a) => out(w(a));
-  P[`lean_${n}_to_int_sint`] = (a) => inn(a);
-  P[`lean_${n}_add`] = (a, b) => out(w(inn(a) + inn(b)));
-  P[`lean_${n}_sub`] = (a, b) => out(w(inn(a) - inn(b)));
-  P[`lean_${n}_mul`] = (a, b) => out(w(inn(a) * inn(b)));
-  P[`lean_${n}_div`] = (a, b) => (b === 0n ? 0n : out(w(inn(a) / inn(b))));          // truncating, x/0 = 0
-  P[`lean_${n}_mod`] = (a, b) => (b === 0n ? a : out(w(inn(a) % inn(b))));
-  P[`lean_${n}_land`] = (a, b) => out(w(inn(a) & inn(b)));
-  P[`lean_${n}_lor`] = (a, b) => out(w(inn(a) | inn(b)));
-  P[`lean_${n}_xor`] = (a, b) => out(w(inn(a) ^ inn(b)));
-  P[`lean_${n}_complement`] = (a) => out(w(~inn(a)));
-  P[`lean_${n}_shift_left`] = (a, b) => out(w(inn(a) << (inn(b) & BigInt(bits - 1))));
-  P[`lean_${n}_shift_right`] = (a, b) => out(w(inn(a) >> (inn(b) & BigInt(bits - 1))));
-}
-
+installNum(P, { bool });
+installSys(P, { inc, dec, ap, some, bool, unit, okR, errR, objId: (o) => P.lean_ptr_addr(o), P });
 installExpr(P, { inc, dec, ap, some, exports, mixHash: P.lean_uint64_mix_hash });
 
 /* ---------- IO ---------- */
@@ -755,13 +733,48 @@ P.lean_io_getenv = (name) => {
   const v = isNode ? globalThis.process.env[name] : undefined;
   return v === undefined ? none() : some(v);
 };
-P.lean_io_initializing = () => 0;
+P.lean_io_initializing = () => bool(initDepth > 0);
 class ExitSignal { constructor(code) { this.code = code; } }
 // Unwinds the stack up to `runMain` (process.exit from a worker thread with a huge stack crashes V8 teardown).
 P.lean_io_exit = (code) => { throw new ExitSignal(code); };
 P.lean_io_process_get_pid = () => (isNode ? globalThis.process.pid : 0);
 P.lean_io_app_path = () => okR(isNode ? globalThis.process.argv[1] : "");
 P.lean_io_sleep = (_ms) => unit;
+
+/** Result of running an `[init]` action (an `EStateM` result): the value, or an `InitError` carrying the `IO.Error`. */
+class InitError { constructor(err, what) { this.err = err; this.what = what; } }
+export function initResult(r, what) {
+  if (r.t !== 0) throw new InitError(r.a0, what);
+  return r.a0;
+}
+let initDepth = 0;                       // > 0 while an initializer runs: `IO.initializing` is true (option/attribute registration)
+/** Runs the `[init]` action `f` (a function of the state token) and returns its value; see `IO.initializing`. */
+export function runInit(f, what) {
+  initDepth++;
+  try { return initResult(f(0), what); } finally { initDepth--; }
+}
+/**
+ * Runs the startup steps (each returns null or an error result, or throws `InitError`) in order. A failing step is retried after the
+ * others have run (the declaration order of imported modules is only approximated, see CodegenIR.initOrder); returns the last error
+ * result if some step keeps failing, else null.
+ */
+export function runInitSteps(steps) {
+  let pending = steps;
+  for (;;) {
+    const failed = []; let lastErr = null;
+    for (const step of pending) {
+      let r;
+      try { r = step(); } catch (e) { if (e instanceof InitError) r = errR(e.err); else throw e; }
+      if (r !== null && r.t !== 0) { failed.push(step); lastErr = r; }
+    }
+    if (failed.length === 0) return null;
+    if (failed.length === pending.length) return lastErr;     // no progress
+    pending = failed;
+  }
+}
+let initFn = null;
+/** Registers the generated `initialize()` (returns null, or an error result); run by `runMain` before `main`. */
+export function setInit(f) { initFn = f; }
 
 let errorToString = null;
 export function setErrorToString(f) { errorToString = f; }
@@ -789,13 +802,16 @@ export function runMain(main, arity, args = (isNode ? globalThis.process.argv.sl
 function runMainHere(main, arity, args) {
   let r;
   try {
-    r = arity >= 2 ? main(listFromArray(args), 0) : main(0);
+    initDepth++;
+    try { r = initFn ? initFn() : null; } finally { initDepth--; }   // module initializers; an error result aborts like in a native executable
+    if (r === null) r = arity >= 2 ? main(listFromArray(args), 0) : main(0);
   } catch (e) {
     if (e instanceof ExitSignal) {
       if (isNode) globalThis.process.exitCode = e.code;
       return e.code;
     }
-    throw e;
+    if (e instanceof InitError) r = errR(e.err);
+    else throw e;
   }
   if (r.t === 0) {
     const code = typeof r.a0 === "number" ? r.a0 : 0;

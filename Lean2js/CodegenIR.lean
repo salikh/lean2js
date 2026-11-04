@@ -37,6 +37,8 @@ structure Ctx where
   /-- name ↦ (index in tail group, arity) of functions whose saturated tail calls become `continue`. -/
   tail : HashMap Name (Nat × Nat) := {}
   tailSingle : Bool := true
+  /-- constants with an `[init]`/`[builtin_init]` function: value = result of running that `IO` action (lazily, once). -/
+  initFns : HashMap Name Name := {}
   jps : HashMap Nat (String × Array String) := {}
 
 def isScalarTy : IRType → Bool
@@ -159,7 +161,9 @@ def genFDecl (ctx : Ctx) (d : Decl) : M String := do
   let n := ps.size
   let ctx := { ctx with tail := {} }
   if n == 0 then
-    let b ← genBody ctx "    " body
+    let b ← match ctx.initFns[f]? with
+      | some initFn => pure s!"    return rt.runInit({declId initFn.toString}, {jsString f.toString});\n"
+      | none => genBody ctx "    " body
     return s!"let c_{fid};\nfunction {fid}() " ++ "{\n" ++ s!"  if (c_{fid} === undefined) \{ c_{fid} = (() => " ++ "{\n" ++ b ++ "  })(); rt.persist(c_" ++ fid ++ "); }\n"
       ++ s!"  return c_{fid};\n" ++ "}\n"
   else if (tailCallees (fun g => if g == f then some n else none) body).size > 0 then
@@ -254,7 +258,9 @@ def collect (env : Environment) (roots : Array Name) (exportIndex : HashMap Stri
     let some d := findEnvDecl env n | continue
     decls := decls.push d
     match d with
-    | .fdecl _ _ _ b _ =>
+    | .fdecl _ ps _ b _ =>
+      if ps.isEmpty then
+        if let some i := getInitFnNameFor? env n then work := work.push i
       for c in bodyRefs b #[] do unless seen.contains c do work := work.push c
     | .extern _ _ _ data =>
       if let some (.standard _ fn) := getExternEntryFor data `c then
@@ -267,6 +273,35 @@ structure Options where
   runtime : String := "./lean_rt.js"
   run : Bool := false
   all : Bool := false
+  /-- run the `[init]`/`[builtin_init]` declarations of *all* imported modules at startup (what the native `main` does via
+  `initialize_<Module>`); otherwise only those of the main module, plus lazily the constants reachable from `main`. -/
+  initAll : Bool := false
+
+/-- Order key of an initializer: (module index, `_hyg` counter of the init function's name, name). Imported oleans do not record
+declaration order, but the macro-scope counter grows with source position. -/
+partial def hygNum : Name → Nat
+  | .num (.str _ "_hyg") k => k
+  | .num p _ => hygNum p
+  | .str p _ => hygNum p
+  | _ => 0
+
+/-- Declarations to run at startup, in order: IO-unit init functions, and (with `all`) constants with an init function. -/
+def initOrder (env : Environment) (all : Bool) : Array Name := Id.run do
+  let nmods := env.header.moduleNames.size
+  let cands : Array Name :=
+    if all then env.constants.fold (init := #[]) fun acc n _ =>
+      if isIOUnitInitFn env n || (getInitFnNameFor? env n).isSome then acc.push n else acc
+    else (getDecls env).toArray.map (·.name) |>.filter (isIOUnitInitFn env)
+  -- within a module: explicit `initialize` blocks (by macro-scope counter) before the `_regBuiltin` registrations generated for
+  -- `@[builtin_…]` attributes (e.g. a parser category must be registered before the parsers that use it)
+  let key (n : Name) : Nat × Nat × String :=
+    let fn := if isIOUnitInitFn env n then n else (getInitFnNameFor? env n).getD n
+    let reg := fn.components.any (· == `_regBuiltin)
+    ((env.getModuleIdxFor? n).map (·.toNat) |>.getD nmods, (if reg then 1 <<< 40 else 0) + hygNum fn, n.toString)
+  let keyed := cands.map fun n => (key n, n)
+  let sorted := keyed.qsort fun a b =>
+    a.1.1 < b.1.1 || (a.1.1 == b.1.1 && (a.1.2.1 < b.1.2.1 || (a.1.2.1 == b.1.2.1 && a.1.2.2 < b.1.2.2)))
+  return sorted.map (·.2)
 
 def genProgram (env : Environment) (fileName : String) (opts : Options) : M (String × Array Decl) := do
   let localDecls := (getDecls env).toArray.map (·.name)
@@ -274,9 +309,14 @@ def genProgram (env : Environment) (fileName : String) (opts : Options) : M (Str
     if opts.all || (findEnvDecl env `main).isNone then localDecls else #[`main]
   let exportIndex := mkExportIndex env
   let rtExports := exportIndex.toArray.filter fun (sym, _) => runtimeExportPrefixes.any (sym.startsWith ·)
-  let c := collect env ((roots.push `IO.Error.toString) ++ rtExports.map (·.2)) exportIndex
+  let inits := initOrder env opts.initAll
+  let c := collect env ((roots.push `IO.Error.toString) ++ rtExports.map (·.2) ++ inits) exportIndex
   let decls : HashMap Name Decl := c.decls.foldl (fun m d => m.insert d.name d) {}
-  let ctx : Ctx := { decls }
+  let initFns : HashMap Name Name := c.decls.foldl (init := {}) fun m d =>
+    match d with
+    | .fdecl n ps .. => if ps.isEmpty then (match getInitFnNameFor? env n with | some i => m.insert n i | none => m) else m
+    | _ => m
+  let ctx : Ctx := { decls, initFns }
   let groups := tailGroups decls c.decls
   let mut grouped : HashSet Name := {}
   let mut body := ""
@@ -305,9 +345,18 @@ def genProgram (env : Environment) (fileName : String) (opts : Options) : M (Str
   let errHook := if decls.contains `IO.Error.toString then s!"rt.setErrorToString({declId "IO.Error.toString"});\n" else ""
   let rtExportReg := String.join <| (rtExports.qsort (fun a b => a.1 < b.1)).toList.filterMap fun (sym, n) =>
     if decls.contains n then some s!"rt.exports[{jsString sym}] = {declId n.toString};\n" else none
+  let initCalls := String.join <| inits.toList.filterMap fun n =>
+    match decls[n]? with
+    | some d =>
+      if d.isExtern then none
+      else if d.params.isEmpty then some s!"  () => \{ {declId n.toString}(); return null; },\n"
+      else some s!"  () => {declId n.toString}(0),\n"
+    | none => none
+  let initFn := if initCalls.isEmpty then "" else
+    "const initSteps = [\n" ++ initCalls ++ "];\nexport function initialize() { return rt.runInitSteps(initSteps); }\nrt.setInit(initialize);\n"
   let run := match mainDecl with
     | some d => if opts.run then s!"rt.runMain({declId "main"}, {d.params.size});\n" else ""
     | none => ""
-  return (header ++ bindStr ++ "\n" ++ externCode ++ body ++ "\n" ++ exports ++ errHook ++ rtExportReg ++ run, c.decls)
+  return (header ++ bindStr ++ "\n" ++ externCode ++ body ++ "\n" ++ exports ++ errHook ++ rtExportReg ++ initFn ++ run, c.decls)
 
 end Lean2js.CodegenIR

@@ -8,3 +8,5 @@ web/prog.lean
 web/prog.stdin
 /web/lean_expr.js
 /web/lean_fs.js
+/web/lean_num.js
+/web/lean_sys.js

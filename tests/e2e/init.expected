@@ -1,0 +1,8 @@
+init block 1
+init block 2
+hello from initialize
+101
+102
+#[a, b]
+1
+[231, 390, 483, 417, 661]

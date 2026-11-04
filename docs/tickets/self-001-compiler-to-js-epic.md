@@ -30,7 +30,7 @@ transpilable today. What is missing is everything that is native (C/C++) in the 
    trimmed subset).
 5. **Tasks/threads**: elaborator uses `Task`, `IO.Promise`, `Language.Lean.process` snapshots. Single-threaded JS
    must run tasks eagerly/cooperatively.
-6. **Size/startup/speed**: 21 MB JS, startup of initializers, import of Init/Std/Lean .oleans.
+6. **Size/startup/speed**: 21 MB JS without initializers but **327 MB with `--init-all`** (measured 2026-11-04), plus startup of ~5000 initializers and import of Init/Std/Lean .oleans. This is a gate for the first milestone (self-008).
 
 ## Subtickets
 

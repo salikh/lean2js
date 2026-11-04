@@ -1,7 +1,7 @@
 # Module initializers ([init] / builtin_initialize)
 
 Parent: [self-001](self-001-compiler-to-js-epic.md) | related: js-014 item 2
-Status: open
+Status: **done** (2026-11-04) — see [design/module-initializers.md](../design/module-initializers.md). Running all `Lean` initializers in JS works (`tests/e2e/mvars.lean` elaborates `MetaM` code). Open: exact declaration order; startup time / size (self-008).
 
 Native Lean runs `initialize_<Module>(builtin, w)` for each module in import order: it evaluates
 closed terms and runs `[init]`/`[builtin_init]` decls (registering parsers, attributes, env extensions,

@@ -2,6 +2,10 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-04 — [self-003-module-initializers](tickets/self-003-module-initializers.md) done (`--init-all`, lazy init constants, `IO.initializing`, retrying order-tolerant startup;
+  [design](design/module-initializers.md)); signed Int8/16/32/64 + Float32 + version/platform primitives (`lean_num.js`, `lean_sys.js`); tests `init`, `sints`, `mvars`
+  (the full `Lean` initialization and `MetaM` run in JS).
+
 * 2026-11-04 — self-004/self-007: `instantiateMVars` port (untested in JS until self-003), `runtime/lean_fs.js` (files, dirs, metadata, stream redirection, stubs); test `tests/e2e/fs.lean`.
 
 * 2026-11-04 — [js-001-transpiler-epic](tickets/js-001-transpiler-epic.md): updated to say the transpiler's source is now Lean IR (not LCNF JSON).
