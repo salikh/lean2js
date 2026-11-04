@@ -101,6 +101,12 @@ def inductiveToJson (v : InductiveVal) (env : Environment) : Json :=
 them (including imported ones), constructor metadata of every inductive type used, and the list
 of referenced names for which no LCNF exists (`missing`: constructors excluded). -/
 def dumpWithDepsJson (env : Environment) (fileName : String) : Json := Id.run do
+  -- Primitives such as `String.Internal.posOf` are `extern` stubs implemented by Lean code
+  -- tagged `@[export lean_string_posof]`; index those so the implementation is dumped as well.
+  let exportIndex : Std.HashMap String Name := env.constants.fold (init := {}) fun m n _ =>
+    match getExportNameFor? env n with
+    | some e => m.insert e.toString n
+    | none => m
   let roots := (monoExt.getState env).toArray.map (·.1)
   let mut work : Array Name := roots
   let mut seen : NameSet := {}
@@ -115,6 +121,10 @@ def dumpWithDepsJson (env : Environment) (fileName : String) : Json := Id.run do
     match getDeclCore? env monoExt n with
     | some d =>
       decls := decls.push d
+      if let .extern data := d.value then
+        for e in data.entries do
+          if let .standard _ fn := e then
+            if let some impl := exportIndex[fn]? then work := work.push impl
       let r := declRefs d
       for t in r.types.toList do types := types.insert t
       for c in r.consts.toList do
@@ -126,7 +136,11 @@ def dumpWithDepsJson (env : Environment) (fileName : String) : Json := Id.run do
   let sorted := sortedByName decls
   let declJsons := sorted.map fun d =>
     match LcnfJson.declToJson d with
-    | .obj kvs => Json.obj (kvs.insert "module" (moduleOf env d.name))
+    | .obj kvs =>
+      let kvs := kvs.insert "module" (moduleOf env d.name)
+      Json.obj <| match getExportNameFor? env d.name with
+        | some e => kvs.insert "export" (Json.str e.toString)
+        | none => kvs
     | j => j
   let inds := types.toList.toArray.qsort (fun a b => a.toString < b.toString) |>.filterMap fun t =>
     match env.find? t with

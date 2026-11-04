@@ -71,6 +71,8 @@ structure Decl where
   name : String
   /-- defining module; `none` for declarations of the transpiled file -/
   module : Option String := none
+  /-- C symbol of an `@[export]` attribute, if any -/
+  export_ : Option String := none
   params : Array Param
   value : DeclValue
   deriving Inhabited
@@ -78,6 +80,7 @@ structure Decl where
 structure Ctor where
   name : String
   cidx : Nat
+  numParams : Nat
   numFields : Nat
   deriving Inhabited
 
@@ -170,11 +173,14 @@ def parseDecl (j : Json) : P Decl := do
   let module := match j.getObjVal? "module" with
     | .ok (.str m) => some m
     | _ => none
-  return { name := ← str j "name", module, params := ← parseParams j, value := v }
+  let export_ := match j.getObjVal? "export" with
+    | .ok (.str m) => some m
+    | _ => none
+  return { name := ← str j "name", module, export_, params := ← parseParams j, value := v }
 
 def parseInductive (j : Json) : P Inductive := do
   let ctors ← (← arr j "ctors").mapM fun c =>
-    return ({ name := ← str c "name", cidx := ← nat c "cidx", numFields := ← nat c "numFields" } : Ctor)
+    return ({ name := ← str c "name", cidx := ← nat c "cidx", numParams := ← nat c "numParams", numFields := ← nat c "numFields" } : Ctor)
   return { name := ← str j "name", ctors }
 
 def parseProgram (j : Json) : P Program := do
