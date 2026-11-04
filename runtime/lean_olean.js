@@ -66,7 +66,7 @@ export function parseRegion(bytes, deps, hooks, name = "<olean>") {
   const base = dv.getUint32(80, true) + dv.getUint32(84, true) * 4294967296;
   const size = bytes.length;
   const objs = new Array(size >> 3);
-  const region = { base, size, objs, bytes, dv };
+  const region = { base, size, objs, name };
   let hint = null;                                       // last dependency region hit (pointers cluster)
 
   const ptr = (lo, hi) => {
@@ -83,13 +83,36 @@ export function parseRegion(bytes, deps, hooks, name = "<olean>") {
       return v;
     }
     const r = regionAt(addr, hint) ?? deps.find((d) => addr >= d.base && addr < d.base + d.size) ?? null;
-    if (r !== null) { hint = r; return r.objs[(addr - r.base) >> 3]; }
+    if (r !== null) {
+      if (r.objs === null) throw new Error(`${name}: pointer into the part ${r.name}, whose object table was released`);
+      hint = r; return r.objs[(addr - r.base) >> 3];
+    }
     throw new Error(`${name}: pointer 0x${addr.toString(16)} outside the region and its dependencies`);
   };
 
   // 32-bit view for the headers and pointers (copy when the buffer is not 4-byte aligned)
   const aligned = (bytes.byteOffset & 3) === 0;
   const u32 = new Uint32Array(aligned ? bytes.buffer : bytes.slice().buffer, aligned ? bytes.byteOffset : 0, size >> 2);
+  // The scalar areas of constructors are copied into a compact per-region pool, so that the file image can be released after parsing.
+  const objLen = (o) => {                                // size in bytes of the object at `o`
+    const w = u32[(o >> 2) + 1], cs = w & 0xffff, other = (w >>> 16) & 0xff, tag = w >>> 24, q = o >> 2;
+    if (tag <= 244) return cs;
+    if (tag === 246) return 24 + 8 * u32[q + 4];
+    if (tag === 249) return 32 + ((u32[q + 4] + 7) & ~7);
+    if (tag === 248) return 24 + ((u32[q + 4] * other + 7) & ~7);
+    if (tag === 250) return cs;
+    if (tag === 251 || tag === 252) return 24;
+    if (tag === 253) return 16;
+    throw new Error(`${name}: unsupported object tag ${tag} at offset ${o}`);
+  };
+  let poolSize = 0;
+  for (let o = 96; o < size; o += objLen(o)) {
+    const w = u32[(o >> 2) + 1], cs = w & 0xffff, other = (w >>> 16) & 0xff;
+    if ((w >>> 24) <= 244 && cs > 8 + 8 * other) poolSize += cs - 8 - 8 * other;
+  }
+  const pool = new Uint32Array(poolSize >> 2);
+  const poolDv = new DataView(pool.buffer);
+  let poolPos = 0;
   let off = 96;
   while (off < size) {
     const w = u32[(off >> 2) + 1];
@@ -107,7 +130,11 @@ export function parseRegion(bytes, deps, hooks, name = "<olean>") {
           obj = { t: tag, rc: 0, n: other };
           for (let i = 0; i < other; i++) obj["a" + i] = ptr(u32[q + 2 * i], u32[q + 2 * i + 1]);
       }
-      if (len > 8 + 8 * other) { obj.sbuf = dv; obj.soff = off + 8 + 8 * other; }
+      if (len > 8 + 8 * other) {
+        const n4 = (len - 8 - 8 * other) >> 2, from = (off >> 2) + 2 + 2 * other, to = poolPos >> 2;
+        for (let k = 0; k < n4; k++) pool[to + k] = u32[from + k];
+        obj.sbuf = poolDv; obj.soff = poolPos; poolPos += n4 << 2;
+      }
     } else if (tag === 246) {
       const q = off >> 2, n = u32[q + 2], cap = u32[q + 4];
       obj = new Array(n);
@@ -149,6 +176,9 @@ export function parseRegion(bytes, deps, hooks, name = "<olean>") {
   while (i > 0 && regions[i - 1].base > base) i--;
   regions.splice(i, 0, region);
   region.root = rootOff;
+  // `.olean.private` and `.ir` are the last parts of a module: nothing points into them, so their offset → object tables (as large as the
+  // files) are not needed after parsing. (`.olean`, `.olean.server` and `.ir.sig` are targets of pointers from the later parts.)
+  if (/\.(olean\.private|ir)$/.test(name)) { region.objs = null; }
   return region;
 }
 

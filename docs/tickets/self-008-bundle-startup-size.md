@@ -62,3 +62,10 @@ Revised view of the gate: download size is fine (brotli ~14 MB, comparable to th
 Next ideas, by payoff: (1) lazy decoding of `.olean` regions (`.server` and `.ir` parts and most constants are never touched: ~1 GB of JS objects today),
 (2) lazy loading of code chunks by module (needs a synchronous loader or an async entry), (3) snapshotting the post-initialization state (see item 4 above),
 (4) prune `--eval-all` to modules whose declarations can be reached by attributes (macros/parsers) instead of everything.
+
+## Progress (2026-11-05, later)
+
+`lean_olean.js`: the offset → object tables of `.olean.private` and `.ir` regions are released after parsing (nothing points into them), and the scalar areas of constructors are copied into a compact
+per-region pool so the file images can be garbage collected. Measured (`--small`, sample.lean): external memory 737 → 439 MB, run time 14 → 11.7 s, RSS ≈ 2.6 GB (JS heap 1.5 GB is the decoded objects).
+The remaining big item is the decoded object graph itself (`.olean.private` is 258 MB of the 384 MB of `Init` files): lazy decoding of constants' bodies (shell objects with accessor fields, subtree sizes from a
+pre-pass) is the next idea; smaller objects (drop `n`/`rc`, merge `sbuf`/`soff`) another.
