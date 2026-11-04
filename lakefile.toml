@@ -1,0 +1,10 @@
+name = "lean2js"
+version = "0.1.0"
+defaultTargets = ["lean2js"]
+
+[[lean_lib]]
+name = "Lean2js"
+
+[[lean_exe]]
+name = "lean2js"
+root = "Main"
