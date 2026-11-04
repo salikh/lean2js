@@ -31,8 +31,10 @@ export function install(P, { inc, ap, some, bool, unit, okR, errR, P: _P }) {
   P.lean_state_sharecommon = (_factory, s, a) => mkPair(a, s);
   P.lean_sharecommon_quick = (a) => { inc(a); return a; };
 
+  // `initialize_<Module>` of the modules compiled into the program (Init, Std, Lean) ran at startup (--init-all): "native initializer found"
+  P.lean_run_mod_init_core = (sym) => okR(bool(/^initialize_(Init|Std|Lean)(_|$)/.test(sym)));
+  P.lean_run_init = () => errR({ t: 4, rc: 1, n: 1, a0: "running interpreted [init] declarations is not supported in this JavaScript runtime", s1_0: 0 });
   P.lean_dbg_sleep = (_ms, f) => ap(f, [0]);
-  P.lean_io_wait_any = (tasks) => { const t = tasks.a0; inc(t.v); return t.v; };
   P.lean_string_uget_byte_fast = (s, i) => P.lean_string_get_byte_fast(s, i);
   const unsupported = (what) => () => errR({ t: 4, rc: 1, n: 1, a0: `${what} is not supported in this JavaScript runtime`, s1_0: 0 });
   P.lean_io_create_tempfile = unsupported("temporary files");

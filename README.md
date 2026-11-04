@@ -14,6 +14,13 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
+* **2026-11-05 — the Lean frontend runs as JavaScript.** `selfhost/Elab.lean`, transpiled by `lean2js --init-all --eval-all`, elaborates Lean source under
+  Node with no native Lean code and prints exactly what native Lean prints: pattern-matching definitions, structures with `deriving Repr`, inductive types,
+  `simp`, `decide`, `#check`, `#eval` (the compiler pipeline and an IR → JS generator run inside the JS program; see
+  [docs/design/self-hosted-elaborator.md](docs/design/self-hosted-elaborator.md), test `tests/e2e/selfhost.lean`). Also new: cooperative task scheduler,
+  `evalConst`, stdin `read`. Open: size (450 MB) and ~40 s startup ([self-008](docs/tickets/self-008-bundle-startup-size.md)), a type-checking kernel
+  (`check := true`), a browser front end.
+
 * **2026-11-04 — kernel for the JS-hosted compiler.** Lean programs (also big ones) already run as JavaScript. For the epic *run the Lean
   compiler itself in JS* ([self-001](docs/tickets/self-001-compiler-to-js-epic.md)): the whole `Lean` initialization, `MetaM`,
   `instantiateMVars`, reading real `.olean` files and `importModules Init` work in JS and match native Lean. New: a kernel written in

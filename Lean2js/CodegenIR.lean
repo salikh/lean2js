@@ -19,7 +19,7 @@ collected from the environment together with everything they reference. See
 namespace Lean2js.CodegenIR
 
 open Lean IR
-open Lean2js.JsUtil (mangle declId jsString Tarjan strongConnect)
+open Lean2js.JsUtil (mangle declId nameId nameBody jsString Tarjan strongConnect)
 open Std (HashMap HashSet)
 
 abbrev M := Except String
@@ -70,10 +70,10 @@ def genExpr (ctx : Ctx) (ind : String) (x : VarId) (ty : IRType) : IR.Expr → M
   | .fap c ys => do
     let some d := ctx.decls[c]? | throw s!"unknown function '{c}'"
     unless d.params.size == ys.size do throw s!"arity mismatch in call to '{c}'"
-    return s!"{ind}const {vid x} = {declId c.toString}({argsStr ys});\n"
+    return s!"{ind}const {vid x} = {nameId c}({argsStr ys});\n"
   | .pap c ys => do
     let some d := ctx.decls[c]? | throw s!"unknown function '{c}'"
-    return s!"{ind}const {vid x} = rt.pap({declId c.toString}, {d.params.size}, {listStr ys});\n"
+    return s!"{ind}const {vid x} = rt.pap({nameId c}, {d.params.size}, {listStr ys});\n"
   | .ap y ys => return s!"{ind}const {vid x} = rt.ap({vid y}, {listStr ys});\n"
   | .box _ y => return s!"{ind}const {vid x} = {vid y};\n"
   | .unbox y => return s!"{ind}const {vid x} = {vid y};\n"
@@ -155,25 +155,25 @@ def genExternWrapper (exports : HashMap String Name) (decls : HashMap Name Decl)
       let pairs := ps.toList.zip implPs.toList |>.mapIdx fun i (e, m) => (i, e.borrow, m.borrow)
       let incs := String.join <| pairs.filterMap fun (i, eb, mb) => if eb && !mb then some s!"rt.inc(a{i}); " else none
       let decsAfter := String.join <| pairs.filterMap fun (i, eb, mb) => if !eb && mb then some s!" rt.dec(a{i});" else none
-      let call := s!"{declId impl.toString}({formals})"
+      let call := s!"{nameId impl}({formals})"
       let body := if decsAfter.isEmpty then s!"{incs}return {call};" else s!"{incs}const r = {call};{decsAfter} return r;"
-      (s!"function {declId f.toString}({formals}) " ++ "{ " ++ body ++ " }\n", none)
+      (s!"function {nameId f}({formals}) " ++ "{ " ++ body ++ " }\n", none)
     else
       let binding := mangle "e_" key
       let used := (ps.toList.mapIdx fun i p => (i, p)).filter (fun (_, p) => !(p.ty.isErased || p.ty.isVoid))
         |>.map fun (i, _) => s!"a{i}"
       let body := if ps.isEmpty then s!"return typeof {binding} === \"function\" ? {binding}() : {binding};"
         else s!"return {binding}({", ".intercalate used});"
-      (s!"function {declId f.toString}({formals}) " ++ "{ " ++ body ++ " }\n", some (binding, key))
+      (s!"function {nameId f}({formals}) " ++ "{ " ++ body ++ " }\n", some (binding, key))
 
 def genFDecl (ctx : Ctx) (d : Decl) : M String := do
   let .fdecl f ps _ body _ := d | throw "internal: extern"
-  let fid := declId f.toString
+  let fid := nameId f
   let n := ps.size
   let ctx := { ctx with tail := {} }
   if n == 0 then
     let b ← match ctx.initFns[f]? with
-      | some initFn => pure s!"    return rt.runInit({declId initFn.toString}, {jsString f.toString});\n"
+      | some initFn => pure s!"    return rt.runInit({nameId initFn}, {jsString f.toString});\n"
       | none => genBody ctx "    " body
     return s!"let c_{fid};\nfunction {fid}() " ++ "{\n" ++ s!"  if (c_{fid} === undefined) \{ c_{fid} = (() => " ++ "{\n" ++ b ++ "  })(); rt.persist(c_" ++ fid ++ "); }\n"
       ++ s!"  return c_{fid};\n" ++ "}\n"
@@ -192,7 +192,7 @@ def genGroup (ctx : Ctx) (ds : Array Decl) : M String := do
   let members : HashMap Name (Nat × Nat) :=
     ds.toList.mapIdx (fun i d => (d.name, (i, d.params.size))) |>.foldl (fun m (k, v) => m.insert k v) {}
   let gctx := { ctx with tail := members, tailSingle := false }
-  let name := mangle "g_" ds[0]!.name.toString
+  let name := "g_" ++ nameBody ds[0]!.name
   let formals := ", ".intercalate ("w" :: (List.range maxN).map (s!"a{·}"))
   let mut cases := ""
   for (d, i) in ds.toList.zip (List.range ds.size) do
@@ -203,7 +203,7 @@ def genGroup (ctx : Ctx) (ds : Array Decl) : M String := do
   let mut out := s!"function {name}({formals}) " ++ "{\n  _loop: while (true) {\n    switch (w) {\n" ++ cases ++ "    }\n  }\n}\n"
   for (d, i) in ds.toList.zip (List.range ds.size) do
     let ps := (List.range d.params.size).map (s!"a{·}")
-    out := out ++ s!"function {declId d.name.toString}({", ".intercalate ps}) " ++ "{ "
+    out := out ++ s!"function {nameId d.name}({", ".intercalate ps}) " ++ "{ "
       ++ s!"return {name}({", ".intercalate (toString i :: ps)}); " ++ "}\n"
   return out
 
@@ -252,7 +252,7 @@ def mkExportIndex (env : Environment) : HashMap String Name :=
 
 /-- Exported Lean functions that the JS runtime calls itself (constructors of `Expr`/`Level`/`Name`, which the native
 runtime's C++ code calls through their `@[export]` symbols); registered as `rt.exports[symbol]`. -/
-def runtimeExportPrefixes : Array String := #["lean_expr_mk_", "lean_level_mk_", "lean_name_mk_", "lean_get_lmvar_", "lean_get_mvar_", "lean_get_delayed_mvar_",
+def runtimeExportPrefixes : Array String := #["lean2js_gen_", "lean_expr_mk_", "lean_level_mk_", "lean_name_mk_", "lean_get_lmvar_", "lean_get_mvar_", "lean_get_delayed_mvar_",
     "lean_assign_lmvar", "lean_assign_mvar"]
 
 /-- IR declarations reachable from `roots` (names), following `fap`/`pap` and `@[export]` implementations of
@@ -287,6 +287,8 @@ structure Options where
   /-- run the `[init]`/`[builtin_init]` declarations of *all* imported modules at startup (what the native `main` does via
   `initialize_<Module>`); otherwise only those of the main module, plus lazily the constants reachable from `main`. -/
   initAll : Bool := false
+  /-- make every declaration with IR of the imported modules available to `evalConst` (root them all and emit a name lookup). -/
+  evalAll : Bool := false
 
 /-- Order key of an initializer: (module index, `_hyg` counter of the init function's name, name). Imported oleans do not record
 declaration order, but the macro-scope counter grows with source position. -/
@@ -321,7 +323,9 @@ def genProgram (env : Environment) (fileName : String) (opts : Options) : M (Str
   let exportIndex := mkExportIndex env
   let rtExports := exportIndex.toArray.filter fun (sym, _) => runtimeExportPrefixes.any (sym.startsWith ·)
   let inits := initOrder env opts.initAll
-  let c := collect env ((roots.push `IO.Error.toString) ++ rtExports.map (·.2) ++ inits) exportIndex
+  let evalRoots : Array Name :=
+    if opts.evalAll then env.constants.fold (init := #[]) fun acc n _ => if (findEnvDecl env n).isSome then acc.push n else acc else #[]
+  let c := collect env ((roots.push `IO.Error.toString) ++ rtExports.map (·.2) ++ inits ++ evalRoots) exportIndex
   let decls : HashMap Name Decl := c.decls.foldl (fun m d => m.insert d.name d) {}
   let initFns : HashMap Name Name := c.decls.foldl (init := {}) fun m d =>
     match d with
@@ -351,23 +355,71 @@ def genProgram (env : Environment) (fileName : String) (opts : Options) : M (Str
     s!"const {b} = rt.prims[{jsString key}] ?? rt.missing({jsString key});\n")
   let mainDecl := decls[`main]?
   let exports := match mainDecl with
-    | some d => s!"export \{ {declId "main"} as main };\nexport const mainArity = {d.params.size};\n"
+    | some d => s!"export \{ {nameId `main} as main };\nexport const mainArity = {d.params.size};\n"
     | none => ""
-  let errHook := if decls.contains `IO.Error.toString then s!"rt.setErrorToString({declId "IO.Error.toString"});\n" else ""
+  let errHook := if decls.contains `IO.Error.toString then s!"rt.setErrorToString({nameId `IO.Error.toString});\n" else ""
   let rtExportReg := String.join <| (rtExports.qsort (fun a b => a.1 < b.1)).toList.filterMap fun (sym, n) =>
-    if decls.contains n then some s!"rt.exports[{jsString sym}] = {declId n.toString};\n" else none
+    if decls.contains n then some s!"rt.exports[{jsString sym}] = {nameId n};\n" else none
   let initCalls := String.join <| inits.toList.filterMap fun n =>
     match decls[n]? with
     | some d =>
       if d.isExtern then none
-      else if d.params.isEmpty then some s!"  () => \{ {declId n.toString}(); return null; },\n"
-      else some s!"  () => {declId n.toString}(0),\n"
+      else if d.params.isEmpty then some s!"  () => \{ {nameId n}(); return null; },\n"
+      else some s!"  () => {nameId n}(0),\n"
     | none => none
   let initFn := if initCalls.isEmpty then "" else
     "const initSteps = [\n" ++ initCalls ++ "];\nexport function initialize() { return rt.runInitSteps(initSteps); }\nrt.setInit(initialize);\n"
+  let lookup := if opts.evalAll then
+    "rt.setLookup((id) => { try { return eval(id); } catch (e) { if (e instanceof ReferenceError) return undefined; throw e; } });\nrt.setEval((code) => eval(code));\n" else ""
   let run := match mainDecl with
-    | some d => if opts.run then s!"rt.runMain({declId "main"}, {d.params.size});\n" else ""
+    | some d => if opts.run then s!"rt.runMain({nameId `main}, {d.params.size});\n" else ""
     | none => ""
-  return (header ++ bindStr ++ "\n" ++ externCode ++ body ++ "\n" ++ exports ++ errHook ++ rtExportReg ++ initFn ++ run, c.decls)
+  return (header ++ bindStr ++ "\n" ++ externCode ++ body ++ "\n" ++ exports ++ errHook ++ rtExportReg ++ lookup ++ initFn ++ run, c.decls)
+
+/-! ## Code generation at run time (`evalConst` of declarations created while the program runs, e.g. by `#eval`) -/
+
+/-- JavaScript for the declarations of the *current module* that `root` needs and that are not yet `defined` (JS identifiers of earlier
+chunks). Imported declarations are part of the base program (`--eval-all`) and referenced directly. The result is a function expression
+`(D) => { … }`; evaluated in the scope of the generated program and called with the registry object `D`, it defines the new functions and
+stores them as `D.l_…`. Used by `lean_eval_const` of the runtime through `rt.exports.lean2js_gen_chunk`. -/
+@[export lean2js_gen_chunk]
+def genChunk (env : Environment) (root : Name) (defined : Array String) : Except String String := do
+  let definedSet : HashSet String := defined.foldl (·.insert ·) {}
+  let mut work := #[root]
+  let mut seen : HashSet Name := {}
+  let mut decls : Array Decl := #[]
+  let mut earlier : HashSet String := {}
+  while work.size > 0 do
+    let n := work.back!
+    work := work.pop
+    if seen.contains n then continue
+    seen := seen.insert n
+    if definedSet.contains (nameId n) then earlier := earlier.insert (nameId n); continue
+    if (env.getModuleIdxFor? n).isSome then continue
+    let some d := findEnvDecl env n | continue
+    match d with
+    | .extern .. => throw s!"genChunk: cannot compile the extern declaration '{n}'"
+    | .fdecl _ _ _ b _ =>
+      decls := decls.push d
+      for c in bodyRefs b #[] do unless seen.contains c do work := work.push c
+  let dm0 : HashMap Name Decl := decls.foldl (fun m d => m.insert d.name d) {}
+  -- the generator also needs the signatures (arity) of the imported functions that are called
+  let mut dm := dm0
+  for d in decls do
+    if let .fdecl _ _ _ b _ := d then
+      for c in bodyRefs b #[] do
+        unless dm.contains c do
+          if let some cd := findEnvDecl env c then dm := dm.insert c cd
+  let ctx : Ctx := { decls := dm }
+  let mut body := ""
+  let mut grouped : HashSet Name := {}
+  for g in tailGroups dm0 decls do
+    for d in g do grouped := grouped.insert d.name
+    body := body ++ (← genGroup ctx g)
+  for d in decls do
+    unless grouped.contains d.name do body := body ++ (← genFDecl ctx d)
+  let pre := if earlier.isEmpty then "" else s!"const \{ {", ".intercalate earlier.toList} } = D;\n"
+  let post := String.join <| decls.toList.map fun d => s!"D.{nameId d.name} = {nameId d.name};\n"
+  return s!"(D) => \{\n" ++ pre ++ body ++ post ++ "}"
 
 end Lean2js.CodegenIR

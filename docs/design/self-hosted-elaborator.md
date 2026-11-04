@@ -1,0 +1,36 @@
+# The Lean frontend running as JavaScript (self-009)
+
+`selfhost/Elab.lean` is an ordinary Lean program: it reads Lean source from stdin, runs the Lean parser/elaborator/compiler on it and prints
+the messages (`#check`, `#eval`, errors). `lake exe lean2js selfhost/Elab.lean --init-all --eval-all --run --out out/selfhost.js`
+turns it — together with the whole of `Lean`, `Std` and `Init` — into JavaScript; then
+
+    LEAN_SYSROOT=$(lean --print-prefix) node out/selfhost.js < selfhost/sample2.lean
+
+elaborates the input with **no native Lean code** except the Node runtime (`runtime/*.js`). The output is identical to
+`lean --run selfhost/Elab.lean` (differential test `tests/e2e/selfhost.lean`). Covered by the test: pattern-matching definitions,
+structures with `deriving Repr`, inductive types (kernel: vendored lean4lean), `simp`, `decide`, `#check`, `#eval`.
+
+## How the pieces fit
+
+| Native Lean component | In the JS-hosted compiler |
+|---|---|
+| runtime (`lean.h`, objects, `Nat`, strings, IO) | `runtime/lean_rt.js`, `lean_num.js`, `lean_fs.js`, `lean_sys.js` |
+| `Expr`/`Level`/`instantiateMVars` (C++) | `runtime/lean_expr.js` ([lean-expr-prims.md](lean-expr-prims.md)) |
+| kernel `add_decl`, inductive types | `Lean2js/Kernel.lean` → vendored lean4lean, trusting (`check := false`) |
+| `casesOn` construction (C++) | `Lean2js/KernelCasesOn.lean` |
+| module initialization | `--init-all` ([module-initializers.md](module-initializers.md)) |
+| `.olean` mmap | `runtime/lean_olean.js` ([olean-loader.md](olean-loader.md)) |
+| threads/tasks | cooperative scheduler in `lean_rt.js` ([tasks.md](tasks.md)) |
+| `evalConst` of imported declarations (macros, `syntax` descriptors) | `--eval-all`: every IR declaration is emitted; the program registers `rt.setLookup(id => eval(id))` (direct `eval` in the module scope) and `rt.nameId` maps a `Name` to the mangled identifier, the same encoding as `JsUtil.nameId` |
+| `evalConst` of *new* declarations (`#eval`) | `CodegenIR.genChunk` (exported as `lean2js_gen_chunk`, compiled into the program): IR of the current module's declarations → JS text → `eval`; regenerated for each `evalConst` because names like `_eval` are reused |
+| interpreter / native code for `#eval` | not needed: the IR → JS generator is the evaluator |
+
+Identifiers: `nameId` encodes a `Name` by components (`l_` + components joined by `$$`, special characters `$u<hex>_`, numeric components
+`$n<k>`), instead of `Name.toString`, which is ambiguous.
+
+## Limits / known gaps
+
+* Size and startup: the file is 450 MB (`--init-all --eval-all`) and a run takes ~40 s before the first command ([self-008](../tickets/self-008-bundle-startup-size.md)).
+* No type checking in the kernel (`check := false`); `kernel.whnf/isDefEq/check` externs are stubs; Environment-level `decide` with `Decidable` instances uses `Meta` and works.
+* Unresolved promises are treated as dropped when nothing else can run (heuristic, see tasks.md).
+* `import` of anything but `Init`/`Std`/`Lean` oleans under `$LEAN_SYSROOT/lib/lean` was not tested; evaluation of declarations from other modules needs their code (`--eval-all` only covers what the program was built with).

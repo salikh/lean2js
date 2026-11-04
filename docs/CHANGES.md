@@ -2,6 +2,10 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-05 — [self-009-milestone-hello-elab](tickets/self-009-milestone-hello-elab.md) **reached**: `selfhost/Elab.lean` (the Lean frontend) elaborates and evaluates Lean source as JavaScript, output identical to native;
+  `--eval-all`, `evalConst` incl. run-time codegen (`genChunk`), structural `nameId` mangling, cooperative tasks/promises ([design](design/tasks.md)), stdin `read`; tests `selfhost`, `tasks`, `stdinread`, `casesOn`, `kernel`.
+  Design: [design/self-hosted-elaborator.md](design/self-hosted-elaborator.md).
+
 * 2026-11-04 — [self-005-question-kernel-strategy](tickets/self-005-question-kernel-strategy.md): vendored lean4lean + Batteries; `Lean2js/Kernel.lean` (trusting add_decl incl. inductives),
   `Lean2js/KernelCasesOn.lean` (casesOn); ownership adapters for `@[export]` implementations of `@&` externs; `Expr` debug printer; tests `kernel`, `casesOn`; test scripts no longer inherit stdin.
 

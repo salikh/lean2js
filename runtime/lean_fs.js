@@ -171,5 +171,4 @@ export function install(P, h) {
   P.lean_dynlib_load = unsupported("dynamic library loading");
   P.lean_dynlib_get = () => 0;
   P.lean_dynlib_symbol_run_as_init = unsupported("dynamic library loading");
-  P.lean_eval_const = (_env, _opts, _name) => ({ t: 0, rc: 1, n: 1, a0: "native evaluation (evalConst) is not supported in this JavaScript runtime" });   // Except.error
 }

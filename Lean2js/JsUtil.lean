@@ -5,6 +5,8 @@ import Std.Data.HashMap
 
 namespace Lean2js.JsUtil
 
+open Lean (Name)
+
 private def isIdentChar (c : Char) : Bool := c.isAlphanum && c.toNat < 128 || c == '_'
 
 /-- Mangle a (dotted) Lean name into a valid JS identifier. -/
@@ -14,8 +16,26 @@ def mangle (prefix_ : String) (s : String) : String :=
     else if c == '.' then acc.push '$'
     else acc ++ s!"$u{String.ofList (Nat.toDigits 16 c.toNat)}_"
 
-/-- JS identifier of a Lean declaration. -/
+/-- JS identifier of a Lean declaration given as a string (only for fixed names like `main`; use `nameId` for names). -/
 def declId (n : String) : String := mangle "l_" n
+
+/-- Escapes a name component: identifier characters are kept, any other character becomes `$u<hex>_` (so `$` only occurs in escapes,
+as component separator `$$`, or in the prefix `$n` of numeric components). -/
+private def escapeComp (s : String) : String :=
+  s.foldl (init := "") fun acc c =>
+    if isIdentChar c then acc.push c else acc ++ s!"$u{String.ofList (Nat.toDigits 16 c.toNat)}_"
+
+/-- Unambiguous encoding of a hierarchical name (by components, not via `Name.toString`, which can collide and depends on escaping rules);
+the runtime reproduces it in `nameId` of `runtime/lean_rt.js` to resolve `evalConst`. -/
+def nameBody (n : Name) : String :=
+  let comps := n.components.map fun
+    | .str _ s => escapeComp s
+    | .num _ k => s!"$n{k}"
+    | .anonymous => ""
+  "$$".intercalate comps
+
+/-- JS identifier of the Lean declaration `n`. -/
+def nameId (n : Name) : String := "l_" ++ nameBody n
 
 def jsString (s : String) : String := (Lean.Json.str s).compress
 

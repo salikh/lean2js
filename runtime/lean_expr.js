@@ -331,6 +331,7 @@ export function install(P, h) {
       default: return nameStr(l.a0);
     }
   };
+  P.__nameStr = nameStr;                        // for diagnostics in other runtime files
   function exprStr(e, p = false) {
     const paren = (s) => (p ? `(${s})` : s);
     switch (e.t) {

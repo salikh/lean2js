@@ -34,7 +34,7 @@ function forEachChild(o, f) {
   if (o instanceof Clo) { for (let i = 0; i < o.args.length; i++) f(o.args[i]); return; }
   if (o instanceof Ref) { f(o.v); return; }
   if (o instanceof Thunk) { if (o.c !== null) f(o.c); f(o.v); return; }
-  if (o instanceof Task) { if (o.pend !== true) f(o.v); return; }
+  if (o instanceof Task) { if (!o.pend) f(o.v); return; }
   const n = o.n;
   if (n === undefined) return;               // typed arrays etc.
   for (let i = 0; i < n; i++) f(o["a" + i]);
@@ -587,38 +587,118 @@ P.lean_thunk_get_own = (t) => {                              // t borrowed, resu
   return t.v;
 };
 P.lean_thunk_get = P.lean_thunk_get_own;
-class Task { constructor(v) { this.v = v; this.rc = 1; } }
+/* ---- Tasks and promises: a cooperative, single-threaded scheduler ----
+ * A task is either finished (`pend === false`, value in `v`) or pending: its computation sits in `runQueue` (or waits for another
+ * task / a promise, recorded in `waiters`). Pending tasks run when somebody waits for them (`Task.get`, `IO.wait`) — the waiter runs
+ * queued jobs, nested on its own stack, until the awaited task has finished — and at the end of `main`. A job always runs to
+ * completion; a wait that finds the queue empty while its task is unresolved is a genuine deadlock. */
+class Task {
+  constructor(v) { this.v = v; this.rc = 1; this.pend = false; this.waiters = null; }
+}
+const runQueue = [];
+let queueHead = 0;
+function newPendingTask() { const t = new Task(0); t.pend = true; t.waiters = []; return t; }
+function resolveTask(t, v) {
+  t.v = v; t.pend = false;
+  const ws = t.waiters; t.waiters = null;
+  for (const w of ws) w();
+}
+/** Runs `job` (a function returning the task's value) later; returns the pending result task. */
+function spawnJob(job) {
+  const t = newPendingTask();
+  runQueue.push(() => resolveTask(t, job()));
+  return t;
+}
+/** After `src` has finished, run `job(src.v)` (a function of the value) later and resolve the returned task with its result. */
+function afterTask(src, job) {
+  const t = newPendingTask();
+  const start = () => runQueue.push(() => resolveTask(t, job(src.v)));
+  if (src.pend) src.waiters.push(start); else start();
+  return t;
+}
+/** Like `afterTask` but `job` returns a Task whose value becomes the result (bind). */
+function afterTaskBind(src, job) {
+  const t = newPendingTask();
+  const start = () => runQueue.push(() => {
+    const inner = job(src.v);
+    const fin = () => resolveTask(t, inner.v);
+    if (inner.pend) inner.waiters.push(fin); else fin();
+  });
+  if (src.pend) src.waiters.push(start); else start();
+  return t;
+}
+function runOneJob() {
+  if (queueHead >= runQueue.length) return false;
+  const job = runQueue[queueHead++];
+  if (queueHead > 1024 && queueHead * 2 > runQueue.length) { runQueue.splice(0, queueHead); queueHead = 0; }
+  job();
+  return true;
+}
+function waitFor(t) {
+  while (t.pend) {
+    if (runOneJob()) continue;
+    // Nothing can run any more. In native Lean a promise that is dropped without being resolved yields `none`; we do not track
+    // drops, so the oldest still-unresolved promise is treated as dropped (a heuristic of last resort, see docs/design/tasks.md).
+    let dropped = false;
+    while (pendingPromises.length > 0) {
+      const p = pendingPromises.shift();
+      if (p.pend) { if (traceTasks) console.error("task: treating unresolved promise as dropped"); resolveTask(p, 0); dropped = true; break; }
+    }
+    if (!dropped) throw new Error("deadlock: waiting for a task or promise that can never be resolved");
+  }
+}
+const pendingPromises = [];
+const traceTasks = !!(globalThis.process && globalThis.process.env && globalThis.process.env.LEAN2JS_TRACE_TASKS);
+/** Runs all queued jobs (used at the end of `main`). */
+export function runPendingTasks() { while (runOneJob()); }
+
 P.lean_task_pure = (v) => new Task(v);
-P.lean_task_spawn = (c, _prio) => new Task(ap(c, [0]));
-P.lean_task_get_own = (t) => { inc(t.v); const v = t.v; dec(t); return v; };
-P.lean_task_get = (t) => t.v;
-P.lean_task_map = (f, t, _prio, _sync) => { inc(t.v); const v = ap(f, [t.v]); dec(t); return new Task(v); };
-P.lean_task_bind = (t, f, _prio, _sync) => { inc(t.v); const r = ap(f, [t.v]); dec(t); return r; };
+P.lean_task_spawn = (c, _prio) => spawnJob(() => ap(c, [0]));
+P.lean_task_get_own = (t) => { waitFor(t); inc(t.v); const v = t.v; dec(t); return v; };
+P.lean_task_get = (t) => { waitFor(t); return t.v; };
+P.lean_task_map = (f, t, _prio, sync) => {
+  if (sync && !t.pend) { inc(t.v); return new Task(ap(f, [t.v])); }
+  inc(t);
+  return afterTask(t, (v) => { inc(v); return ap(f, [v]); });
+};
+P.lean_task_bind = (t, f, _prio, _sync) => {
+  inc(t);
+  return afterTaskBind(t, (v) => { inc(v); return ap(f, [v]); });
+};
 // BaseIO.asTask / mapTask / bindTask: the actions are BaseIO (raw result, state token passed as 0)
-P.lean_io_as_task = (act, _prio) => new Task(ap(act, [0]));
-P.lean_io_map_task = (f, t, _prio, _sync) => { inc(t.v); const v = ap(f, [t.v, 0]); dec(t); return new Task(v); };
-P.lean_io_bind_task = (t, f, _prio, _sync) => { inc(t.v); const r = ap(f, [t.v, 0]); dec(t); return r; };
-P.lean_io_wait = (t) => { inc(t.v); const v = t.v; dec(t); return v; };
+P.lean_io_as_task = (act, _prio) => spawnJob(() => ap(act, [0]));
+P.lean_io_map_task = (f, t, _prio, sync) => {
+  if (sync && !t.pend) { inc(t.v); return new Task(ap(f, [t.v, 0])); }
+  inc(t);
+  return afterTask(t, (v) => { inc(v); return ap(f, [v, 0]); });
+};
+P.lean_io_bind_task = (t, f, _prio, _sync) => {
+  inc(t);
+  return afterTaskBind(t, (v) => { inc(v); return ap(f, [v, 0]); });
+};
+P.lean_io_wait = (t) => { waitFor(t); inc(t.v); const v = t.v; dec(t); return v; };
+P.lean_io_wait_any = (tasks) => {
+  const ts = listToArray(tasks);
+  for (;;) {
+    const d = ts.find((t) => !t.pend);
+    if (d !== undefined) { inc(d.v); return d.v; }
+    if (!runOneJob()) throw new Error("deadlock: IO.waitAny on tasks that can never finish");
+  }
+};
 P.lean_io_cancel = (_t) => unit;
 P.lean_io_check_canceled = () => 0;
-P.lean_io_has_finished = (_t) => 1;
+P.lean_io_has_finished = (t) => bool(!t.pend);
 
-/* ---- self-007: promises (cooperative, single-threaded), Int64, misc runtime queries ---- */
-// A Promise resolves at most once; `result?` tasks over an unresolved promise cannot be waited for (no scheduler): deadlock error.
-class Promise_ { constructor() { this.rc = 1; this.done = false; this.val = 0; } }
-class PTask extends Task {
-  constructor(p) { super(0); this.p = p; }
-  get v() { if (!this.p.done) throw new Error("deadlock: waiting for an unresolved Promise (no scheduler)"); return some(this.p.val); }
-  set v(_) {}
-}
+/* ---- promises: `result?` is a task that finishes when the promise is resolved ---- */
+class Promise_ { constructor() { this.rc = 1; this.task = newPendingTask(); pendingPromises.push(this.task); } }
 P.lean_io_promise_new = () => new Promise_();
-P.lean_io_promise_resolve = (value, p) => { if (!p.done) { p.done = true; p.val = value; } else dec(value); return unit; };
-P.lean_io_promise_result_opt = (p) => { const t = new PTask(p); Object.defineProperty(t, "pend", { get() { return !p.done; } }); return t; };
+P.lean_io_promise_resolve = (value, p) => { if (p.task.pend) resolveTask(p.task, some(value)); else dec(value); return unit; };
+P.lean_io_promise_result_opt = (p) => { inc(p.task); return p.task; };
 P.lean_option_get_or_block = (o) => {
   if (typeof o === "object") { inc(o.a0); const v = o.a0; dec(o); return v; }
   throw new Error("deadlock: Option.getOrBlock! on none (dropped Promise)");
 };
-P.lean_io_get_task_state = (t) => (t.pend === true ? 0 : 2);
+P.lean_io_get_task_state = (t) => (t.pend ? 0 : 2);
 P.lean_io_get_tid = () => 1n;
 P.lean_internal_get_hardware_concurrency = () => 1;
 P.lean_io_basemutex_new = () => ({ rc: 1 });
@@ -658,6 +738,28 @@ installNum(P, { bool });
 installSys(P, { inc, dec, ap, some, bool, unit, okR, errR, objId: (o) => P.lean_ptr_addr(o), P });
 installExpr(P, { inc, dec, ap, some, exports, mixHash: P.lean_uint64_mix_hash, sget });
 
+P.lean_eval_const = (_env, _opts, name) => {
+  const id = nameId(name);
+  let f = lookupFn === null ? undefined : lookupFn(id);
+  let genError = null;
+  if (f === undefined && evalFn !== null && exports.lean2js_gen_chunk !== undefined) {
+    // a declaration of the module being elaborated: generate JS from its IR now
+    // Always regenerate the whole closure of local declarations: names like `_eval` are reused by every `#eval`, so caching by name
+    // would return stale code (the code of a few user declarations is small).
+    const defined = []; defined.rc = 1;
+    inc(_env); inc(name);
+    const r = exports.lean2js_gen_chunk(_env, name, defined);
+    if (r.t === 1) { const D = {}; evalFn(r.a0)(D); f = D[id]; }
+    else genError = r.a0;
+  }
+  if (typeof f !== "function") {
+    if (genError !== null) return { t: 0, rc: 1, n: 1, a0: genError };
+    if (globalThis.process && globalThis.process.env.LEAN2JS_TRACE_EVAL) console.error("evalConst: not found", id);
+    return { t: 0, rc: 1, n: 1, a0: `evalConst: no compiled code for '${P.__nameStr(name)}' (transpile with --eval-all)` };   // Except.error
+  }
+  return { t: 1, rc: 1, n: 1, a0: f.length === 0 ? f() : new Clo(f, f.length, []) };                                          // Except.ok
+};
+
 /* ---------- IO ---------- */
 
 function fdWrite(fd, s) {                    // synchronous, ordered, works from worker threads
@@ -694,14 +796,35 @@ function getLine() {
   if (nodeFs) return nodeGetLine();
   return "";
 }
+/** `Stream.read`: up to `n` bytes (empty at end of input). */
+let carry = new Uint8Array(0);
+function stdinRead(n) {
+  if (stdinLine) {
+    if (carry.length === 0) carry = new TextEncoder().encode(stdinLine());
+    const r = carry.slice(0, n); carry = carry.slice(n); return r;
+  }
+  if (nodeFs) {
+    if (inBuf.length === 0) {
+      const chunk = Buffer.alloc(65536);
+      let k = 0;
+      for (;;) {
+        try { k = nodeFs.readSync(0, chunk, 0, chunk.length, null); break; }
+        catch (e) { if (e.code === "EAGAIN") continue; if (e.code === "EOF") { k = 0; break; } throw e; }
+      }
+      inBuf = Buffer.from(chunk.subarray(0, k));
+    }
+    const r = new Uint8Array(inBuf.subarray(0, n)); inBuf = inBuf.subarray(n); return r;
+  }
+  return new Uint8Array(0);
+}
 
-function mkStream(sink, readLine) {
+function mkStream(sink, readLine, readBytes = () => new Uint8Array(0)) {
   // IO.FS.Stream.mk flush read write getLine putStr isTty; fields are closures taking the state token last.
   const clo = (f, n) => { const c = new Clo(f, n, []); c.rc = 0; return c; };
   return {
     t: 0, rc: 0, n: 6,
     a0: clo((_w) => okR(unit), 1),
-    a1: clo((_n, _w) => okR(mkBytes(new Uint8Array(0))), 2),
+    a1: clo((n, _w) => okR(mkBytes(readBytes(Number(n)))), 2),
     a2: clo((_b, _w) => okR(unit), 2),
     a3: clo((_w) => okR(readLine()), 1),
     a4: clo((s, _w) => { sink(s); return okR(unit); }, 2),
@@ -711,7 +834,7 @@ function mkStream(sink, readLine) {
 const mkBytes = (b) => { b.rc = 1; return b; };
 const stdoutStream = mkStream((s) => stdoutSink(s), () => "");
 const stderrStream = mkStream((s) => stderrSink(s), () => "");
-const stdinStream = mkStream((_s) => {}, () => getLine());
+const stdinStream = mkStream((_s) => {}, () => getLine(), stdinRead);
 const curStreams = { out: stdoutStream, err: stderrStream, in: stdinStream };
 P.lean_get_stdout = () => { inc(curStreams.out); return curStreams.out; };
 P.lean_get_stderr = () => { inc(curStreams.err); return curStreams.err; };
@@ -775,6 +898,28 @@ export function runInitSteps(steps) {
     pending = failed;
   }
 }
+/** Name lookup for `evalConst`, emitted by `--eval-all`: JS identifier → the compiled function (module-scope `eval`). */
+let lookupFn = null;
+export function setLookup(f) { lookupFn = f; }
+/** Direct `eval` in the scope of the generated program (so that new code can call its functions); see `lean2js_gen_chunk`. */
+let evalFn = null;
+export function setEval(f) { evalFn = f; }
+
+/** JS identifier of a Lean name; must agree with `Lean2js.JsUtil.nameId`. */
+function nameId(n) {
+  const comps = [];
+  for (; typeof n !== "number"; n = n.a0) {
+    if (n.t === 1) {
+      let e = "";
+      for (const ch of n.a1) {
+        const c = ch.codePointAt(0);
+        e += (c < 128 && /[A-Za-z0-9_]/.test(ch)) ? ch : "$u" + c.toString(16) + "_";
+      }
+      comps.push(e);
+    } else comps.push("$n" + String(n.a1));
+  }
+  return "l_" + comps.reverse().join("$$");
+}
 let initFn = null;
 /** Registers the generated `initialize()` (returns null, or an error result); run by `runMain` before `main`. */
 export function setInit(f) { initFn = f; }
@@ -822,7 +967,7 @@ function runMainHere(main, arity, args) {
   try {
     initDepth++;
     try { r = initFn ? initFn() : null; } finally { initDepth--; }   // module initializers; an error result aborts like in a native executable
-    if (r === null) r = arity >= 2 ? main(listFromArray(args), 0) : main(0);
+    if (r === null) { r = arity >= 2 ? main(listFromArray(args), 0) : main(0); runPendingTasks(); }
   } catch (e) {
     if (e instanceof ExitSignal) {
       if (isNode) globalThis.process.exitCode = e.code;
