@@ -2,6 +2,11 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-04 — [self-005-question-kernel-strategy](tickets/self-005-question-kernel-strategy.md): vendored lean4lean + Batteries; `Lean2js/Kernel.lean` (trusting add_decl incl. inductives),
+  `Lean2js/KernelCasesOn.lean` (casesOn); ownership adapters for `@[export]` implementations of `@&` externs; `Expr` debug printer; tests `kernel`, `casesOn`; test scripts no longer inherit stdin.
+
+* 2026-11-04 — [tools-001-demo-and-test-scripts](tickets/tools-001-demo-and-test-scripts.md): `demo.sh` (5 tiny programs in `demo/`, with timings) and `test.sh` (all tests, `--quick`).
+
 * 2026-11-04 — [self-006-olean-loader](tickets/self-006-olean-loader.md): `runtime/lean_olean.js` reads real .olean files; lazy scalar-field decoding (`rt.sget`/`uget` emitted by CodegenIR);
   Nat/Int primitives accept boxed-scalar numbers; `importModules Init` works in JS; tests `olean`, `import` ([design](design/olean-loader.md)).
 
@@ -46,5 +51,6 @@ Completed tasks, newest first. Each entry links the ticket and gives date and a 
   golden tests in `tests/run.sh`; schema in
   [design/lcnf-json.md](design/lcnf-json.md). Open design choices were split into
   tickets lcnf-002 … lcnf-006 (provisionally decided, revisable).
+
 * 2026-11-04 — Initial empty Lean 4 project setup (`lakefile.toml`, `Lean2js` library,
   `lean2js` hello-world executable).

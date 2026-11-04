@@ -320,7 +320,35 @@ export function install(P, h) {
   }
   P.lean_expr_quick_lt = (a, b) => bool(exprLt(a, b, true));
   P.lean_expr_lt = (a, b) => bool(exprLt(a, b, false));
-  P.lean_expr_dbg_to_string = (_e) => "<expr>";
+  // Debug printer (approximation of the C++ `expr_to_string`: names, application, binders, sorts, literals, loose bvars as #i)
+  const nameStr = (n) => { const ps = []; for (; typeof n !== "number"; n = n.a0) ps.push(String(n.a1)); return ps.length ? ps.reverse().join(".") : "[anonymous]"; };
+  const lvlStr = (l) => {
+    if (typeof l === "number") return "0";
+    switch (l.t) {
+      case 1: { let k = 1, x = l.a0; while (typeof x !== "number" && x.t === 1) { k++; x = x.a0; } return typeof x === "number" ? String(k) : `${lvlStr(x)}+${k}`; }
+      case 2: return `(max ${lvlStr(l.a0)} ${lvlStr(l.a1)})`;
+      case 3: return `(imax ${lvlStr(l.a0)} ${lvlStr(l.a1)})`;
+      default: return nameStr(l.a0);
+    }
+  };
+  function exprStr(e, p = false) {
+    const paren = (s) => (p ? `(${s})` : s);
+    switch (e.t) {
+      case T.bvar: return `#${e.a0}`;
+      case T.fvar: case T.mvar: return nameStr(e.a0);
+      case T.sort: return typeof e.a0 === "number" ? "Prop" : paren(`Sort ${lvlStr(e.a0)}`);
+      case T.const: { const ls = []; for (let l = e.a1; typeof l !== "number"; l = l.a1) ls.push(lvlStr(l.a0)); return nameStr(e.a0) + (ls.length ? `.{${ls.join(", ")}}` : ""); }
+      case T.app: { const args = []; let f = e; while (f.t === T.app) { args.push(f.a1); f = f.a0; } args.reverse(); return paren([exprStr(f, true), ...args.map((a) => exprStr(a, true))].join(" ")); }
+      case T.lam: return paren(`fun (${nameStr(e.a0)} : ${exprStr(e.a1)}) => ${exprStr(e.a2)}`);
+      case T.forallE: return paren(`forall (${nameStr(e.a0)} : ${exprStr(e.a1)}), ${exprStr(e.a2)}`);
+      case T.letE: return paren(`let ${nameStr(e.a0)} : ${exprStr(e.a1)} := ${exprStr(e.a2)}; ${exprStr(e.a3)}`);
+      case T.lit: return e.a0.t === 0 ? String(e.a0.a0) : JSON.stringify(e.a0.a0);
+      case T.mdata: return exprStr(e.a1, p);
+      case T.proj: return `${exprStr(e.a2, true)}.${Number(e.a1) + 1}`;
+      default: return "?";
+    }
+  }
+  P.lean_expr_dbg_to_string = (e) => exprStr(e);
 
   /* ---- find / replace with Lean callbacks ---- */
   function children(m) {

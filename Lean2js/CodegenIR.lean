@@ -141,7 +141,7 @@ partial def tailCallees (arity : Name → Option Nat) (b : FnBody) (acc : Array 
   | b => if b.isTerminal then acc else tailCallees arity b.body acc
 
 /-- JS wrapper of an extern primitive; also returns the runtime binding `(js name, prim key)` it needs. -/
-def genExternWrapper (exports : HashMap String Name) (d : Decl) : String × Option (String × String) :=
+def genExternWrapper (exports : HashMap String Name) (decls : HashMap Name Decl) (d : Decl) : String × Option (String × String) :=
   match d with
   | .fdecl .. => ("", none)
   | .extern f ps _ data =>
@@ -150,7 +150,14 @@ def genExternWrapper (exports : HashMap String Name) (d : Decl) : String × Opti
       | some (.standard _ fn) => fn
       | _ => f.toString
     if let some impl := exports[key]? then
-      (s!"function {declId f.toString}({formals}) " ++ "{ " ++ s!"return {declId impl.toString}({formals}); " ++ "}\n", none)
+      -- `@[export]` implementations take owned parameters, the extern declaration may borrow (`@&`): adapt the reference counts
+      let implPs := match decls[impl]? with | some i => i.params | none => ps
+      let pairs := ps.toList.zip implPs.toList |>.mapIdx fun i (e, m) => (i, e.borrow, m.borrow)
+      let incs := String.join <| pairs.filterMap fun (i, eb, mb) => if eb && !mb then some s!"rt.inc(a{i}); " else none
+      let decsAfter := String.join <| pairs.filterMap fun (i, eb, mb) => if !eb && mb then some s!" rt.dec(a{i});" else none
+      let call := s!"{declId impl.toString}({formals})"
+      let body := if decsAfter.isEmpty then s!"{incs}return {call};" else s!"{incs}const r = {call};{decsAfter} return r;"
+      (s!"function {declId f.toString}({formals}) " ++ "{ " ++ body ++ " }\n", none)
     else
       let binding := mangle "e_" key
       let used := (ps.toList.mapIdx fun i p => (i, p)).filter (fun (_, p) => !(p.ty.isErased || p.ty.isVoid))
@@ -333,7 +340,7 @@ def genProgram (env : Environment) (fileName : String) (opts : Options) : M (Str
     if grouped.contains d.name then continue
     match d with
     | .extern .. =>
-      let (code, bind?) := genExternWrapper c.exports d
+      let (code, bind?) := genExternWrapper c.exports decls d
       externCode := externCode ++ code
       if let some bk := bind? then
         unless externBinds.any (·.1 == bk.1) do externBinds := externBinds.push bk

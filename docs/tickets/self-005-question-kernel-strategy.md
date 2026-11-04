@@ -26,3 +26,37 @@ D. **Compile the C++ kernel to wasm (emscripten)** (suggested by user 2026-11-04
    lean4lean (digama0/lean4lean, kim-em mirror): complete typechecker in Lean, ~50% slower than C++, only `reduceBool` unsupported — transpilable by our pipeline, so one object representation.
 
 Recommendation: A now (milestone self-009), then C (lean4lean) for checking; keep D as fallback if C is too slow/unbuildable. Action: investigate lean4lean version compatibility with 4.35 and xeus-lean's build recipe.
+
+## Progress and open question (2026-11-04)
+
+**Done (step A, non-inductive):** `Lean2js/Kernel.lean` — own trusting implementation of `lean_add_decl`, `lean_add_decl_without_checking`,
+`lean_elab_add_decl`, `lean_elab_add_decl_without_checking` for axioms, definitions, theorems, opaques and mutual definitions (no type checking;
+`alreadyDeclared` is reported). It is exported under the C++ symbols, so `lean2js` resolves the kernel `extern`s to it when a program imports the
+module (`import Lean2js.Kernel`; do not link it into the `lean2js` exe). `CodegenIR.genExternWrapper` now adapts ownership between `@&` extern
+parameters and the (necessarily owned) parameters of `@[export]` implementations. Test: `tests/e2e/kernel.lean` (real C++ kernel natively vs. this module in JS).
+
+**Open (needs a human decision):** inductive types (`inductDecl`: recursors, `numNested`, large elimination) and `lean_mk_cases_on`. Options:
+
+1. **(Recommended) Vendor the core of lean4lean** (https://github.com/digama0/lean4lean, Apache-2.0): 17 files / ~3.6k lines (`Lean4Lean/{Declaration,
+   Environment,Environment/Basic,EquivManager,Expr,ForEachExprV,FuelConfig,Inductive/Add,Inductive/Reduce,Instantiate,Level,List,LocalContext,
+   Primitive,PtrEq,Quot,TypeChecker}.lean`) into `vendor/lean4lean/` and add `batteries` (tag v4.35.0, used for `UnionFind`/`open private`) as a Lake
+   dependency. Its `addDecl env decl (check := false)` handles every declaration kind including inductives (the same code that the Lean team's
+   `leanchecker`/`bin/lean4lean` ecosystem uses; the toolchain ships a `lean4lean` binary but not the library). Then `Lean2js/Kernel.lean` delegates to it,
+   and a full type-checking mode comes for free (`check := true`). `mk_cases_on` still has to be written (small, in Lean).
+   *I was about to do this when the tool permission check blocked fetching/vendoring third-party code and adding a git dependency, so nothing was changed.*
+2. Write the inductive-type processing myself in Lean from the kernel specification (recursor generation, nested inductives, elimination-level rules).
+   Large (the C++ is ~1500 lines; its sources are not shipped in the toolchain), and without a type inferer for "is this field a proof".
+3. Do not support user-defined inductive types in the JS-hosted compiler for now (structures, `inductive`, `deriving` fail); enough for the
+   `def x := 1` milestone (self-009) but not for realistic programs.
+
+Please answer: vendor lean4lean + Batteries (1)? If yes, say so explicitly (and I will fetch the pinned commit recorded in `vendor/lean4lean/UPSTREAM_COMMIT`).
+
+## Decision and result (2026-11-04, later)
+
+The user approved option 1 (vendor lean4lean + Batteries). Done: `vendor/lean4lean` (17 files, upstream commit in `UPSTREAM_COMMIT`, Apache-2.0),
+`batteries` v4.35.0 as a Lake dependency, `lean-toolchain` pinned to `leanprover/lean4:v4.35.0`. Local patches (marked `-- lean2js:`):
+`Environment/Basic.lean` (dropped `empty`/`finalizeImport`, which use private constructors), `TypeChecker.lean` (`reduceBool`/`reduceNat` names),
+`Primitive.lean` (removed the compile-time self-test, which fails on 4.35's `Nat.div`). `Lean2js/Kernel.lean` now delegates to
+`Lean4Lean.addDecl … (check := false)` after a redeclaration check; `Lean2js/KernelCasesOn.lean` implements `lean_mk_cases_on` (identical to the C++
+result on 35 Init types incl. nested `Lean.Syntax`; tests `casesOn`, `kernel`). Open: `check := true` (fix `Primitive.checkDef` for 4.35), kernel
+`whnf`/`isDefEq`/`check` externs (`lean_kernel_*`), mutual-inductive tests once user inductives can be declared in JS.

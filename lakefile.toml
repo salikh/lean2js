@@ -14,3 +14,15 @@ supportInterpreter = true
 name = "lcnf-dump"
 root = "LcnfDump"
 supportInterpreter = true
+
+# Kernel for the JS port of the Lean compiler (docs/tickets/self-005): vendored core of lean4lean
+# (https://github.com/digama0/lean4lean, Apache-2.0, see vendor/lean4lean/); it needs Batteries.
+[[require]]
+name = "batteries"
+git = "https://github.com/leanprover-community/batteries"
+rev = "v4.35.0"
+
+[[lean_lib]]
+name = "Lean4Lean"
+srcDir = "vendor/lean4lean"
+globs = ["Lean4Lean.+"]
