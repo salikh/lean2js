@@ -1,7 +1,7 @@
 # Question: thin layer or the real FileWorker?
 
 Parent: [info-001](info-001-infoview-epic.md)
-Status: **question** — provisional answer = recommended (no work starts before the self-* tickets are done)
+Status: **decided 2026-11-05** — option A (thin layer over the InfoTree); the real FileWorker is not planned. No work starts before the self-* tickets are done.
 
 Two ways to obtain infoview data in the JS-hosted frontend:
 
@@ -15,3 +15,7 @@ B. **The real language server.** Compile `Lean.Server.FileWorker` (and `Watchdog
 **Recommended:** start with A (fast, no scheduler subtleties), structured so that the response shapes are the LSP shapes; add B afterwards as an alternative backend behind the same API
 (info-003 keeps `goalsAt(request) → LSP-shaped JSON`), and use B-vs-native-server transcripts as the oracle in info-008.
 Open sub-question: for B, run only the FileWorker (one file, no watchdog/file watching) — recommended yes.
+
+## Answer
+
+Stick with A.

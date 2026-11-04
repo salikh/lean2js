@@ -26,7 +26,7 @@ Results are plain JSON (and a text rendering), reusable by a web UI and by tests
 
 ## Subtickets
 
-* [info-002-question-architecture](info-002-question-architecture.md) — thin layer over the InfoTree **vs.** running the real `FileWorker` behind an in-memory LSP transport (recommended answer inside).
+* [info-002-question-architecture](info-002-question-architecture.md) — decided: thin layer over the InfoTree (the real `FileWorker` behind an in-memory LSP transport is *not* planned).
 * [info-003-api-design](info-003-api-design.md) — the programmer-facing API: sessions, prefix mode, cursor mode, positions, JSON shapes.
 * [info-004-infotree-goals](info-004-infotree-goals.md) — info trees + plain goals / term goals / messages at a position in the self-hosted frontend.
 * [info-005-session-caching](info-005-session-caching.md) — a long-lived session (imported environment and snapshots cached; typing a character must not re-import `Init`).

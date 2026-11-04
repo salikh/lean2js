@@ -2,6 +2,8 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-05 — [self-010-promise-drop-heuristic](tickets/self-010-promise-drop-heuristic.md): dropped promises detected by reference counting (`dropPromise` in `free`), fallback counted/strict; `.env` files in tests/e2e; info-002 decided (thin layer).
+
 * 2026-11-05 — browser version of the self-hosted frontend: `web/selfhost/` (driver, worker option, `build.sh`, `serve.mjs`, `test-browser.sh`); `LEAN2JS_ENV` for `IO.getEnv` outside Node; fetch pool; stack-size finding documented.
 
 * 2026-11-05 — [info-001-infoview-epic](tickets/info-001-infoview-epic.md): plan for an infoview equivalent (tickets info-002 … info-008); no code. Browser build of the self-hosted frontend (`web/selfhost/`, verified in headless Chrome).

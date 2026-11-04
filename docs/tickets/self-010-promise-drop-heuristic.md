@@ -1,7 +1,7 @@
 # Investigate: unresolved promises are guessed to be "dropped"
 
 Parent: [self-001](self-001-compiler-to-js-epic.md) | design: [design/tasks.md](../design/tasks.md)
-Status: **open — to investigate / confirm later** (filed 2026-11-05 on a side-agent review note)
+Status: **mostly resolved** (2026-11-05): dropped promises are now detected by reference counting; the heuristic never fires on the test corpus. Remaining: widen the corpus (step 4) and decide whether to keep the fallback. Originally filed on a side-agent review note.
 
 ## Concern
 
@@ -35,3 +35,13 @@ Until this ticket is resolved, treat the output of the self-hosted frontend as *
 ## Done when
 
 The firings are explained (each corresponds to a promise that native Lean drops or never resolves), a strict mode exists and passes on the corpus, or the root cause is fixed by drop tracking.
+
+## Result of the investigation (2026-11-05)
+
+* The promises that were "guessed dropped" are by design never resolved by the elaborator and rely on Lean's drop semantics: the internal promise of `IO.CancelToken.new` (cancellation that never happens),
+  the snapshot promises of `elabMutualDef` (`bodyPromises`/`tacPromises` when no incremental reuse happens), `runLintersAsync`, `parseCmd` snapshot promises.
+* **Fix (step 3a):** `free()` in `lean_rt.js` now resolves the task of an unresolved `Promise_` with `none` when its reference count reaches zero (`dropPromise`), exactly at the moment native Lean does.
+  On `selfhost/sample2.lean`: **32 promises dropped by reference counting, 0 heuristic guesses** (before: 36 guesses). The heuristic remains only as a fallback for leaked references; it is counted
+  (`LEAN2JS_TIMING=1` prints both numbers) and `LEAN2JS_STRICT_TASKS=1` turns it into an error. The selfhost tests now run with `LEAN2JS_STRICT_TASKS=1` (`tests/e2e/selfhost*.env`).
+* Verified: `sample.lean`, `sample2.lean`, `sample3.lean` produce output identical to native with strict tasks.
+* Open: a larger corpus (step 4) — run the elaborator over many inputs in strict mode and see whether the fallback ever fires; if never, delete it.

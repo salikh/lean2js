@@ -54,6 +54,7 @@ function free(root) {
   root.rc = -1;
   while (stack.length > 0) {
     const o = stack.pop();
+    if (o instanceof Promise_ && o.task.pend) dropPromise(o);        // last reference to an unresolved promise: it resolves with `none`
     forEachChild(o, (c) => {
       if (typeof c !== "object") return;
       const rc = c.rc;
@@ -657,7 +658,7 @@ function waitFor(t) {
       if (p.pend) {
         if (strictTasks) throw new Error("deadlock: an unresolved promise would be treated as dropped (LEAN2JS_STRICT_TASKS=1, see docs/tickets/self-010-promise-drop-heuristic.md)");
         droppedGuesses++;
-        if (traceTasks) console.error("task: treating unresolved promise as dropped");
+        if (traceTasks) console.error("task: treating unresolved promise as dropped; created at:\n" + (p.site || "").split("\n").slice(2, 9).join("\n"));
         resolveTask(p, 0); dropped = true; break;
       }
     }
@@ -709,7 +710,14 @@ P.lean_io_check_canceled = () => 0;
 P.lean_io_has_finished = (t) => bool(!t.pend);
 
 /* ---- promises: `result?` is a task that finishes when the promise is resolved ---- */
-class Promise_ { constructor() { this.rc = 1; this.task = newPendingTask(); pendingPromises.push(this.task); } }
+/** The last reference to an unresolved promise disappeared: native Lean resolves `result?` with `none` (see docs/tickets/self-010). */
+function dropPromise(pr) {
+  droppedPromises++;
+  if (traceTasks) console.error("task: promise dropped (reference count reached zero)");
+  resolveTask(pr.task, 0);
+}
+let droppedPromises = 0;
+class Promise_ { constructor() { this.rc = 1; this.task = newPendingTask(); if (traceTasks) this.task.site = new Error().stack; pendingPromises.push(this.task); } }
 P.lean_io_promise_new = () => new Promise_();
 P.lean_io_promise_resolve = (value, p) => { if (p.task.pend) resolveTask(p.task, some(value)); else dec(value); return unit; };
 P.lean_io_promise_result_opt = (p) => { inc(p.task); return p.task; };
@@ -1000,7 +1008,7 @@ function runMainHere(main, arity, args) {
     initDepth++;
     try { r = initFn ? initFn() : null; } finally { initDepth--; }
     if (tm) console.error(`[timing] initializers done at ${ms()} ms`);   // module initializers; an error result aborts like in a native executable
-    if (r === null) { r = arity >= 2 ? main(listFromArray(args), 0) : main(0); runPendingTasks(); if (tm) console.error(`[timing] main done at ${ms()} ms; dropped-promise guesses: ${droppedGuesses}`); }
+    if (r === null) { r = arity >= 2 ? main(listFromArray(args), 0) : main(0); runPendingTasks(); if (tm) console.error(`[timing] main done at ${ms()} ms; promises dropped by refcount: ${droppedPromises}, dropped-promise guesses: ${droppedGuesses}`); }
   } catch (e) {
     if (e instanceof ExitSignal) {
       if (isNode) globalThis.process.exitCode = e.code;

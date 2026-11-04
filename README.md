@@ -14,12 +14,15 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
+* **2026-11-05 (night) — promise drops are exact.** The cooperative scheduler resolves a promise with `none` when its last reference disappears (reference counting), as native Lean does; the
+  "guess" fallback fired 36× per sample before and never now ([self-010](docs/tickets/self-010-promise-drop-heuristic.md), strict mode in the selfhost tests). Infoview design decision recorded:
+  thin layer over the `InfoTree` ([info-002](docs/tickets/info-002-question-architecture.md)); work on it starts after the remaining `self-*` tickets.
 * **2026-11-05 (evening) — the Lean frontend runs in the browser.** `web/selfhost/build.sh` builds `elab.js` (174 MB) and the `Init` library files; `python3 -m http.server -d web/selfhost 8000`
   (or `node web/selfhost/serve.mjs`) serves a page with an editor and an "Elaborate" button; `web/selfhost/test-browser.sh` checks it in headless Chrome (output identical to native, ~40 s
   including the 160 MB download from localhost). It runs on the page's main thread because Chrome gives Web Workers only ~40% of the stack, which the compiler's recursion exceeds.
   Planned next (after the remaining `self-*` tickets): an infoview equivalent, [info-001](docs/tickets/info-001-infoview-epic.md).
 
-* **Caveat:** the self-hosted frontend's task scheduler guesses that stuck promises were dropped ([self-010](docs/tickets/self-010-promise-drop-heuristic.md)); its output is verified only by the differential tests so far.
+* Dropped promises are now detected by reference counting (like native Lean); the old "guess" fallback never fires on the tests ([self-010](docs/tickets/self-010-promise-drop-heuristic.md)).
 * **2026-11-05 (latest) — the JS kernel type checks.** `Kernel.whnf/isDefEq/check` and `addDecl` run lean4lean's type checker in JS (on by default, `LEAN2JS_KERNEL_CHECK=0` to disable):
   the self-hosted frontend rejects ill-typed declarations with exactly the native kernel's messages (tests `kernelops`, `selfhostcheck`).
 * **2026-11-05 (later) — smaller and faster.** `lean2js --small` (short identifiers, no indentation) shrinks the self-hosted frontend from 452 MB to 174 MB of JS
