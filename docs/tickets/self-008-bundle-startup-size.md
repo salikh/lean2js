@@ -76,3 +76,7 @@ Current state: 174 MB JS (~14 MB brotli), ~11 s Node run, ≈ 2.6 GB RSS, ~42 s 
 lazy decoding of `.olean` constants (shell objects with accessor fields, a pre-pass for subtree sizes; maybe −40% memory, risky for the generated code's field access), lazy loading of code chunks per module (needs an async/sync
 loader design), a post-initialization heap snapshot (big serializer). **Recommended: no further work now** — revisit when `import Lean` in the browser (≈ 1 GB of library files) or mobile devices matter.
 Please answer: stop here (recommended), or pick one of the ideas?
+
+## Answer
+
+Need to analyze additional ideas, e.g. about bundling the multiple files into one download, and making more initialization lazy, and maybe making download itself lazy for some parts. Do the analysis for more way to optimize and ask me again later.

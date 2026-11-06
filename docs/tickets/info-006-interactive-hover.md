@@ -14,3 +14,5 @@ Options: (1) **Recommended:** a stateful *session object* keeps the references (
 `infoPopup(id)` to get the hover info of a sub-expression (type, docstring, definition location); (2) stateless: encode the position of the sub-expression as a path (`Lean.SubExpr.Pos`) and recompute on demand from the
 cursor request; (3) only plain text goals + hover (no sub-expression popups): already done.
 Until answered I implement nothing for interactive goals; go-to-definition (location links) is independent and can follow `handleDefinition` directly.
+
+Answer: let's go with (1)
