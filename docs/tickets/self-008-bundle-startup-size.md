@@ -80,3 +80,51 @@ Please answer: stop here (recommended), or pick one of the ideas?
 ## Answer
 
 Need to analyze additional ideas, e.g. about bundling the multiple files into one download, and making more initialization lazy, and maybe making download itself lazy for some parts. Do the analysis for more way to optimize and ask me again later.
+
+## Analysis of further optimization ideas — 2026-11-06 (answer to the above; no implementation)
+
+The human asked for an analysis of more ways to optimize (bundling downloads, lazy initialization, lazy downloads) and to be asked again later. Status of the question: **answered, follow-up analysis below; decision
+on which idea to implement is requested again at the end.**
+
+Where the cost is today (Init-only library in `web/lib`: 653 modules x 5 parts = 3265 files, 385 MB raw; `elab.js` 174 MB):
+
+| part | size | needed when |
+|---|---|---|
+| `.olean.private` | 258 MB | bodies/proofs of private and non-exposed constants: touched rarely (kernel checks, `#print`, `unfold`) |
+| `.olean` | 96 MB | exported constants, the environment extensions: `importModules` reads all of it |
+| `.ir` | 18 MB | IR for `evalConst`/`#eval` of imported decls (only when interpreting, but the JS `--eval-all` code replaces most of it) |
+| `.olean.server` | 12 MB | server-only (info-trees docstrings etc.): never touched by `elab`/`demo`, needed for hover docstrings |
+| `elab.js` | 174 MB (~14 MB brotli) | parsed and compiled on load; initializers run all of it |
+
+Ideas, grouped by what they save (all numbers are estimates to be confirmed by a measurement before building anything):
+
+1. **One download instead of 3265 requests (bundling).** Pack the library into a single `lib.bin` (index + concatenated files), brotli-compressed on the server side (`Content-Encoding: br`; the `.olean` files compress ~4x), fetched
+   as one stream and parsed incrementally as it arrives (the loader is a pure function of bytes, so parsing can overlap the download). Removes per-request overhead (today a pool of 12 fetches) and gives a progress bar.
+   Saves: download time and request count; **not** memory. Cost: small (a build step + a loader change in `driver.js`). Also fixes the "thousands of fetches" fragility for `import Lean` (~1 GB, 3x the files).
+2. **Lazy download of parts.** `.olean.server` (12 MB) and `.ir` (18 MB) are not needed until hover docstrings / `evalConst` of a library decl; `.olean.private` (258 MB, two thirds of the library!) is needed only when
+   a constant body is demanded. Fetch them on first use: needs a *synchronous* access point (the Lean code calls `readModuleData` synchronously) -- either blocking on a prefetch started in the background (the page starts the
+   downloads right after the first paint and the loader waits only if a part is still missing), or pre-downloading into the `rt.vfs` with priorities. Saves: up to ~270 MB of the 385 MB download on first paint and the same memory
+   until parsed. Cost: medium; **risk:** `Environment` code may scan every part at `importModules` time (the private part holds the bodies that `Expr` fields of `ConstantInfo` point to, and the
+   public part points *into* it), so the pointer graph between parts must be checked first (the loader already throws on a pointer into an unloaded part).
+3. **Lazy decoding of `.olean` objects (not files).** Decode a region on demand per object instead of eagerly (shell objects with accessor properties, as in the earlier note). Saves: most of the 1.5 GB JS heap
+   (~40-60%?) because a run touches a small fraction of `Init`'s constants. Cost: large, and slows every field access unless the accessors are hidden behind the existing `a0..` property names (getters on a prototype per
+   class of object defeat V8's inline caches). Do (2) first: it removes the same bytes without touching the object model.
+4. **Lazy initializers.** Today `--init-all` runs the `[init]`/`[builtin_init]` of every module (1.4 s, plus the heap they build: parser tables, attribute extensions, `registerBuiltinAttribute`...). Most of this is
+   Lean's own `builtin_initialize` blocks that populate global tables the elaborator always needs, so laziness per *module* is limited; a per-*feature* split is possible (e.g. do not run the `Lean.Server.*`, `Lean.Linter.*`,
+   `Lean.Widget.*` initializers for the `calc`/`elab` demos). Saves ~0.3-0.5 s and some MB. Cost: small if a module list is given at transpile time (`--init-only PREFIXES`), but the registered tables then lack those entries
+   (must be consistent: skipped modules must not be imported by a later `importModules` either).
+5. **Post-initialization snapshot.** Serialize the heap after `runInitializers` + `importModules Init` once (at build time, in Node), ship it, and deserialize in the page. This is the biggest possible win for start
+   time (skips 1.4 s of initializers + the 8 s `importModules`, which is dominated by building the constants map and the extension states) but needs a serializer for closures and `IO.Ref`s (functions are code references,
+   fine by name `rt.fn`), keeps all objects alive (no memory saving), and the snapshot is as large as the heap (~1 GB) unless the olean-backed objects stay references into the regions. Cost: large; fragile on every
+   compiler change. Only worth it with (3).
+6. **Code: split `elab.js` by module with lazy loading.** 174 MB of JS is compiled lazily by V8 (functions parsed on first call), so the memory cost is mostly the pre-parse and the source string (~200-300 MB). Splitting by module and
+   `import()`-ing on demand needs asynchronous entry points; the main thread is synchronous. Prune instead: **`--eval-all` only for modules reachable from attribute/macro/parser registrations** (idea (4) of the earlier list). Saves
+   maybe 30-40% of the JS (`Lean.Elab.Tactic.*`, `Lean.Meta.*` are needed; `Lean.Server.*`, `Lean.Compiler.IR.EmitC`, `Lake`-like parts are not). Cost: medium (needs a reachability analysis over IR, which exists as `--run`'s tree shaking).
+7. **Cheaper objects.** Drop `n` and `rc: 0` for persistent olean objects, share `sbuf` in a prototype, use classes per constructor shape (V8 hidden classes already; gain ~15% of 1.5 GB). Cost: medium-large (code
+   generator and runtime touch every object); low payoff compared to (2).
+
+Recommendation (order of work if wanted): **(1) bundle + brotli (small, removes the fetch pool problem and gives progress), then (2) lazy download of `.olean.private`/`.ir`/`.server` (the biggest memory and download
+saving per effort), then (6) pruning `--eval-all`**. Defer (3), (5), (7) until (2) is measured. Before any of this, a **measurement ticket** is cheap and tells what really is touched: log which regions/objects of each part are
+dereferenced during `elab` and `demo` runs (expected: `.olean.private` < 10%).
+
+*Question again (human), later:* which of (1), (2), (6) should be implemented (or only the measurement)? Not started; waits for the answer. Moving the item back to "TODO for humans" with the analysis as the pointer.
