@@ -117,38 +117,75 @@ private def hoverAt (cmdParsed : Lean.Language.Lean.CommandParsedSnapshot) (env 
     return mkHover doc range
   return Json.null
 
+/-- A source text elaborated once; the queries below (goals, term goal, hover, messages) all run on it. -/
+structure Elaborated where
+  text : FileMap
+  inc : IncrementalState
+
+/-- Elaborates `source` in the session's environment (the session is not modified). -/
+def elaborate (s : Session) (source : String) : IO Elaborated := do
+  let inputCtx := Parser.mkInputContext source "<info>"
+  let inc ← IO.processCommandsIncrementally inputCtx {} { s.cmdState with messages := {} } none
+  return { text := inputCtx.fileMap, inc }
+
+namespace Elaborated
+
+private def cmdAt (e : Elaborated) (pos : String.Pos.Raw) := findCmd e.inc.initialSnap e.text pos
+
+/-- The goals at `pos`, rendered (`$/lean/plainGoal`): `none` when there is no tactic info at `pos`, `some #[]` for "no goals". -/
+def goals (e : Elaborated) (pos : String.Pos.Raw) : IO (Option (Array String)) := do
+  let goalRes := match e.cmdAt pos with | some c => findGoalsAt c e.text pos | none => []
+  if goalRes.isEmpty then return none
+  return some (← renderGoals goalRes)
+
+/-- The plainGoal text for the goals: ```lean fenced, separated by `---`. -/
+def renderedGoals (gs : Array String) : String :=
+  if gs.isEmpty then "no goals" else String.intercalate "\n---\n" (gs.toList.map fun g => s!"```lean\n{g}\n```")
+
+/-- The term goal at `pos` (`$/lean/plainTermGoal`): `{goal, range}` or `null`. -/
+def termGoal (e : Elaborated) (pos : String.Pos.Raw) : IO Json := do
+  let some c := e.cmdAt pos | return Json.null
+  let some t := findTermGoalTree c e.text pos | return Json.null
+  let some { ctx := ci, info := i@(Info.ofTermInfo ti), .. } := t.termGoalAt? pos | return Json.null
+  let ty ← ci.runMetaM i.lctx do
+    instantiateMVars <| ti.expectedType?.getD (← Meta.inferType ti.expr)
+  let lctx' := if ti.isBinder then i.lctx.pop else i.lctx
+  let goal ← ci.runMetaM lctx' do
+    Widget.goalToInteractive (← Meta.mkFreshExprMVar ty).mvarId!
+  let range := match i.range? with
+    | some r => rangeJson e.text (r.toLspRange e.text)
+    | none => Json.null
+  return Json.mkObj [("goal", toString goal.pretty), ("range", range)]
+
+/-- Hover at `pos` (`textDocument/hover`): the hover object or `null`. -/
+def hover (e : Elaborated) (pos : String.Pos.Raw) : IO Json := do
+  match e.cmdAt pos with
+  | some c => hoverAt c e.inc.toState.commandState.env e.text pos
+  | none => pure Json.null
+
+/-- The messages of the text as LSP diagnostics. -/
+def diagnostics (e : Elaborated) : IO (Array Json) := do
+  let mut out := #[]
+  for m in e.inc.toState.commandState.messages.toList do
+    let range := rangeJson e.text ⟨e.text.leanPosToLspPos m.pos, e.text.leanPosToLspPos (m.endPos.getD m.pos)⟩
+    let sev : Nat := match m.severity with | .information => 3 | .warning => 2 | .error => 1
+    out := out.push <| Json.mkObj [("range", range), ("severity", sev), ("source", "Lean 4"), ("message", (← m.data.toString))]
+  return out
+
+end Elaborated
+
 /-- The info at byte position `pos` of `source` (elaborated in the session's environment; the session is not modified). -/
 def infoAtPos (s : Session) (source : String) (pos : String.Pos.Raw) : IO Json := do
-  let inputCtx := Parser.mkInputContext source "<info>"
-  let text := inputCtx.fileMap
-  let inc ← IO.processCommandsIncrementally inputCtx {} { s.cmdState with messages := {} } none
-  let st := inc.toState
-  let cmd? := findCmd inc.initialSnap text pos
-  -- goals
-  let goalRes := match cmd? with | some c => findGoalsAt c text pos | none => []
-  let goals ← renderGoals goalRes
-  let rendered :=
-    if goalRes.isEmpty then "" else if goals.isEmpty then "no goals"
-    else String.intercalate "\n---\n" (goals.toList.map fun g => s!"```lean\n{g}\n```")
-  -- term goal
-  let mut termGoal : Json := Json.null
-  if let some c := cmd? then
-    if let some t := findTermGoalTree c text pos then
-      if let some { ctx := ci, info := i@(Info.ofTermInfo ti), .. } := t.termGoalAt? pos then
-        let ty ← ci.runMetaM i.lctx do
-          instantiateMVars <| ti.expectedType?.getD (← Meta.inferType ti.expr)
-        let lctx' := if ti.isBinder then i.lctx.pop else i.lctx
-        let goal ← ci.runMetaM lctx' do
-          Widget.goalToInteractive (← Meta.mkFreshExprMVar ty).mvarId!
-        let range := match i.range? with
-          | some r => rangeJson text (r.toLspRange text)
-          | none => Json.null
-        termGoal := Json.mkObj [("goal", toString goal.pretty), ("range", range)]
-  -- hover
-  let hover ← match cmd? with | some c => hoverAt c st.commandState.env text pos | none => pure Json.null
+  let e ← elaborate s source
+  let text := e.text
+  let goalsOpt ← e.goals pos
+  let goals := goalsOpt.getD #[]
+  let rendered := match goalsOpt with | none => "" | some gs => Elaborated.renderedGoals gs
+  let termGoal ← e.termGoal pos
+  let hover ← e.hover pos
   -- messages: all of them, flagged when their range contains the position
   let mut msgs : Array Json := #[]
-  for m in st.commandState.messages.toList do
+  for m in e.inc.toState.commandState.messages.toList do
     let startPos := text.ofPosition m.pos
     let endPos := (m.endPos.map text.ofPosition).getD startPos
     let contains := startPos ≤ pos && pos ≤ endPos

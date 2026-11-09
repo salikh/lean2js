@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lean language server in the browser</title>
+<style>
+  :root { --bg: #fff; --fg: #1b1b1b; --pane: #f4f4f4; --accent: #2a6; --err: #c33; --warn: #b80; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1b1b1b; --fg: #ddd; --pane: #262626; --err: #f77; --warn: #db4; } }
+  body { font: 14px/1.4 system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--fg); }
+  header { padding: .5rem 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  h1 { font-size: 1.1rem; margin: 0; }
+  main { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; padding: 0 1rem 1rem; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  .col { display: flex; flex-direction: column; gap: .4rem; min-width: 0; }
+  label { font-weight: 600; font-size: .85rem; }
+  textarea, .box, #console, #line { font: 13px/1.4 ui-monospace, monospace; background: var(--pane); color: var(--fg); border: 1px solid #8884; padding: .5rem; box-sizing: border-box; }
+  textarea { width: 100%; resize: vertical; }
+  #lean { height: 45vh; }
+  #json { height: 6rem; }
+  .box { height: 40vh; overflow: auto; }
+  #console { height: 14rem; overflow: auto; white-space: pre-wrap; }
+  #line { width: 100%; }
+  pre { margin: 0 0 .6rem; white-space: pre-wrap; }
+  h3 { margin: .6rem 0 .2rem; font-size: .85rem; opacity: .8; }
+  .goal { border-left: 3px solid var(--accent); padding-left: .5rem; }
+  .term { border-left: 3px solid #58f; padding-left: .5rem; }
+  .hover { border-left: 3px solid #a6c; padding-left: .5rem; }
+  .error, .err { color: var(--err); } .warning { color: var(--warn); }
+  .atcursor { border-left: 3px solid currentColor; padding-left: .5rem; }
+  .in { color: var(--accent); }
+  button { font: inherit; padding: .3rem .8rem; }
+  #status { font-size: .85rem; opacity: .8; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Lean language server in the browser</h1>
+  <a href="./">← all demos</a>
+  <button id="run" disabled>Run script</button>
+  <button id="clear">Clear console</button>
+  <span id="status">loading …</span>
+</header>
+<main>
+  <div class="col">
+    <label for="lean">Lean script (reads <code>data.json</code>) — edits are sent to the language server (<code>didChange</code>)</label>
+    <textarea id="lean" spellcheck="false" disabled></textarea>
+    <label for="json"><code>data.json</code></label>
+    <textarea id="json" spellcheck="false"></textarea>
+    <label for="line">Console — try <code>main</code></label>
+    <div id="console" aria-live="polite"></div>
+    <input id="line" placeholder="main" autocomplete="off" spellcheck="false" disabled>
+  </div>
+  <div class="col">
+    <label>Infoview — requests <code>$/lean/plainGoal</code>, <code>$/lean/plainTermGoal</code>, <code>textDocument/hover</code> at the cursor</label>
+    <div class="box" id="info" aria-live="polite">Move the cursor in the editor.</div>
+    <label>Diagnostics — <code>textDocument/publishDiagnostics</code></label>
+    <div class="box" id="diags" style="height:14rem"></div>
+    <label>LSP traffic (last messages)</label>
+    <div class="box" id="traffic" style="height:10rem"></div>
+  </div>
+</main>
+<script type="module">
+  import { loadProgram, rt, newSession, sessionRun, sessionConsole } from "./driver.js";
+  import { LspClient } from "./lsp.js";
+  const $ = (id) => document.getElementById(id);
+  const src = $("lean"), info = $("info"), diagsEl = $("diags"), trafficEl = $("traffic"), statusEl = $("status"), consoleEl = $("console");
+  const params = new URLSearchParams(location.search);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+  const sev = { 1: "error", 2: "warning", 3: "info", 4: "info" };
+
+  // --- console + data.json (as in demo.html; the script is run in its own session, the language server keeps its own)
+  const DATA = "data.json", enc = new TextEncoder();
+  const syncData = () => rt.vfs.set(DATA, enc.encode($("json").value));
+  function print(text, cls) {
+    if (!text) return;
+    const span = el("span", cls, text.endsWith("\n") ? text : text + "\n");
+    consoleEl.appendChild(span); consoleEl.scrollTop = consoleEl.scrollHeight;
+  }
+  async function busy(msg, f) {
+    statusEl.textContent = msg; await new Promise((r) => setTimeout(r, 30));
+    try { return f(); } catch (e) { print(String(e.message || e), "err"); } finally { statusEl.textContent = "ready"; }
+  }
+  let session = null;
+  async function runScript() {
+    syncData();
+    await busy("elaborating the script …", () => {
+      session = newSession();
+      print("— running script —", "in");
+      const out = sessionRun(session, src.value, "script.lean");
+      print(out || "(script elaborated, no messages)");
+      if (!/error/.test(out)) print(sessionConsole(session, "main"));
+    });
+  }
+  async function consoleInput(line) {
+    print("> " + line, "in"); syncData();
+    await busy("evaluating …", () => print(sessionConsole(session, line)));
+  }
+
+  // --- language server
+  let client = null, diagnostics = [];
+  const traffic = [];
+  function log(dir, m) {
+    traffic.push(`${dir} ${m.method ?? (m.error ? "error" : "result")}${m.id !== undefined ? " #" + m.id : ""}`);
+    if (traffic.length > 40) traffic.shift();
+    trafficEl.textContent = traffic.join("\n"); trafficEl.scrollTop = trafficEl.scrollHeight;
+  }
+  function position(text, offset) {
+    const before = text.slice(0, offset);
+    return { line: before.split("\n").length - 1, character: offset - (before.lastIndexOf("\n") + 1) };
+  }
+  const before = (a, b) => a.line < b.line || (a.line === b.line && a.character <= b.character);
+  const covers = (r, p) => before(r.start, p) && before(p, r.end);
+  function renderDiags() {
+    diagsEl.textContent = "";
+    if (!diagnostics.length) diagsEl.append(el("pre", null, "(no messages)"));
+    for (const d of diagnostics) diagsEl.append(el("pre", sev[d.severity], `${d.range.start.line + 1}:${d.range.start.character}: ${d.message}`));
+  }
+  function renderInfo(pos, goal, term, hover) {
+    info.textContent = "";
+    info.append(el("h3", null, `cursor ${pos.line + 1}:${pos.character}`));
+    if (goal) {
+      info.append(el("h3", null, goal.goals.length === 0 ? "No goals" : goal.goals.length === 1 ? "Goal" : `${goal.goals.length} goals`));
+      for (const g of goal.goals) info.append(el("pre", "goal", g));
+    }
+    if (term) { info.append(el("h3", null, "Expected type")); info.append(el("pre", "term", term.goal)); }
+    if (hover) { info.append(el("h3", null, "Hover")); info.append(el("pre", "hover", hover.contents.value)); }
+    const here = diagnostics.filter((d) => covers(d.range, pos));
+    if (here.length) { info.append(el("h3", null, "Messages here")); for (const d of here) info.append(el("pre", `${sev[d.severity]} atcursor`, d.message)); }
+  }
+  function updateInfo() {
+    if (!client) return;
+    const text = src.value, pos = position(text, src.selectionStart);
+    const t0 = performance.now();
+    try {
+      const goal = client.plainGoal(pos), term = client.plainTermGoal(pos), hover = client.hover(pos);
+      renderInfo(pos, goal, term, hover);
+      window.__last = { pos, goal, term, hover };
+      statusEl.textContent = `info in ${(performance.now() - t0).toFixed(0)} ms`;
+    } catch (e) { info.textContent = String(e.message || e); }
+  }
+  let changeTimer = null, infoTimer = null;
+  const scheduleInfo = () => { clearTimeout(infoTimer); infoTimer = setTimeout(updateInfo, 150); };
+  function sendChange() {                                       // flush the pending edit: didChange (elaborates, publishes diagnostics)
+    clearTimeout(changeTimer); changeTimer = null;
+    statusEl.textContent = "elaborating …";
+    client.change(src.value);
+    renderDiags(); updateInfo();
+  }
+
+  const [manifest, lean, json] = await Promise.all([fetch("./files.json").then((r) => r.json()),
+    fetch("./examples/stats.lean").then((r) => r.text()), fetch("./examples/stats.json").then((r) => r.text())]);
+  $("json").value = json;
+  rt.setStdout((s) => print(s)); rt.setStderr((s) => print(s, "err"));
+  await loadProgram({ files: manifest.files, root: manifest.root, onStatus: (s) => { statusEl.textContent = s; } });
+  statusEl.textContent = "starting the language server (importing Init) …";
+  await new Promise((r) => setTimeout(r, 30));
+  client = new LspClient({ onNotification: (m) => {
+    log("←", m);
+    if (m.method === "textDocument/publishDiagnostics") diagnostics = m.params.diagnostics;
+  } });
+  client.initialize();
+  src.value = lean;
+  if (params.has("text")) src.value = params.get("text");
+  src.disabled = false; $("run").disabled = false; $("line").disabled = false;
+  statusEl.textContent = "elaborating …"; await new Promise((r) => setTimeout(r, 30));
+  client.open(src.value); renderDiags(); statusEl.textContent = "ready";
+
+  src.addEventListener("input", () => { clearTimeout(changeTimer); changeTimer = setTimeout(sendChange, 400); });
+  for (const ev of ["keyup", "click", "select"]) src.addEventListener(ev, () => { if (!changeTimer) scheduleInfo(); });
+  document.addEventListener("selectionchange", () => { if (document.activeElement === src && !changeTimer) scheduleInfo(); });
+  $("run").addEventListener("click", runScript);
+  $("clear").addEventListener("click", () => { consoleEl.textContent = ""; });
+  const history = []; let hpos = 0, lineEl = $("line");
+  lineEl.addEventListener("keydown", async (ev) => {
+    if (ev.key === "Enter" && lineEl.value.trim() !== "") {
+      const line = lineEl.value; lineEl.value = ""; history.push(line); hpos = history.length;
+      if (session === null) await runScript();
+      await consoleInput(line);
+    } else if (ev.key === "ArrowUp" && hpos > 0) { lineEl.value = history[--hpos]; ev.preventDefault(); }
+    else if (ev.key === "ArrowDown") { hpos = Math.min(hpos + 1, history.length); lineEl.value = history[hpos] ?? ""; ev.preventDefault(); }
+  });
+
+  window.lspdemo = { client, updateInfo, sendChange, runScript, consoleInput,
+    set(text, offset) { src.value = text; src.setSelectionRange(offset, offset); sendChange(); return window.__last; } };
+  if (params.has("autorun")) {     // headless test: edit (didChange) to a text with an error, then put the cursor at `cursor=<line>:<col>`, report the infoview + diagnostics
+    const [l, c] = (params.get("cursor") ?? "1:13").split(":").map(Number);
+    const lines = src.value.split("\n");
+    let offset = c; for (let i = 0; i < l; i++) offset += lines[i].length + 1;
+    src.setSelectionRange(offset, offset);
+    sendChange();                  // exercises didChange (a full-text change) before the queries
+    if (params.has("report")) {
+      const out = info.innerText.replace(/\n+/g, "\n").trim() + "\n--- diagnostics\n" + diagsEl.innerText.replace(/\n+/g, "\n").trim() + "\n";
+      await fetch("/report", { method: "POST", body: JSON.stringify({ code: 0, out, seconds: performance.now() / 1000 }) });
+    }
+  }
+</script>
+</body>
+</html>

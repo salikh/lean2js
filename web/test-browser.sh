@@ -3,6 +3,7 @@
 #   1. elab.html (the editor page): its default program,
 #   2. demo.html (script + data.json + console): runs the stats script, evaluates some console lines,
 #   3. infoview.html (editor + infoview of the goals at the cursor): cursor after `constructor` → two goals.
+#   4. lsp.html (in-memory language server, `Lean2js/Lsp.lean`): didChange, then plainGoal / plainTermGoal / hover at the cursor + the diagnostics
 # Starts a local server and a private Chrome instance per page and closes them (through the DevTools protocol / pid).
 # Usage: web/test-browser.sh [chrome-binary]        (takes about 2 minutes)
 cd "$(dirname "$0")" || exit 1
@@ -33,4 +34,5 @@ page_test() {
 page_test elab 'elab.html?autorun&report' expected/elab.txt
 page_test demo 'demo.html?autorun&report&console=main&console=mean%20%23%5B1.0%2C%202.0%2C%206.0%5D&console=def%20twice%20(x%20%3A%20Nat)%20%3A%3D%202%20*%20x&console=twice%2021&console=nosuchname' expected/demo.txt
 page_test infoview 'infoview.html?autorun&report&cursor=1:13' expected/infoview.txt
+page_test lsp 'lsp.html?autorun&report&cursor=1:13&text=theorem%20t%20(p%20q%20%3A%20Prop)%20(hp%20%3A%20p)%20(hq%20%3A%20q)%20%3A%20q%20%E2%88%A7%20p%20%3A%3D%20by%0A%20%20constructor%0A%20%20%C2%B7%20exact%20hq%0A%20%20%C2%B7%20exact%20hp%0A%0Adef%20bad%20%3A%20Nat%20%3A%3D%20%22s%22%0A' expected/lsp.txt
 exit $status

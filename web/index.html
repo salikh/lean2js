@@ -47,10 +47,11 @@
   <div class="need">needs <code>web/build.sh selfhost</code></div>
 </div>
 
-<div class="demo planned">
-  <h2>lsp.html — language server <small>(planned)</small></h2>
-  The same with a language-server protocol layer and a live infoview; waiting for a design decision
-  (<code>docs/tickets/demo-002-lsp-infoview-in-demo.md</code>).
+<div class="demo">
+  <h2><a href="lsp.html">Language server + infoview</a></h2>
+  The demo page with an in-memory <em>language server</em> (real LSP JSON-RPC: <code>didChange</code>, <code>publishDiagnostics</code>, <code>$/lean/plainGoal</code>, <code>$/lean/plainTermGoal</code>, <code>hover</code>)
+  and a live infoview that follows the cursor.
+  <div class="need">needs <code>web/build.sh selfhost</code></div>
 </div>
 
 <p class="need">Serve this directory with <code>node web/serve.mjs 8000</code> (or <code>python3 -m http.server -d web 8000</code>) and open <code>http://localhost:8000/</code>.

@@ -14,7 +14,11 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 
 *Updated at every commit (newest first; details in [docs/CHANGES.md](docs/CHANGES.md), open work in [TODO.md](TODO.md)).*
 
-* **web/ reorganized.** All demos now live directly in `web/` (previously `web/` and `web/selfhost/`), with a real index page `web/index.html` linking `calc.html`, `elab.html`, `demo.html`, `infoview.html` (and the planned `lsp.html`);
+* **2026-11-09 — `web/lsp.html`: an in-memory language server with a live infoview** ([demo-002](docs/tickets/demo-002-lsp-infoview-in-demo.md), decision: option 1). `Lean2js/Lsp.lean` speaks LSP JSON-RPC
+  (`didOpen`/`didChange` → `publishDiagnostics`, `$/lean/plainGoal`, `$/lean/plainTermGoal`, `textDocument/hover`) over the same functions as `Lean2js.Info`; its answers equal the real language server's on the 15 oracle cases.
+  The page edits → `didChange`, cursor → three requests, and shows goals / expected type / hover / diagnostics. `lake test` now runs everything (`test.sh` + the browser page tests).
+
+* **web/ reorganized.** All demos now live directly in `web/` (previously `web/` and `web/selfhost/`), with a real index page `web/index.html` linking `calc.html`, `elab.html`, `demo.html`, `infoview.html`, `lsp.html`;
   one `web/build.sh [calc|selfhost]`. Older entries below mention `web/selfhost/`: that is now `web/`.
 
 * **2026-11-05 (final for now) — all open tickets wait for a human decision.** Done: the transpiler, the self-hosted Lean frontend (kernel, `.olean` loader, browser build), three web demos, an infoview that agrees with the real language server
@@ -81,5 +85,5 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 * `lean2js --init-all` runs the initializers of all imported modules ([docs/design/module-initializers.md](docs/design/module-initializers.md)).
 * `runtime/lean_expr.js` — JS versions of the C++ `Expr`/`Level` primitives (see [docs/design/lean-expr-prims.md](docs/design/lean-expr-prims.md)).
 * `Lean2js/Kernel.lean`, `Lean2js/KernelCasesOn.lean`, `vendor/lean4lean` — the kernel entry points for the self-hosted compiler ([docs/tickets/self-005-question-kernel-strategy.md](docs/tickets/self-005-question-kernel-strategy.md)).
-* `web/` — all browser demos in one directory: `index.html` (index), `calc.html` (compiled program), `elab.html` (editor → messages), `demo.html` (script + data + console), `infoview.html`; shared `driver.js`, `serve.mjs`, `build.sh [calc|selfhost]`, `test-browser.sh`. `selfhost/Elab.lean` is the program that runs in the page.
+* `web/` — all browser demos in one directory: `index.html` (index), `calc.html` (compiled program), `elab.html` (editor → messages), `demo.html` (script + data + console), `infoview.html`, `lsp.html` (language server + infoview; `lsp.js` client); shared `driver.js`, `serve.mjs`, `build.sh [calc|selfhost]`, `test-browser.sh`. `selfhost/Elab.lean` is the program that runs in the page.
 * `tests/e2e/run.sh` — differential tests: native `lean --run` vs. transpiled JS under Node.

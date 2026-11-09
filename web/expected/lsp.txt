@@ -1,0 +1,19 @@
+cursor 2:13
+2 goals
+case left
+p q : Prop
+hp : p
+hq : q
+⊢ q
+case right
+p q : Prop
+hp : p
+hq : q
+⊢ p
+--- diagnostics
+6:17: Type mismatch
+  "s"
+has type
+  String
+but is expected to have type
+  Nat

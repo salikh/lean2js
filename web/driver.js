@@ -64,6 +64,15 @@ export function sessionInfoEnd(session, text) {
   return JSON.parse(callIO("lean2js_session_info_end", session.state, text));
 }
 
+/** A new in-memory LSP server (Lean2js/Lsp.lean; imports `Init`). */
+export function lspNew() { return { state: callIO("lean2js_lsp_new", 0) }; }
+/** Sends one JSON-RPC message (object) to the server; returns the array of messages it answers with (responses and notifications). */
+export function lspSend(server, message) {
+  const r = callIO("lean2js_lsp_handle", server.state, JSON.stringify(message));
+  server.state = r.a0;
+  return JSON.parse(r.a1);
+}
+
 export async function runSource({ files, root, source, onOut, onStatus }) {
   const program = await loadProgram({ files, root, onStatus });
   const lines = source.split("\n").map((l) => l + "\n");

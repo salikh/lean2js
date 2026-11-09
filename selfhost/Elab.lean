@@ -2,6 +2,7 @@ import Lean
 import Lean2js.Kernel
 import Lean2js.CodegenIR
 import Lean2js.Info      -- (imports Lean2js.Session) its `lean2js_session_*` exports are used by the web demos and tests
+import Lean2js.Lsp       -- `lean2js_lsp_*` exports (in-memory LSP server, web/lsp.html)
 open Lean Elab
 
 /-!

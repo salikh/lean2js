@@ -1,7 +1,7 @@
 # lsp.html: the real LSP server and a live infoview (a new page based on demo.html)
 
 Parent: [demo-001](demo-001-interactive-web-app.md), [info-001](info-001-infoview-epic.md)
-Status: **filed 2026-11-05 — implement after the remaining `self-*` tickets are complete** (user instruction)
+Status: **done 2026-11-09 with option 1** (decision: in-memory LSP server in pure Lean, `Lean2js/Lsp.lean`; see "Implementation" at the end). The real `FileWorker` stays blocked on coroutines.
 
 ## Request
 
@@ -56,3 +56,18 @@ Stack depth in the browser main thread (the server code recurses a lot); memory 
 3. Run the real worker in batch mode per request: ~10 s per request, freezes the page; not usable.
 
 Until answered, option 1 is the default; I will not start `lsp.html` before a decision is recorded here (the question is in TODO for humans).
+
+##  Answers
+
+Pick option 1 (recommended): in-memory LSP server in pure Lean.
+
+## Implementation (2026-11-09, option 1)
+
+* `Lean2js/Info.lean` was split into `elaborate` (one elaboration per text, `Info.Elaborated`) and the queries `goals`, `termGoal`, `hover`, `diagnostics`; `infoAtPos` composes them (unchanged results).
+* `Lean2js/Lsp.lean`: `Server` state (session, document text, last elaboration) and `handle : Server → String → IO (Server × String)` (one JSON-RPC message in, JSON array of messages out; exported as
+  `lean2js_lsp_new` / `lean2js_lsp_handle`, prefix `lean2js_lsp_` added to `runtimeExportPrefixes` in `CodegenIR.lean`). Methods: `initialize`/`initialized`/`shutdown`/`exit`, `textDocument/didOpen|didChange|didClose`
+  (full and incremental sync via `Lean.Server.foldDocumentChanges`; every change re-elaborates and publishes diagnostics), `$/lean/plainGoal`, `$/lean/plainTermGoal`, `textDocument/hover`; `MethodNotFound` for others.
+* `web/lsp.js` (`LspClient`, synchronous request/notify over `driver.js` `lspNew`/`lspSend`) and `web/lsp.html` (demo.html's script/data/console + editor → `didChange` (debounced 400 ms), cursor → three requests, infoview, diagnostics, traffic log).
+* Tests: `tests/e2e/lspcases.lean` (the 15 oracle cases through JSON-RPC; compared with the real language server by `tests/info/run.sh`, and native-vs-JS by the e2e runner), `tests/e2e/lspproto.lean` (protocol transcript, native-vs-JS),
+  `web/test-browser.sh` page test `lsp` (`web/expected/lsp.txt`).
+* Limits: single document, synchronous (the page freezes while elaborating, like the other demos), no `$/cancelRequest`, no `fileProgress`, no interactive goals (info-006), no go-to-definition.
