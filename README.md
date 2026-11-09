@@ -72,6 +72,7 @@ Enable execution of Lean4 code in modern web browser, through one or combination
 * `lake exe lcnf-dump FILE.lean [--phase base|mono|impure]` — elaborates a Lean file
   and dumps its LCNF (compiler IR) as JSON. See [docs/design/lcnf-json.md](docs/design/lcnf-json.md).
 * `./demo.sh` — walkthrough on five tiny programs in `demo/`: source, `lean --run`, native binary (`lean -c` + `leanc`), compile to JS, `node` (commands and timings shown).
+* `lake test [-- --quick]` — runs `test.sh` (via `TestDriver.lean`), then the headless-Chrome page tests if `google-chrome` exists (`LEAN2JS_NO_BROWSER=1` skips them).
 * `./test.sh [--quick]` — all tests: lcnf-dump goldens (`tests/run.sh`), demo programs and the e2e differential tests (`tests/e2e/run.sh`).
 * `lake exe lean2js FILE.lean --run --out F.js` — transpile a Lean program (with all its dependencies) to
   JavaScript via Lean's reference-counted IR; run with `node F.js` (needs `runtime/lean_rt.js` next to it).

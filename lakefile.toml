@@ -1,6 +1,7 @@
 name = "lean2js"
 version = "0.1.0"
 defaultTargets = ["lean2js"]
+testDriver = "testdriver"
 
 [[lean_lib]]
 name = "Lean2js"
@@ -9,6 +10,10 @@ name = "Lean2js"
 name = "lean2js"
 root = "Main"
 supportInterpreter = true
+
+[[lean_exe]]
+name = "testdriver"
+root = "TestDriver"
 
 [[lean_exe]]
 name = "lcnf-dump"

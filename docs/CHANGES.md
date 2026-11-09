@@ -2,6 +2,8 @@
 
 Completed tasks, newest first. Each entry links the ticket and gives date and a brief summary.
 
+* 2026-11-09 — `lake test` wired up: `testDriver = "testdriver"` (`TestDriver.lean`) runs `test.sh` (args after `--` are passed on, e.g. `--quick`) and the headless-Chrome page tests when `google-chrome` is available (`LEAN2JS_NO_BROWSER=1` skips); clears `LD_LIBRARY_PATH` for children so system `node` works.
+
 * 2026-11-05 — web/ reorganized: everything directly under `web/` (calc.html, elab.html, demo.html, infoview.html, index.html as an index, driver.js, serve.mjs, build.sh [calc|selfhost], test-browser.sh); generated files git-ignored individually (driver.js/worker.js were accidentally ignored before). Paths `web/selfhost/` in older entries and tickets were rewritten to `web/`.
 
 * 2026-11-05 — housekeeping: js-008…js-011 closed, js-014 mostly done (ByteArray amortized push, `tests/e2e/bytepush.lean`), TODO.md rewritten; open questions filed: info-006 (interactive goals), self-008 (more memory work?), demo-002 (LSP server).
